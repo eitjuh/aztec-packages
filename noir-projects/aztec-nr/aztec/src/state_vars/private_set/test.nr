@@ -1,21 +1,23 @@
 use crate::{
     context::{PrivateContext, UtilityContext},
     note::{note_getter_options::NoteGetterOptions, note_viewer_options::NoteViewerOptions},
-    state_vars::private_set::PrivateSet,
+    state_vars::{owned_state_variable::OwnedStateVariable, private_set::PrivateSet},
 };
 use crate::test::{helpers::test_environment::TestEnvironment, mocks::mock_note::MockNote};
+use protocol_types::{address::AztecAddress, traits::FromField};
 
+global OWNER: AztecAddress = AztecAddress::from_field(50);
 global STORAGE_SLOT: Field = 17;
 global VALUE: Field = 23;
 
 unconstrained fn in_private(
     context: &mut PrivateContext,
 ) -> PrivateSet<MockNote, &mut PrivateContext> {
-    PrivateSet::new(context, STORAGE_SLOT)
+    PrivateSet::new(context, STORAGE_SLOT, OWNER)
 }
 
 unconstrained fn in_utility(context: UtilityContext) -> PrivateSet<MockNote, UtilityContext> {
-    PrivateSet::new(context, STORAGE_SLOT)
+    PrivateSet::new(context, STORAGE_SLOT, OWNER)
 }
 
 #[test]

@@ -1,3 +1,4 @@
+import type { BlockNumber } from '@aztec/foundation/branded-types';
 import { Aes128 } from '@aztec/foundation/crypto';
 import { Fr, Point } from '@aztec/foundation/fields';
 import { LogLevels, applyStringFormatting, createLogger } from '@aztec/foundation/log';
@@ -70,7 +71,7 @@ export class UtilityExecutionOracle implements IMiscOracle, IUtilityExecutionOra
    * @param leafValue - The leaf value
    * @returns The index and sibling path concatenated [index, sibling_path]
    */
-  public utilityGetMembershipWitness(blockNumber: number, treeId: MerkleTreeId, leafValue: Fr): Promise<Fr[]> {
+  public utilityGetMembershipWitness(blockNumber: BlockNumber, treeId: MerkleTreeId, leafValue: Fr): Promise<Fr[]> {
     return this.executionDataProvider.getMembershipWitness(blockNumber, treeId, leafValue);
   }
 
@@ -81,7 +82,7 @@ export class UtilityExecutionOracle implements IMiscOracle, IUtilityExecutionOra
    * @returns The nullifier membership witness (if found).
    */
   public async utilityGetNullifierMembershipWitness(
-    blockNumber: number,
+    blockNumber: BlockNumber,
     nullifier: Fr,
   ): Promise<NullifierMembershipWitness | undefined> {
     return await this.executionDataProvider.getNullifierMembershipWitness(blockNumber, nullifier);
@@ -97,7 +98,7 @@ export class UtilityExecutionOracle implements IMiscOracle, IUtilityExecutionOra
    * we are trying to prove non-inclusion for.
    */
   public async utilityGetLowNullifierMembershipWitness(
-    blockNumber: number,
+    blockNumber: BlockNumber,
     nullifier: Fr,
   ): Promise<NullifierMembershipWitness | undefined> {
     return await this.executionDataProvider.getLowNullifierMembershipWitness(blockNumber, nullifier);
@@ -109,7 +110,10 @@ export class UtilityExecutionOracle implements IMiscOracle, IUtilityExecutionOra
    * @param leafSlot - The slot of the public data tree to get the witness for.
    * @returns - The witness
    */
-  public async utilityGetPublicDataWitness(blockNumber: number, leafSlot: Fr): Promise<PublicDataWitness | undefined> {
+  public async utilityGetPublicDataWitness(
+    blockNumber: BlockNumber,
+    leafSlot: Fr,
+  ): Promise<PublicDataWitness | undefined> {
     return await this.executionDataProvider.getPublicDataWitness(blockNumber, leafSlot);
   }
 
@@ -118,7 +122,7 @@ export class UtilityExecutionOracle implements IMiscOracle, IUtilityExecutionOra
    * @param blockNumber - The number of a block of which to get the block header.
    * @returns Block extracted from a block with block number `blockNumber`.
    */
-  public async utilityGetBlockHeader(blockNumber: number): Promise<BlockHeader | undefined> {
+  public async utilityGetBlockHeader(blockNumber: BlockNumber): Promise<BlockHeader | undefined> {
     const block = await this.executionDataProvider.getBlock(blockNumber);
     if (!block) {
       return undefined;
@@ -164,6 +168,7 @@ export class UtilityExecutionOracle implements IMiscOracle, IUtilityExecutionOra
    * Real notes coming from DB will have a leafIndex which
    * represents their index in the note hash tree.
    *
+   * @param owner - The owner of the notes.
    * @param storageSlot - The storage slot.
    * @param numSelects - The number of valid selects in selectBy and selectValues.
    * @param selectBy - An array of indices of the fields to selects.
@@ -177,6 +182,7 @@ export class UtilityExecutionOracle implements IMiscOracle, IUtilityExecutionOra
    * @returns Array of note data.
    */
   public async utilityGetNotes(
+    owner: AztecAddress,
     storageSlot: Fr,
     numSelects: number,
     selectByIndexes: number[],
@@ -192,7 +198,13 @@ export class UtilityExecutionOracle implements IMiscOracle, IUtilityExecutionOra
     offset: number,
     status: NoteStatus,
   ): Promise<NoteData[]> {
-    const dbNotes = await this.executionDataProvider.getNotes(this.contractAddress, storageSlot, status, this.scopes);
+    const dbNotes = await this.executionDataProvider.getNotes(
+      this.contractAddress,
+      owner,
+      storageSlot,
+      status,
+      this.scopes,
+    );
     return pickNotes<NoteData>(dbNotes, {
       selects: selectByIndexes.slice(0, numSelects).map((index, i) => ({
         selector: { index, offset: selectByOffsets[i], length: selectByLengths[i] },
@@ -241,7 +253,7 @@ export class UtilityExecutionOracle implements IMiscOracle, IUtilityExecutionOra
   public async utilityStorageRead(
     contractAddress: AztecAddress,
     startStorageSlot: Fr,
-    blockNumber: number,
+    blockNumber: BlockNumber,
     numberOfElements: number,
   ) {
     const values = [];

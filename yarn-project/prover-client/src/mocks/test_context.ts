@@ -1,6 +1,7 @@
 import type { BBProverConfig } from '@aztec/bb-prover';
 import { TestCircuitProver } from '@aztec/bb-prover';
 import { NUMBER_OF_L1_L2_MESSAGES_PER_ROLLUP } from '@aztec/constants';
+import { BlockNumber, CheckpointNumber } from '@aztec/foundation/branded-types';
 import { padArrayEnd, times, timesAsync } from '@aztec/foundation/collection';
 import { Fr } from '@aztec/foundation/fields';
 import type { Logger } from '@aztec/foundation/log';
@@ -186,7 +187,7 @@ export class TestContext {
     }
 
     const checkpointIndex = this.nextCheckpointIndex++;
-    const checkpointNumber = checkpointIndex + 1;
+    const checkpointNumber = CheckpointNumber(checkpointIndex + 1);
     const slotNumber = checkpointNumber * 15; // times an arbitrary number to make it different to the checkpoint number
 
     const constants = makeCheckpointConstants(slotNumber, constantOpts);
@@ -202,7 +203,7 @@ export class TestContext {
     const newL1ToL2Snapshot = await getTreeSnapshot(MerkleTreeId.L1_TO_L2_MESSAGE_TREE, fork);
 
     const startBlockNumber = this.nextBlockNumber;
-    const previousBlockHeader = this.getBlockHeader(startBlockNumber - 1);
+    const previousBlockHeader = this.getBlockHeader(BlockNumber(startBlockNumber - 1));
 
     // Build global variables.
     const blockGlobalVariables = times(numBlocks, i =>
@@ -296,11 +297,13 @@ export class TestContext {
     return tx;
   }
 
-  private getBlockHeader(blockNumber: number): BlockHeader {
-    if (blockNumber > 0 && blockNumber >= this.nextBlockNumber) {
+  private getBlockHeader(blockNumber: BlockNumber): BlockHeader {
+    if (Number(blockNumber) > 0 && Number(blockNumber) >= this.nextBlockNumber) {
       throw new Error(`Block header not built for block number ${blockNumber}.`);
     }
-    return blockNumber === 0 ? this.worldState.getCommitted().getInitialHeader() : this.headers.get(blockNumber)!;
+    return Number(blockNumber) === 0
+      ? this.worldState.getCommitted().getInitialHeader()
+      : this.headers.get(Number(blockNumber))!;
   }
 
   private async updateTrees(txs: ProcessedTx[], fork: MerkleTreeWriteOperations) {

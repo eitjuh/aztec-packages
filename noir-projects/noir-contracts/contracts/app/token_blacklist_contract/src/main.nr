@@ -31,19 +31,17 @@ pub contract TokenBlacklist {
             note_interface::{NoteHash, NoteProperties, NoteType},
         },
         protocol_types::traits::ToField,
-        state_vars::{DelayedPublicMutable, Map, PrivateSet, PublicMutable},
+        state_vars::{DelayedPublicMutable, Map, Owned, PrivateSet, PublicMutable, StateVariable},
         utils::comparison::Comparator,
     };
 
     use std::ops::{Add, Sub};
 
-    use crate::types::{
-        balances_map::BalancesMap, roles::UserFlags, token_note::TokenNote,
-        transparent_note::TransparentNote,
-    };
+    use crate::types::{roles::UserFlags, transparent_note::TransparentNote};
     use aztec::protocol_types::{
         address::AztecAddress, constants::MAX_NOTE_HASHES_PER_TX, traits::Packable,
     };
+    use balance_set::BalanceSet;
 
     // Changing an address' roles has a certain delay before it goes into effect. Here set to 1 day.
     global CHANGE_ROLES_DELAY: u64 = 86400;
@@ -55,9 +53,9 @@ pub contract TokenBlacklist {
 
     #[storage]
     struct Storage<Context> {
-        balances: BalancesMap<TokenNote, Context>,
+        balances: Owned<BalanceSet<Context>, Context>,
         total_supply: PublicMutable<u128, Context>,
-        pending_shields: PrivateSet<TransparentNote, Context>,
+        pending_shields: Owned<PrivateSet<TransparentNote, Context>, Context>,
         public_balances: Map<AztecAddress, PublicMutable<u128, Context>, Context>,
         roles: Map<AztecAddress, DelayedPublicMutable<UserFlags, CHANGE_ROLES_DELAY, Context>, Context>,
     }
@@ -116,7 +114,6 @@ pub contract TokenBlacklist {
         let caller_roles = self.storage.roles.at(self.msg_sender().unwrap()).get_current_value();
         assert(caller_roles.is_minter, "caller is not minter");
 
-        let pending_shields = self.storage.pending_shields;
         let note = TransparentNote::new(amount, secret_hash);
         let supply = self.storage.total_supply.read().add(amount);
 
@@ -125,8 +122,13 @@ pub contract TokenBlacklist {
         // We insert the note hash into the pending_shields. Since the TransparentNote flow is deprecated (use partial
         // notes instead), we no longer have utility a function exposed on the PrivateSet to insert the note hash from
         // public context. Hence we need to manually get the slot and insert the note hash into the context.
-        let note_hash =
-            note.compute_note_hash(pending_shields.storage_slot, TRANSPARENT_NOTE_RANDOMNESS);
+        // We use AztecAddress::zero() as the owner since TransparentNote is not owned by a specific address but instead
+        // by anyone who has the secret (preimage of the secret_hash stored in the note).
+        let note_hash = note.compute_note_hash(
+            AztecAddress::zero(),
+            self.storage.pending_shields.get_storage_slot(),
+            TRANSPARENT_NOTE_RANDOMNESS,
+        );
         self.context.push_note_hash(note_hash);
     }
 
@@ -137,8 +139,6 @@ pub contract TokenBlacklist {
         assert(!from_roles.is_blacklisted, "Blacklisted: Sender");
 
         let from_balance = self.storage.public_balances.at(from).read().sub(amount);
-
-        let pending_shields = self.storage.pending_shields;
         let note = TransparentNote::new(amount, secret_hash);
 
         self.storage.public_balances.at(from).write(from_balance);
@@ -146,8 +146,13 @@ pub contract TokenBlacklist {
         // We insert the note hash into the pending_shields. Since the TransparentNote flow is deprecated (use partial
         // notes instead), we no longer have utility a function exposed on the PrivateSet to insert the note hash from
         // public context. Hence we need to manually get the slot and insert the note hash into the context.
-        let note_hash =
-            note.compute_note_hash(pending_shields.storage_slot, TRANSPARENT_NOTE_RANDOMNESS);
+        // We use AztecAddress::zero() as the owner since TransparentNote is not owned by a specific address but instead
+        // by anyone who has the secret (preimage of the secret_hash stored in the note).
+        let note_hash = note.compute_note_hash(
+            AztecAddress::zero(),
+            self.storage.pending_shields.get_storage_slot(),
+            TRANSPARENT_NOTE_RANDOMNESS,
+        );
         self.context.push_note_hash(note_hash);
     }
 
@@ -194,11 +199,13 @@ pub contract TokenBlacklist {
             .select(TransparentNote::properties().secret_hash, Comparator.EQ, secret_hash)
             .set_limit(1);
 
-        let notes = self.storage.pending_shields.pop_notes(options);
+        // We use AztecAddress::zero() as the owner since TransparentNote is not owned by a specific address but instead by
+        // anyone who has the secret (preimage of the secret_hash stored in the note).
+        let notes = self.storage.pending_shields.at(AztecAddress::zero()).pop_notes(options);
         assert(notes.len() == 1, "note not popped");
 
         // Add the token note to user's balances set
-        self.storage.balances.add(to, amount).emit(to, MessageDelivery.CONSTRAINED_ONCHAIN);
+        self.storage.balances.at(to).add(amount).emit(to, MessageDelivery.CONSTRAINED_ONCHAIN);
     }
 
     #[authorize_once("from", "authwit_nonce")]
@@ -209,7 +216,7 @@ pub contract TokenBlacklist {
         let to_roles = self.storage.roles.at(to).get_current_value();
         assert(!to_roles.is_blacklisted, "Blacklisted: Recipient");
 
-        self.storage.balances.sub(from, amount).emit(from, MessageDelivery.CONSTRAINED_ONCHAIN);
+        self.storage.balances.at(from).sub(amount).emit(from, MessageDelivery.CONSTRAINED_ONCHAIN);
 
         self.enqueue_self._increase_public_balance(to, amount);
     }
@@ -223,8 +230,8 @@ pub contract TokenBlacklist {
         let to_roles = self.storage.roles.at(to).get_current_value();
         assert(!to_roles.is_blacklisted, "Blacklisted: Recipient");
 
-        self.storage.balances.sub(from, amount).emit(from, MessageDelivery.UNCONSTRAINED_ONCHAIN);
-        self.storage.balances.add(to, amount).emit(to, MessageDelivery.UNCONSTRAINED_ONCHAIN);
+        self.storage.balances.at(from).sub(amount).emit(from, MessageDelivery.UNCONSTRAINED_ONCHAIN);
+        self.storage.balances.at(to).add(amount).emit(to, MessageDelivery.UNCONSTRAINED_ONCHAIN);
     }
 
     #[authorize_once("from", "authwit_nonce")]
@@ -233,7 +240,7 @@ pub contract TokenBlacklist {
         let from_roles = self.storage.roles.at(from).get_current_value();
         assert(!from_roles.is_blacklisted, "Blacklisted: Sender");
 
-        self.storage.balances.sub(from, amount).emit(from, MessageDelivery.CONSTRAINED_ONCHAIN);
+        self.storage.balances.at(from).sub(amount).emit(from, MessageDelivery.CONSTRAINED_ONCHAIN);
 
         self.enqueue_self._reduce_total_supply(amount);
     }
@@ -254,8 +261,8 @@ pub contract TokenBlacklist {
     }
 
     #[external("utility")]
-    unconstrained fn balance_of_private(owner: AztecAddress) -> Field {
-        self.storage.balances.balance_of(owner).to_field()
+    unconstrained fn balance_of_private(owner: AztecAddress) -> pub Field {
+        self.storage.balances.at(owner).balance_of().to_field()
     }
 
     // We cannot replace this function with the standard `process_message` function because the transparent note
@@ -277,6 +284,8 @@ pub contract TokenBlacklist {
         let note_type_id = TransparentNote::get_id();
         let packed_note = BoundedVec::from_array(note.pack());
 
+        // We use AztecAddress::zero() as the owner since TransparentNote is not owned by a specific address but instead
+        // by anyone who has the secret (preimage of the secret_hash stored in the note).
         attempt_note_discovery(
             contract_address,
             tx_hash,
@@ -284,6 +293,7 @@ pub contract TokenBlacklist {
             first_nullifier_in_tx,
             recipient,
             _compute_note_hash_and_nullifier,
+            AztecAddress::zero(),
             storage_slot,
             TRANSPARENT_NOTE_RANDOMNESS,
             note_type_id,
