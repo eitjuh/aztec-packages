@@ -10,25 +10,31 @@ function cleanup {
 trap 'cleanup' SIGINT SIGTERM EXIT
 cleanup
 
-# If we're running in a terminal, run the container interactively.
-# Drop into a shell if the test fails.
+function run {
+  echo "Running test $name..."
+  docker run --rm ${args:-} \
+    -e FORCE_COLOR=1 \
+    --name $name \
+    --tmpfs /home/ubuntu/.nvm:exec,size=4g \
+    --tmpfs /home/ubuntu/.npm:exec,size=2g \
+    -v$(git rev-parse --show-toplevel):/home/ubuntu/aztec-packages:ro \
+    -v$HOME/.bb-crs:/home/ubuntu/.bb-crs \
+    -w/home/ubuntu \
+    --user ubuntu:ubuntu \
+    aztecprotocol/aztec-release-test \
+    bash -c "
+      aztec-packages/aztec-up/scripts/run_isolated_test.sh $name ${fail_shell:-}
+    "
+}
+
 if [ -t 0 ]; then
+  # If we're running in a terminal, run the container interactively.
+  # Drop into a shell if the test fails.
   args="-ti"
   fail_shell="|| exec bash"
+  run
+else
+  # Otherwise run in background so we can promptly handle signals.
+  run &
+  wait $!
 fi
-
-echo "Running test $name..."
-docker run --rm ${args:-} \
-  -e FORCE_COLOR=1 \
-  --name $name \
-  --tmpfs /home/ubuntu/.nvm:exec,size=4g \
-  --tmpfs /home/ubuntu/.npm:exec,size=2g \
-  -v$(git rev-parse --show-toplevel):/home/ubuntu/aztec-packages:ro \
-  -v$HOME/.bb-crs:/home/ubuntu/.bb-crs \
-  -w/home/ubuntu \
-  --user ubuntu:ubuntu \
-  aztecprotocol/aztec-release-test \
-  bash -c "
-    aztec-packages/aztec-up/scripts/run_isolated_test.sh $name ${fail_shell:-}
-  " &
-wait $!
