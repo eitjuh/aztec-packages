@@ -31,7 +31,11 @@ if [ -t 0 ]; then
   # If we're running in a terminal, run the container interactively.
   # Drop into a shell if the test fails.
   args="-ti"
-  fail_shell="|| exec bash"
+  if [ "${NO_TERMINATE:-0}" -eq 1 ]; then
+    fail_shell="&& exec bash"
+  else
+    fail_shell="|| exec bash"
+  fi
   run
 else
   # Otherwise run in background so we can promptly handle signals.
