@@ -100,7 +100,8 @@ function release {
   local version=${REF_NAME#v}
 
   # Upload version-specific files to version directory.
-  do_or_dryrun aws s3 cp bin/0.0.1 "s3://install.aztec.network/$version/"
+  do_or_dryrun aws s3 cp bin/0.0.1/install "s3://install.aztec.network/$version/install"
+  do_or_dryrun aws s3 cp bin/0.0.1/versions "s3://install.aztec.network/$version/versions"
 
   # Upload root installer files to the version directory, which can be useful for testing.
   do_or_dryrun aws s3 cp bin/aztec-install "s3://install.aztec.network/$version/aztec-install"
