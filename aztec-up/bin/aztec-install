@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Root bootstrap script for Aztec toolchain
 # This script installs aztec-up and then delegates to it for version installation.
-# Usage: curl -s https://install.aztec.network | bash
-#    or: VERSION=0.85.0 curl -s https://install.aztec.network | bash
+# Usage: bash -i <(curl -s https://install.aztec.network)
+#    or: VERSION=0.85.0 bash -i <(curl -s https://install.aztec.network)
 set -euo pipefail
 
 # Colors
@@ -68,17 +68,18 @@ function title {
 function check_for_old_install {
   if [ -f "$AZTEC_HOME/bin/.aztec-run" ]; then
     echo_yellow "WARNING: An existing Aztec installation was detected in $AZTEC_HOME."
-    echo_yellow "You should only proceed if you no longer intend to use older versions of Aztec installed via the old docker-based method!"
     echo
-    echo "Aztec has moved to a native, dockerless installation, using ${bold}${g}aztec-up${r} as a version manager."
+    echo "You should only proceed if you no longer intend to use older versions of Aztec installed via the old docker-based method."
+    echo -e "Aztec has moved to a native, dockerless installation, using ${bold}${g}aztec-up${r} as a version manager."
     echo "The container is still available but is only useful for running node infrastructure, not contract development."
+    echo
 
     if [ "$NON_INTERACTIVE" -eq 1 ]; then
       echo "Remove $AZTEC_HOME and try again."
       exit 1
     fi
 
-    echo "If you continue, the entire $AZTEC_HOME directory will be removed and replaced with the new installation."
+    echo_yellow "If you continue, the entire $AZTEC_HOME directory will be removed and replaced with the new installation."
     echo "You should manually remove old docker images you no longer need."
     echo
     read -p "Do you wish to continue? (y/n) " -n 1 -r
@@ -87,6 +88,7 @@ function check_for_old_install {
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
       exit 1
     fi
+    rm -rf "$AZTEC_HOME"
   fi
 }
 
