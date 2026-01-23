@@ -10,8 +10,8 @@ use crate::macros::{
     notes::NOTES,
     storage::STORAGE_LAYOUT_NAME,
     utils::{
-        get_trait_impl_method, is_fn_contract_library_method, is_fn_external, is_fn_internal,
-        is_fn_test, module_has_storage,
+        get_trait_impl_method, is_fn_contract_library_method, is_fn_custom_message_handler,
+        is_fn_external, is_fn_internal, is_fn_test, module_has_storage,
     },
 };
 
@@ -44,17 +44,25 @@ pub comptime fn aztec(m: Module) -> Quoted {
     } else {
         quote {}
     };
-    let contract_library_method_process_custom_message = if !m.functions().any(|f| {
-        f.name() == quote { _process_custom_message }
-    }) {
-        generate_contract_library_method_process_custom_message()
+    // Look for a user-provided #[custom_message_handler] function, or generate a default.
+    let custom_message_handlers =
+        m.functions().filter(|f: FunctionDefinition| is_fn_custom_message_handler(f));
+    let (contract_library_method_process_custom_message, custom_message_handler_name) = if custom_message_handlers
+        .len()
+        > 0 {
+        // User provided their own handler via annotation - use its name directly.
+        (quote {}, custom_message_handlers[0].name())
     } else {
-        quote {}
+        // No annotated handler found - generate the default.
+        (
+            generate_contract_library_method_process_custom_message(),
+            quote { _process_custom_message },
+        )
     };
     let sync_private_state_fn_and_abi_export = if !m.functions().any(|f| {
         f.name() == quote { sync_private_state }
     }) {
-        generate_sync_private_state()
+        generate_sync_private_state(custom_message_handler_name)
     } else {
         quote {}
     };
@@ -62,7 +70,7 @@ pub comptime fn aztec(m: Module) -> Quoted {
     let process_message_fn_and_abi_export = if !m.functions().any(|f| {
         f.name() == quote { process_message }
     }) {
-        generate_process_message()
+        generate_process_message(custom_message_handler_name)
     } else {
         quote {}
     };
@@ -284,9 +292,9 @@ comptime fn generate_contract_library_method_compute_note_hash_and_nullifier() -
     }
 }
 
-/// Generates a default contract library method called `_process_custom_message` which handles unknown message types
-/// encountered during message processing. The default implementation simply logs the unknown type ID.
-/// Contracts can override this by defining their own `_process_custom_message` function.
+/// Generates a default `_process_custom_message` function which handles unknown message types encountered during
+/// message processing. The default implementation simply logs the unknown type ID.
+/// This is only generated when no function in the contract has the `#[custom_message_handler]` annotation.
 comptime fn generate_contract_library_method_process_custom_message() -> Quoted {
     quote {
         #[contract_library_method]
@@ -302,7 +310,7 @@ comptime fn generate_contract_library_method_process_custom_message() -> Quoted 
     }
 }
 
-comptime fn generate_sync_private_state() -> Quoted {
+comptime fn generate_sync_private_state(custom_message_handler_name: Quoted) -> Quoted {
     quote {
         pub struct sync_private_state_parameters {}
 
@@ -314,13 +322,13 @@ comptime fn generate_sync_private_state() -> Quoted {
         #[aztec::macros::internals_functions_generation::abi_attributes::abi_utility]
         unconstrained fn sync_private_state() {
             let address = aztec::context::UtilityContext::new().this_address();
-            
-            aztec::messages::discovery::discover_new_messages(address, _compute_note_hash_and_nullifier, _process_custom_message);
+
+            aztec::messages::discovery::discover_new_messages(address, _compute_note_hash_and_nullifier, $custom_message_handler_name);
         }
     }
 }
 
-comptime fn generate_process_message() -> Quoted {
+comptime fn generate_process_message(custom_message_handler_name: Quoted) -> Quoted {
     quote {
         pub struct process_message_parameters {
             pub message_ciphertext: BoundedVec<Field, aztec::messages::encoding::MESSAGE_CIPHERTEXT_LEN>,
@@ -342,7 +350,7 @@ comptime fn generate_process_message() -> Quoted {
             aztec::messages::discovery::process_message::process_message_ciphertext(
                 address,
                 _compute_note_hash_and_nullifier,
-                _process_custom_message,
+                $custom_message_handler_name,
                 message_ciphertext,
                 message_context,
             );

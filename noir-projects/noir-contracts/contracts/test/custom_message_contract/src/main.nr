@@ -8,7 +8,7 @@ contract CustomMessage {
             compute_private_event_commitment, compute_private_serialized_event_commitment,
             EventInterface,
         },
-        macros::{events::event, functions::external},
+        macros::{events::event, functions::{custom_message_handler, external}},
         messages::{
             encoding::{encode_message, MAX_MESSAGE_CONTENT_LEN},
             logs::event::MAX_EVENT_SERIALIZED_LEN,
@@ -67,7 +67,7 @@ contract CustomMessage {
 
     /// Emits a multi-log event split across 2 private logs. This demonstrates the multi-log
     /// message pattern: the event data is split into parts, each sent as a separate log with
-    /// a custom message type. The receiver's _process_custom_message handler reassembles them.
+    /// a custom message type. The receiver's custom_message_handler reassembles them.
     ///
     /// Each part includes `randomness` as its first content field, which serves as a message_id
     /// for correlating parts belonging to the same multi-log event (allowing multiple multi-log
@@ -124,15 +124,16 @@ contract CustomMessage {
         );
     }
 
-    /// Custom message handler that reassembles multi-log messages. Each part is stored in a
-    /// CapsuleArray. When all parts for a given tx_hash arrive, the full event is reconstructed
-    /// and stored via the standard event infrastructure.
+    /// Reassembles multi-log messages. Each part is stored in a CapsuleArray. When all parts for
+    /// a given (tx_hash, message_id) arrive, the full event is reconstructed and stored via the
+    /// standard event infrastructure.
     ///
     /// Parts are correlated by (tx_hash, message_id) where message_id is the first field of
     /// every part's content (which is the event's randomness). This allows multiple multi-log
     /// events within the same transaction.
     #[contract_library_method]
-    unconstrained fn _process_custom_message(
+    #[custom_message_handler]
+    unconstrained fn handle_multi_log_message(
         contract_address: AztecAddress,
         msg_type_id: u64,
         msg_metadata: u64,

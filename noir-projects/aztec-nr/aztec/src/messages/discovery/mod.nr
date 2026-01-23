@@ -67,9 +67,8 @@ pub type ComputeNoteHashAndNullifier<Env> = unconstrained fn[Env](/* packed_note
 /// `process_message_plaintext` encounters a `msg_type_id` that doesn't match any built-in type (private notes,
 /// partial notes, or events), it calls this function instead of silently ignoring the message.
 ///
-/// This function must be user-provided. The `#[aztec]` macro automatically creates a default implementation
-/// called `_process_custom_message` that simply logs the unknown type. Contracts can override this by defining
-/// their own `_process_custom_message` function.
+/// Contracts can provide a custom handler by annotating a function with `#[custom_message_handler]`. If no such
+/// function exists, the `#[aztec]` macro generates a default that simply logs the unknown type ID.
 pub type ProcessCustomMessage<Env> = unconstrained fn[Env](
 /* contract_address */AztecAddress,
 /* msg_type_id */ u64,
