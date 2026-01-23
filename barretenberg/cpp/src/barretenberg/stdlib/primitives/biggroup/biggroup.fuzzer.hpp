@@ -444,7 +444,7 @@ template <typename Builder, typename BigGroupType, bool _use_bigfield = false> c
                              havoc_config.VAL_MUT_MONTGOMERY_PROBABILITY;
             uint256_t value_data;
 
-            // Pick the last value from the mutation distrivution vector
+            // Pick the last value from the mutation distribution vector
             const size_t mutation_type_count = havoc_config.value_mutation_distribution.size();
             // Choose mutation
             const size_t choice = rng.next() % havoc_config.value_mutation_distribution[mutation_type_count - 1];
@@ -794,6 +794,7 @@ template <typename Builder, typename BigGroupType, bool _use_bigfield = false> c
                     instr.arguments.batchMulArgs.scalars[i] = ScalarField::serialize_from_buffer(Data + offset);
                     offset += sizeof(ScalarField);
                 }
+                break;
             }
 #endif
             case Instruction::OPCODE::RANDOMSEED:
@@ -823,6 +824,7 @@ template <typename Builder, typename BigGroupType, bool _use_bigfield = false> c
                 break;
             case Instruction::OPCODE::VALIDATE_ON_CURVE:
                 *(Data + 1) = instruction.arguments.oneArg.in;
+                break;
             case Instruction::OPCODE::DBL:
             case Instruction::OPCODE::NEG:
             case Instruction::OPCODE::ASSERT_EQUAL:
@@ -1165,8 +1167,9 @@ template <typename Builder, typename BigGroupType, bool _use_bigfield = false> c
                 new_biggroup = this->bg().conditional_select(other.bg(), construct_predicate(builder, predicate));
             } else {
                 debug_log("rhs.conditional_select(lhs, ");
-                new_biggroup = other.bg().conditional_select(this->bg(), construct_predicate(builder, predicate));
+                new_biggroup = other.bg().conditional_select(this->bg(), construct_predicate(builder, !predicate));
             }
+            debug_log(");", "\n");
             return ExecutionHandler(new_base_scalar, new_base, new_biggroup);
         }
 
@@ -1409,39 +1412,6 @@ template <typename Builder, typename BigGroupType, bool _use_bigfield = false> c
         };
 
         /**
-         * @brief Execute the COND_NEG instruction
-         *
-         * @param builder
-         * @param stack
-         * @param instruction
-         * @return 0 to continue, 1 to stop
-         */
-        static inline size_t execute_COND_NEG(Builder* builder,
-                                              std::vector<ExecutionHandler>& stack,
-                                              Instruction& instruction)
-        {
-            (void)builder;
-            if (stack.size() == 0) {
-                return 1;
-            }
-            size_t first_index = instruction.arguments.twoArgs.in % stack.size();
-            size_t output_index = instruction.arguments.twoArgs.out;
-
-            if constexpr (SHOW_FUZZING_INFO) {
-                auto args = format_single_arg(stack, first_index, output_index);
-                debug_log(args.out, " = -", args.rhs, ";", "\n");
-            }
-            ExecutionHandler result = -stack[first_index];
-            // If the output index is larger than the number of elements in stack, append
-            if (output_index >= stack.size()) {
-                stack.push_back(result);
-            } else {
-                stack[output_index] = result;
-            }
-            return 0;
-        };
-
-        /**
          * @brief Execute the ASSERT_EQUAL  instruction
          *
          * @param builder
@@ -1597,10 +1567,9 @@ template <typename Builder, typename BigGroupType, bool _use_bigfield = false> c
             ExecutionHandler result;
             if constexpr (SHOW_FUZZING_INFO) {
                 auto args = format_two_arg(stack, first_index, second_index, output_index);
-                debug_log(args.out, " = ::conditional_select(");
+                debug_log("// ", args.out, " = ::conditional_select::", args.lhs, ", ", args.rhs, ";", "\n");
                 // Need to split logs here, since `conditional_select` produces extra logs
                 result = stack[first_index].conditional_select(builder, stack[second_index], predicate);
-                debug_log(args.rhs, ", ", args.lhs, ");", "\n");
             } else {
                 result = stack[first_index].conditional_select(builder, stack[second_index], predicate);
             }
@@ -1775,7 +1744,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
     (void)argc;
     (void)argv;
-    // These are the settings, optimized for the safeuint class (under them, fuzzer reaches maximum expected
+    // These are the settings, optimized for the biggroup class (under them, fuzzer reaches maximum expected
     // coverage in 40 seconds)
     fuzzer_havoc_settings = HavocSettings{ .GEN_LLVM_POST_MUTATION_PROB = 30,          // Out of 200
                                            .GEN_MUTATION_COUNT_LOG = 5,                // -Fully checked

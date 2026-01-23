@@ -411,7 +411,7 @@ template <typename Builder> class CycleGroupBase {
                              havoc_config.VAL_MUT_MONTGOMERY_PROBABILITY;
             uint256_t value_data;
 
-            // Pick the last value from the mutation distrivution vector
+            // Pick the last value from the mutation distribution vector
             const size_t mutation_type_count = havoc_config.value_mutation_distribution.size();
             // Choose mutation
             const size_t choice = rng.next() % havoc_config.value_mutation_distribution[mutation_type_count - 1];
@@ -753,6 +753,7 @@ template <typename Builder> class CycleGroupBase {
                     instr.arguments.batchMulArgs.scalars[i] = ScalarField::serialize_from_buffer(Data + offset);
                     offset += sizeof(ScalarField);
                 }
+                break;
             }
 #endif
             case Instruction::OPCODE::RANDOMSEED:
