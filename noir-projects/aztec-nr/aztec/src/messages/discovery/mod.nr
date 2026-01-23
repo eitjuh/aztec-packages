@@ -9,9 +9,10 @@ pub mod process_message;
 use crate::{
     messages::{
         discovery::process_message::process_message_ciphertext,
+        encoding::MAX_MESSAGE_CONTENT_LEN,
         logs::note::MAX_NOTE_PACKED_LEN,
         processing::{
-            get_private_logs, pending_tagged_log::PendingTaggedLog,
+            get_private_logs, MessageContext, pending_tagged_log::PendingTaggedLog,
             validate_enqueued_notes_and_events,
         },
     },
@@ -62,6 +63,20 @@ pub struct NoteHashAndNullifier {
 /// ```
 pub type ComputeNoteHashAndNullifier<Env> = unconstrained fn[Env](/* packed_note */BoundedVec<Field, MAX_NOTE_PACKED_LEN>, /* owner */ AztecAddress, /* storage_slot */ Field, /* note_type_id */ Field, /* contract_address */ AztecAddress, /* randomness */ Field, /* note nonce */ Field) -> Option<NoteHashAndNullifier>;
 
+/// A function which handles unknown message types encountered during message processing. When
+/// `process_message_plaintext` encounters a `msg_type_id` that doesn't match any built-in type (private notes,
+/// partial notes, or events), it calls this function instead of silently ignoring the message.
+///
+/// This function must be user-provided. The `#[aztec]` macro automatically creates a default implementation
+/// called `_process_custom_message` that simply logs the unknown type. Contracts can override this by defining
+/// their own `_process_custom_message` function.
+pub type ProcessCustomMessage<Env> = unconstrained fn[Env](
+/* contract_address */AztecAddress,
+/* msg_type_id */ u64,
+/* msg_metadata */ u64,
+/* msg_content */ BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
+/* message_context */ MessageContext);
+
 /// Performs the message discovery process, in which private logs are downloaded and inspected to find new private
 /// notes, partial notes and events, etc., and pending partial notes are processed to search for their completion logs.
 /// This is the mechanism via which a contract updates its knowledge of its private state.
@@ -71,9 +86,10 @@ pub type ComputeNoteHashAndNullifier<Env> = unconstrained fn[Env](/* packed_note
 ///
 /// Receives the address of the contract on which discovery is performed along with its
 /// `compute_note_hash_and_nullifier` function.
-pub unconstrained fn discover_new_messages<Env>(
+pub unconstrained fn discover_new_messages<Env, Env2>(
     contract_address: AztecAddress,
     compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env>,
+    process_custom_message: ProcessCustomMessage<Env2>,
 ) {
     debug_log("Performing message discovery");
 
@@ -92,6 +108,7 @@ pub unconstrained fn discover_new_messages<Env>(
         process_message_ciphertext(
             contract_address,
             compute_note_hash_and_nullifier,
+            process_custom_message,
             message_ciphertext,
             pending_tagged_log.context,
         );

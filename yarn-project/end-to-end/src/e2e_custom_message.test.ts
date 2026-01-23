@@ -1,0 +1,57 @@
+import type { AztecAddress } from '@aztec/aztec.js/addresses';
+import { Fr } from '@aztec/aztec.js/fields';
+import type { Wallet } from '@aztec/aztec.js/wallet';
+import { BlockNumber } from '@aztec/foundation/branded-types';
+import { CustomMessageContract, type MultiLogEvent } from '@aztec/noir-test-contracts.js/CustomMessage';
+
+import { jest } from '@jest/globals';
+
+import { ensureAccountContractsPublished, setup } from './fixtures/utils.js';
+
+const TIMEOUT = 120_000;
+
+describe('CustomMessage - Multi-Log Pattern', () => {
+  let contract: CustomMessageContract;
+  jest.setTimeout(TIMEOUT);
+
+  let wallet: Wallet;
+  let account: AztecAddress;
+  let teardown: () => Promise<void>;
+
+  beforeAll(async () => {
+    ({
+      teardown,
+      wallet,
+      accounts: [account],
+    } = await setup(1));
+    await ensureAccountContractsPublished(wallet, [account]);
+    contract = await CustomMessageContract.deploy(wallet).send({ from: account }).deployed();
+  });
+
+  afterAll(() => teardown());
+
+  it('reassembles a multi-log event from multiple private logs', async () => {
+    const value0 = Fr.random();
+    const value1 = Fr.random();
+    const value2 = Fr.random();
+    const value3 = Fr.random();
+
+    const tx = await contract.methods
+      .emit_multi_log_event(value0, value1, value2, value3, account)
+      .send({ from: account })
+      .wait();
+
+    const events = await wallet.getPrivateEvents<MultiLogEvent>(CustomMessageContract.events.MultiLogEvent, {
+      contractAddress: contract.address,
+      fromBlock: BlockNumber(tx.blockNumber!),
+      toBlock: BlockNumber(tx.blockNumber! + 1),
+      scopes: [account],
+    });
+
+    expect(events.length).toBe(1);
+    expect(events[0].event.value0).toBe(value0.toBigInt());
+    expect(events[0].event.value1).toBe(value1.toBigInt());
+    expect(events[0].event.value2).toBe(value2.toBigInt());
+    expect(events[0].event.value3).toBe(value3.toBigInt());
+  });
+});

@@ -114,7 +114,7 @@ pub(crate) unconstrained fn enqueue_note_for_validation(
 /// In order for the event validation and insertion to occur, `validate_enqueued_notes_and_events` must be later
 /// called. For optimal performance, accumulate as many event validation requests as possible and then validate them
 /// all at the end (which results in PXE minimizing the number of network round-trips).
-pub(crate) unconstrained fn enqueue_event_for_validation(
+pub unconstrained fn enqueue_event_for_validation(
     contract_address: AztecAddress,
     event_type_id: EventSelector,
     randomness: Field,

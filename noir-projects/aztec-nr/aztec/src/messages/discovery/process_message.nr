@@ -2,6 +2,7 @@ use crate::messages::{
     discovery::{
         ComputeNoteHashAndNullifier, partial_notes::process_partial_note_private_msg,
         private_events::process_private_event_msg, private_notes::process_private_note_msg,
+        ProcessCustomMessage,
     },
     encoding::{decode_message, MESSAGE_CIPHERTEXT_LEN, MESSAGE_PLAINTEXT_LEN},
     encryption::{aes128::AES128, message_encryption::MessageEncryption},
@@ -25,9 +26,10 @@ use protocol_types::{address::AztecAddress, debug_log::{debug_log, debug_log_for
 ///
 /// Events are processed by computing an event commitment from the serialized event data and its randomness field, then
 /// enqueueing the event data and commitment for validation.
-pub unconstrained fn process_message_ciphertext<Env>(
+pub unconstrained fn process_message_ciphertext<Env, Env2>(
     contract_address: AztecAddress,
     compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env>,
+    process_custom_message: ProcessCustomMessage<Env2>,
     message_ciphertext: BoundedVec<Field, MESSAGE_CIPHERTEXT_LEN>,
     message_context: MessageContext,
 ) {
@@ -37,6 +39,7 @@ pub unconstrained fn process_message_ciphertext<Env>(
         process_message_plaintext(
             contract_address,
             compute_note_hash_and_nullifier,
+            process_custom_message,
             message_plaintext_option.unwrap(),
             message_context,
         );
@@ -48,9 +51,10 @@ pub unconstrained fn process_message_ciphertext<Env>(
     }
 }
 
-pub unconstrained fn process_message_plaintext<Env>(
+pub unconstrained fn process_message_plaintext<Env, Env2>(
     contract_address: AztecAddress,
     compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env>,
+    process_custom_message: ProcessCustomMessage<Env2>,
     message_plaintext: BoundedVec<Field, MESSAGE_PLAINTEXT_LEN>,
     message_context: MessageContext,
 ) {
@@ -93,6 +97,12 @@ pub unconstrained fn process_message_plaintext<Env>(
             message_context.tx_hash,
         );
     } else {
-        debug_log_format("Unknown msg type id {0}", [msg_type_id as Field]);
+        process_custom_message(
+            contract_address,
+            msg_type_id,
+            msg_metadata,
+            msg_content,
+            message_context,
+        );
     }
 }

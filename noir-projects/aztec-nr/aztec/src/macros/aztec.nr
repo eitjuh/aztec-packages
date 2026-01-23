@@ -44,6 +44,13 @@ pub comptime fn aztec(m: Module) -> Quoted {
     } else {
         quote {}
     };
+    let contract_library_method_process_custom_message = if !m.functions().any(|f| {
+        f.name() == quote { _process_custom_message }
+    }) {
+        generate_contract_library_method_process_custom_message()
+    } else {
+        quote {}
+    };
     let sync_private_state_fn_and_abi_export = if !m.functions().any(|f| {
         f.name() == quote { sync_private_state }
     }) {
@@ -68,6 +75,7 @@ pub comptime fn aztec(m: Module) -> Quoted {
         $functions
         $fn_abi_exports
         $contract_library_method_compute_note_hash_and_nullifier
+        $contract_library_method_process_custom_message
         $public_dispatch
         $sync_private_state_fn_and_abi_export
         $process_message_fn_and_abi_export
@@ -276,6 +284,24 @@ comptime fn generate_contract_library_method_compute_note_hash_and_nullifier() -
     }
 }
 
+/// Generates a default contract library method called `_process_custom_message` which handles unknown message types
+/// encountered during message processing. The default implementation simply logs the unknown type ID.
+/// Contracts can override this by defining their own `_process_custom_message` function.
+comptime fn generate_contract_library_method_process_custom_message() -> Quoted {
+    quote {
+        #[contract_library_method]
+        unconstrained fn _process_custom_message(
+            _contract_address: aztec::protocol_types::address::AztecAddress,
+            msg_type_id: u64,
+            _msg_metadata: u64,
+            _msg_content: BoundedVec<Field, aztec::messages::encoding::MAX_MESSAGE_CONTENT_LEN>,
+            _message_context: aztec::messages::processing::MessageContext,
+        ) {
+            aztec::protocol_types::debug_log::debug_log_format("Unknown msg type id {0}", [msg_type_id as Field]);
+        }
+    }
+}
+
 comptime fn generate_sync_private_state() -> Quoted {
     quote {
         pub struct sync_private_state_parameters {}
@@ -289,7 +315,7 @@ comptime fn generate_sync_private_state() -> Quoted {
         unconstrained fn sync_private_state() {
             let address = aztec::context::UtilityContext::new().this_address();
             
-            aztec::messages::discovery::discover_new_messages(address, _compute_note_hash_and_nullifier);
+            aztec::messages::discovery::discover_new_messages(address, _compute_note_hash_and_nullifier, _process_custom_message);
         }
     }
 }
@@ -316,6 +342,7 @@ comptime fn generate_process_message() -> Quoted {
             aztec::messages::discovery::process_message::process_message_ciphertext(
                 address,
                 _compute_note_hash_and_nullifier,
+                _process_custom_message,
                 message_ciphertext,
                 message_context,
             );
