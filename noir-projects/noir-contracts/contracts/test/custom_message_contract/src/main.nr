@@ -31,7 +31,7 @@ contract CustomMessage {
     global PENDING_MULTI_LOG_PARTS_SLOT: Field =
         sha256_to_field("CUSTOM_MSG::PENDING_MULTI_LOG_PARTS".as_bytes());
 
-    /// An event with 4 fields — too large to demonstrate fitting in one message content
+    /// An event with 4 fields, too large to demonstrate fitting in one message content
     /// (in practice you'd use this for events exceeding MAX_EVENT_SERIALIZED_LEN).
     #[event]
     struct MultiLogEvent {
@@ -45,6 +45,7 @@ contract CustomMessage {
     #[derive(Serialize, Deserialize)]
     struct PendingMultiLogPart {
         tx_hash: Field,
+        message_id: Field,
         part_number: Field,
         total_parts: Field,
         content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
@@ -68,9 +69,13 @@ contract CustomMessage {
     /// message pattern: the event data is split into parts, each sent as a separate log with
     /// a custom message type. The receiver's _process_custom_message handler reassembles them.
     ///
+    /// Each part includes `randomness` as its first content field, which serves as a message_id
+    /// for correlating parts belonging to the same multi-log event (allowing multiple multi-log
+    /// events per transaction).
+    ///
     /// Split layout:
-    ///   Part 0 (metadata=pack(0,2)): content = [event_type_id, randomness, value0, value1]
-    ///   Part 1 (metadata=pack(1,2)): content = [value2, value3]
+    ///   Part 0 (metadata=pack(0,2)): content = [randomness, event_type_id, value0, value1]
+    ///   Part 1 (metadata=pack(1,2)): content = [randomness, value2, value3]
     #[external("private")]
     fn emit_multi_log_event(
         value0: Field,
@@ -81,7 +86,7 @@ contract CustomMessage {
     ) {
         let event = MultiLogEvent { value0, value1, value2, value3 };
 
-        // Safety: randomness produced by the sender — same trust model as standard events.
+        // Safety: randomness produced by the sender, same trust model as standard events.
         let randomness = unsafe { random() };
 
         // Emit commitment as nullifier computed from FULL event (same as standard events)
@@ -90,11 +95,11 @@ contract CustomMessage {
 
         let event_type_id = MultiLogEvent::get_event_type_id().to_field();
 
-        // Part 0: carries event_type_id, randomness, and first 2 event fields
+        // Part 0: randomness (message_id), event_type_id, and first 2 event fields
         let msg0 = encode_message(
             MULTI_LOG_MSG_TYPE_ID,
             pack_part_info(0, 2),
-            [event_type_id, randomness, value0, value1],
+            [randomness, event_type_id, value0, value1],
         );
         do_private_message_delivery(
             self.context,
@@ -104,8 +109,12 @@ contract CustomMessage {
             MessageDelivery.ONCHAIN_UNCONSTRAINED,
         );
 
-        // Part 1: carries remaining event fields
-        let msg1 = encode_message(MULTI_LOG_MSG_TYPE_ID, pack_part_info(1, 2), [value2, value3]);
+        // Part 1: randomness (message_id) and remaining event fields
+        let msg1 = encode_message(
+            MULTI_LOG_MSG_TYPE_ID,
+            pack_part_info(1, 2),
+            [randomness, value2, value3],
+        );
         do_private_message_delivery(
             self.context,
             || msg1,
@@ -119,8 +128,9 @@ contract CustomMessage {
     /// CapsuleArray. When all parts for a given tx_hash arrive, the full event is reconstructed
     /// and stored via the standard event infrastructure.
     ///
-    /// Limitation: assumes at most one multi-log message per transaction. For multiple multi-log
-    /// messages in the same tx, an additional message_id field would be needed for correlation.
+    /// Parts are correlated by (tx_hash, message_id) where message_id is the first field of
+    /// every part's content (which is the event's randomness). This allows multiple multi-log
+    /// events within the same transaction.
     #[contract_library_method]
     unconstrained fn _process_custom_message(
         contract_address: AztecAddress,
@@ -133,33 +143,40 @@ contract CustomMessage {
             let (part_number, total_parts) = unpack_part_info(msg_metadata);
             let parts = CapsuleArray::at(contract_address, PENDING_MULTI_LOG_PARTS_SLOT);
 
-            // Store this part
-            parts.push(PendingMultiLogPart {
-                tx_hash: message_context.tx_hash,
-                part_number: part_number as Field,
-                total_parts: total_parts as Field,
-                content: msg_content,
-            });
+            // First field of every part's content is the message_id (= randomness)
+            let message_id = msg_content.get(0);
 
-            // Check if all parts for this tx_hash have arrived
+            // Store this part
+            parts.push(
+                PendingMultiLogPart {
+                    tx_hash: message_context.tx_hash,
+                    message_id,
+                    part_number: part_number as Field,
+                    total_parts: total_parts as Field,
+                    content: msg_content,
+                },
+            );
+
+            // Check if all parts for this (tx_hash, message_id) have arrived
             let mut count: u32 = 0;
             let parts_len = parts.len();
             let mut i: u32 = 0;
             while i < parts_len {
                 let p: PendingMultiLogPart = parts.get(i);
-                if p.tx_hash == message_context.tx_hash {
+                if (p.tx_hash == message_context.tx_hash) & (p.message_id == message_id) {
                     count += 1;
                 }
                 i += 1;
             }
 
             if count == total_parts {
-                // All parts present — reassemble the event.
-                // Part 0 content: [event_type_id, randomness, ...event_fields_chunk]
-                // Part N content: [...event_fields_chunk]
+                // All parts present - reassemble the event.
+                // Every part content[0] is message_id (= randomness).
+                // Part 0 content: [randomness, event_type_id, ...event_fields_chunk]
+                // Part N content: [randomness, ...event_fields_chunk]
 
+                let randomness = message_id;
                 let mut event_type_id_field: Field = 0;
-                let mut randomness: Field = 0;
                 let mut serialized_event: BoundedVec<Field, MAX_EVENT_SERIALIZED_LEN> =
                     BoundedVec::new();
 
@@ -171,13 +188,12 @@ contract CustomMessage {
                     while j < parts_len {
                         let p: PendingMultiLogPart = parts.get(j);
                         if (p.tx_hash == message_context.tx_hash)
-                            & (p.part_number == part_idx as Field)
-                        {
+                            & (p.message_id == message_id)
+                            & (p.part_number == part_idx as Field) {
                             if part_idx == 0 {
-                                // Part 0: first field is event_type_id, second is randomness,
-                                // rest are event fields
-                                event_type_id_field = p.content.get(0);
-                                randomness = p.content.get(1);
+                                // Part 0: content[0]=randomness, content[1]=event_type_id,
+                                // content[2..] are event fields
+                                event_type_id_field = p.content.get(1);
                                 let data_start: u32 = 2;
                                 let mut k: u32 = data_start;
                                 while k < p.content.len() {
@@ -185,8 +201,8 @@ contract CustomMessage {
                                     k += 1;
                                 }
                             } else {
-                                // Other parts: all fields are event data
-                                let mut k: u32 = 0;
+                                // Other parts: content[0]=randomness, content[1..] are event fields
+                                let mut k: u32 = 1;
                                 while k < p.content.len() {
                                     serialized_event.push(p.content.get(k));
                                     k += 1;
@@ -217,13 +233,13 @@ contract CustomMessage {
                     message_context.recipient,
                 );
 
-                // Clean up: remove all parts for this tx_hash (iterate backwards to avoid
-                // index shifting)
+                // Clean up: remove all parts for this (tx_hash, message_id) - iterate backwards
+                // to avoid index shifting
                 let mut remove_idx: u32 = parts.len();
                 while remove_idx > 0 {
                     remove_idx -= 1;
                     let p: PendingMultiLogPart = parts.get(remove_idx);
-                    if p.tx_hash == message_context.tx_hash {
+                    if (p.tx_hash == message_context.tx_hash) & (p.message_id == message_id) {
                         parts.remove(remove_idx);
                     }
                 }
