@@ -1,7 +1,8 @@
-use aztec::aztec_opts;
 use aztec::macros::aztec;
 
-#[aztec_opts("handle_multi_log_message")]
+#[aztec::aztec_opts(
+    aztec::AztecOptions::new().with_custom_message_handler("handle_multi_log_message"),
+)]
 #[aztec]
 contract CustomMessage {
     use aztec::{

@@ -18,7 +18,7 @@ use crate::macros::{
     },
 };
 
-/// Contract-level options for the #[aztec] macro.
+/// Internal storage for contract-level options.
 struct AztecContractOpts {
     /// Name of the custom message handler function.
     custom_message_handler: Option<CtString>,
@@ -29,22 +29,44 @@ struct AztecContractOpts {
 comptime mut global AZTEC_CONTRACT_OPTS: UHashMap<Module, AztecContractOpts, BuildHasherDefault<Poseidon2Hasher>> =
     UHashMap::default();
 
-/// Sets contract-level options for the #[aztec] macro.
+/// Builder for configuring Aztec contract options.
 ///
-/// Currently supports specifying a custom message handler function:
+/// Usage:
 /// ```noir
-/// #[aztec_opts(handle_multi_log_message)]
+/// #[aztec_opts(AztecOptions::new().with_custom_message_handler("handle_multi_log_message"))]
+/// #[aztec]
+/// contract MyContract { ... }
+/// ```
+pub struct AztecOptions {
+    custom_message_handler: Option<CtString>,
+}
+
+impl AztecOptions {
+    /// Creates a new `AztecOptions` with default values.
+    pub comptime fn new() -> Self {
+        Self { custom_message_handler: Option::none() }
+    }
+
+    /// Sets the custom message handler function name.
+    /// The function must be `#[contract_library_method]`, `unconstrained`, with 5 parameters.
+    pub comptime fn with_custom_message_handler(_self: Self, handler_name: CtString) -> Self {
+        Self { custom_message_handler: Option::some(handler_name) }
+    }
+}
+
+/// Sets contract-level options for the #[aztec] macro using the builder pattern.
+///
+/// Usage:
+/// ```noir
+/// #[aztec_opts(AztecOptions::new().with_custom_message_handler("handle_multi_log_message"))]
 /// #[aztec]
 /// contract MyContract {
 ///     #[contract_library_method]
-///     unconstrained fn my_handler_function(...) { ... }
+///     unconstrained fn handle_multi_log_message(...) { ... }
 /// }
 /// ```
-///
-/// The specified function must exist in the contract, be marked `#[contract_library_method]`,
-/// be `unconstrained`, and have the correct signature for a custom message handler.
-pub comptime fn aztec_opts(m: Module, custom_message_handler: CtString) -> Quoted {
-    let opts = AztecContractOpts { custom_message_handler: Option::some(custom_message_handler) };
+pub comptime fn aztec_opts(m: Module, options: AztecOptions) -> Quoted {
+    let opts = AztecContractOpts { custom_message_handler: options.custom_message_handler };
     AZTEC_CONTRACT_OPTS.insert(m, opts);
     quote {}
 }
