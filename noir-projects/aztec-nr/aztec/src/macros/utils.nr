@@ -41,10 +41,6 @@ pub(crate) comptime fn fn_has_authorize_once(f: FunctionDefinition) -> bool {
     f.has_named_attribute("authorize_once")
 }
 
-pub(crate) comptime fn is_fn_custom_message_handler(f: FunctionDefinition) -> bool {
-    f.has_named_attribute("custom_message_handler")
-}
-
 comptime fn signature_of_type(typ: Type) -> Quoted {
     if typ.is_field() {
         quote {Field}

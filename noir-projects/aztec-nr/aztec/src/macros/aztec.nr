@@ -1,3 +1,6 @@
+use poseidon::poseidon2::Poseidon2Hasher;
+use std::{collections::umap::UHashMap, hash::BuildHasherDefault, meta::ctstring::AsCtString};
+
 use crate::macros::{
     calls_generation::{
         external_functions::{
@@ -10,10 +13,41 @@ use crate::macros::{
     notes::NOTES,
     storage::STORAGE_LAYOUT_NAME,
     utils::{
-        get_trait_impl_method, is_fn_contract_library_method, is_fn_custom_message_handler,
-        is_fn_external, is_fn_internal, is_fn_test, module_has_storage,
+        get_trait_impl_method, is_fn_contract_library_method, is_fn_external, is_fn_internal,
+        is_fn_test, module_has_storage,
     },
 };
+
+/// Contract-level options for the #[aztec] macro.
+struct AztecContractOpts {
+    /// Name of the custom message handler function.
+    custom_message_handler: Option<CtString>,
+}
+
+/// Stores contract-level options set via #[aztec_opts(...)].
+/// The #[aztec] macro reads from this registry to configure code generation.
+comptime mut global AZTEC_CONTRACT_OPTS: UHashMap<Module, AztecContractOpts, BuildHasherDefault<Poseidon2Hasher>> =
+    UHashMap::default();
+
+/// Sets contract-level options for the #[aztec] macro.
+///
+/// Currently supports specifying a custom message handler function:
+/// ```noir
+/// #[aztec_opts(handle_multi_log_message)]
+/// #[aztec]
+/// contract MyContract {
+///     #[contract_library_method]
+///     unconstrained fn my_handler_function(...) { ... }
+/// }
+/// ```
+///
+/// The specified function must exist in the contract, be marked `#[contract_library_method]`,
+/// be `unconstrained`, and have the correct signature for a custom message handler.
+pub comptime fn aztec_opts(m: Module, custom_message_handler: CtString) -> Quoted {
+    let opts = AztecContractOpts { custom_message_handler: Option::some(custom_message_handler) };
+    AZTEC_CONTRACT_OPTS.insert(m, opts);
+    quote {}
+}
 
 /// Marks a contract as an Aztec contract, generating the interfaces for its functions and notes, as well as injecting
 /// the `sync_private_state` utility function.
@@ -44,16 +78,26 @@ pub comptime fn aztec(m: Module) -> Quoted {
     } else {
         quote {}
     };
-    // Look for a user-provided #[custom_message_handler] function, or generate a default.
-    let custom_message_handlers =
-        m.functions().filter(|f: FunctionDefinition| is_fn_custom_message_handler(f));
-    let (contract_library_method_process_custom_message, custom_message_handler_name) = if custom_message_handlers
-        .len()
-        > 0 {
-        // User provided their own handler via annotation - use its name directly.
-        (quote {}, custom_message_handlers[0].name())
+    // Look for a user-provided custom message handler via #[aztec_opts(...)], or generate a default.
+    let (contract_library_method_process_custom_message, custom_message_handler_name) = if AZTEC_CONTRACT_OPTS
+        .get(m)
+        .is_some() {
+        let opts = AZTEC_CONTRACT_OPTS.get(m).unwrap();
+        if opts.custom_message_handler.is_some() {
+            // User specified handler via #[aztec_opts(handler_name)] - validate and use it.
+            let handler_name_str = opts.custom_message_handler.unwrap();
+            let handler_fn = validate_custom_message_handler(m, handler_name_str);
+            // Use the function's name as quoted token for generated code
+            (quote {}, handler_fn.name())
+        } else {
+            // aztec_opts present but no handler specified - generate the default.
+            (
+                generate_contract_library_method_process_custom_message(),
+                quote { _process_custom_message },
+            )
+        }
     } else {
-        // No annotated handler found - generate the default.
+        // No aztec_opts - generate the default.
         (
             generate_contract_library_method_process_custom_message(),
             quote { _process_custom_message },
@@ -294,7 +338,7 @@ comptime fn generate_contract_library_method_compute_note_hash_and_nullifier() -
 
 /// Generates a default `_process_custom_message` function which handles unknown message types encountered during
 /// message processing. The default implementation simply logs the unknown type ID.
-/// This is only generated when no function in the contract has the `#[custom_message_handler]` annotation.
+/// This is only generated when no custom message handler is specified via `#[aztec_opts(...)]`.
 comptime fn generate_contract_library_method_process_custom_message() -> Quoted {
     quote {
         #[contract_library_method]
@@ -356,6 +400,49 @@ comptime fn generate_process_message(custom_message_handler_name: Quoted) -> Quo
             );
         }
     }
+}
+
+/// Validates that a custom message handler specified via #[aztec_opts(...)] is valid.
+/// Returns the FunctionDefinition so we can get its properly quoted name.
+comptime fn validate_custom_message_handler(
+    m: Module,
+    handler_name: CtString,
+) -> FunctionDefinition {
+    // Find the function by comparing name strings
+    let matching_fns = m.functions().filter(|f: FunctionDefinition| {
+        let fn_name_quoted = f.name();
+        let fn_name = f"{fn_name_quoted}".as_ctstring();
+        fn_name.eq(handler_name)
+    });
+
+    if matching_fns.len() == 0 {
+        panic(
+            f"#[aztec_opts] specifies custom_message_handler '{handler_name}' but no such function exists in the contract",
+        );
+    }
+
+    let handler = matching_fns[0];
+
+    if !is_fn_contract_library_method(handler) {
+        panic(
+            f"Custom message handler '{handler_name}' must be marked #[contract_library_method]",
+        );
+    }
+
+    if !handler.is_unconstrained() {
+        panic(
+            f"Custom message handler '{handler_name}' must be unconstrained",
+        );
+    }
+
+    let param_count = handler.parameters().len();
+    if param_count != 5 {
+        panic(
+            f"Custom message handler '{handler_name}' must have exactly 5 parameters (contract_address, msg_type_id, msg_metadata, msg_content, message_context), but has {param_count}",
+        );
+    }
+
+    handler
 }
 
 /// Checks that all functions in the module have a context macro applied.

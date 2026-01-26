@@ -45,5 +45,6 @@ pub use dep::protocol_types;
 pub mod utils;
 pub mod authwit;
 pub mod macros;
+pub use macros::aztec_opts;
 
 pub mod test;

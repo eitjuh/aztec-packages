@@ -5,10 +5,7 @@ pub(crate) mod auth_registry;
 
 use crate::macros::{
     internals_functions_generation::{external_functions_registry, internal_functions_registry},
-    utils::{
-        is_fn_contract_library_method, is_fn_custom_message_handler, is_fn_external,
-        module_has_initializer,
-    },
+    utils::{is_fn_external, module_has_initializer},
 };
 use super::utils::{
     fn_has_noinitcheck, fn_has_nophasecheck, is_fn_initializer, is_fn_only_self, is_fn_view,
@@ -279,69 +276,6 @@ pub comptime fn authorize_once(
     }
 
     AUTHORIZE_ONCE_REGISTRY.insert(f, (from_arg_name, nonce_arg_name));
-}
-
-/// Marks a function as the custom message handler for this contract.
-///
-/// When the message discovery pipeline encounters an unknown message type (one that is not a private note, partial
-/// note, or event), it calls this handler instead of silently ignoring the message. This enables patterns like
-/// multi-log events, where a single logical event is split across multiple private logs with a custom message type.
-///
-/// A contract may have at most one function annotated with `#[custom_message_handler]`. If no function has this
-/// annotation, a default handler is generated that simply logs the unknown type ID.
-///
-/// The annotated function must also have `#[contract_library_method]`, be `unconstrained`, and have the following
-/// signature:
-/// ```noir
-/// #[contract_library_method]
-/// #[custom_message_handler]
-/// unconstrained fn my_handler(
-///     contract_address: AztecAddress,
-///     msg_type_id: u64,
-///     msg_metadata: u64,
-///     msg_content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
-///     message_context: MessageContext,
-/// ) { ... }
-/// ```
-pub comptime fn custom_message_handler(f: FunctionDefinition) {
-    let name = f.name();
-
-    if is_fn_external(f) {
-        panic(
-            f"#[custom_message_handler] cannot be applied to #[external] functions - {name} is marked as both",
-        );
-    }
-
-    if !is_fn_contract_library_method(f) {
-        panic(
-            f"#[custom_message_handler] functions must also be marked #[contract_library_method] - {name} is not",
-        );
-    }
-
-    if !f.is_unconstrained() {
-        panic(
-            f"#[custom_message_handler] functions must be unconstrained - {name} isn't",
-        );
-    }
-
-    let param_count = f.parameters().len();
-    if param_count != 5 {
-        panic(
-            f"#[custom_message_handler] functions must have exactly 5 parameters (contract_address, msg_type_id, msg_metadata, msg_content, message_context) - {name} has {param_count}",
-        );
-    }
-
-    // Check for multiple handlers in the same module
-    let module = f.module();
-    let handler_count = module
-        .functions()
-        .filter(|other: FunctionDefinition| is_fn_custom_message_handler(other))
-        .len();
-    if handler_count > 1 {
-        panic(
-            f"A contract may have at most one #[custom_message_handler] function, but multiple were found",
-        );
-    }
 }
 
 /// An external function is callable from outside the contract.

@@ -1,5 +1,7 @@
+use aztec::aztec_opts;
 use aztec::macros::aztec;
 
+#[aztec_opts("handle_multi_log_message")]
 #[aztec]
 contract CustomMessage {
     use aztec::{
@@ -8,7 +10,7 @@ contract CustomMessage {
             compute_private_event_commitment, compute_private_serialized_event_commitment,
             EventInterface,
         },
-        macros::{events::event, functions::{custom_message_handler, external}},
+        macros::{events::event, functions::external},
         messages::{
             encoding::{encode_message, MAX_MESSAGE_CONTENT_LEN},
             logs::event::MAX_EVENT_SERIALIZED_LEN,
@@ -67,7 +69,7 @@ contract CustomMessage {
 
     /// Emits a multi-log event split across 2 private logs. This demonstrates the multi-log
     /// message pattern: the event data is split into parts, each sent as a separate log with
-    /// a custom message type. The receiver's custom_message_handler reassembles them.
+    /// a custom message type. The receiver's custom message handler reassembles them.
     ///
     /// Each part includes `randomness` as its first content field, which serves as a message_id
     /// for correlating parts belonging to the same multi-log event (allowing multiple multi-log
@@ -132,7 +134,6 @@ contract CustomMessage {
     /// every part's content (which is the event's randomness). This allows multiple multi-log
     /// events within the same transaction.
     #[contract_library_method]
-    #[custom_message_handler]
     unconstrained fn handle_multi_log_message(
         contract_address: AztecAddress,
         msg_type_id: u64,
@@ -195,8 +196,7 @@ contract CustomMessage {
                                 // Part 0: content[0]=randomness, content[1]=event_type_id,
                                 // content[2..] are event fields
                                 event_type_id_field = p.content.get(1);
-                                let data_start: u32 = 2;
-                                let mut k: u32 = data_start;
+                                let mut k: u32 = 2;
                                 while k < p.content.len() {
                                     serialized_event.push(p.content.get(k));
                                     k += 1;
