@@ -1,5 +1,4 @@
-use poseidon::poseidon2::Poseidon2Hasher;
-use std::{collections::umap::UHashMap, hash::BuildHasherDefault, meta::ctstring::AsCtString};
+use std::meta::ctstring::AsCtString;
 
 use crate::macros::{
     calls_generation::{
@@ -18,23 +17,11 @@ use crate::macros::{
     },
 };
 
-/// Internal storage for contract-level options.
-struct AztecContractOpts {
-    /// Name of the custom message handler function.
-    custom_message_handler: Option<CtString>,
-}
-
-/// Stores contract-level options set via #[aztec_opts(...)].
-/// The #[aztec] macro reads from this registry to configure code generation.
-comptime mut global AZTEC_CONTRACT_OPTS: UHashMap<Module, AztecContractOpts, BuildHasherDefault<Poseidon2Hasher>> =
-    UHashMap::default();
-
 /// Builder for configuring Aztec contract options.
 ///
 /// Usage:
 /// ```noir
-/// #[aztec_opts(AztecOptions::new().with_custom_message_handler("handle_multi_log_message"))]
-/// #[aztec]
+/// #[aztec(AztecOptions::new().with_custom_message_handler("handle_multi_log_message"))]
 /// contract MyContract { ... }
 /// ```
 pub struct AztecOptions {
@@ -54,27 +41,31 @@ impl AztecOptions {
     }
 }
 
-/// Sets contract-level options for the #[aztec] macro using the builder pattern.
+/// Marks a contract as an Aztec contract, generating the interfaces for its functions and notes, as well as injecting
+/// the `sync_private_state` utility function.
 ///
 /// Usage:
 /// ```noir
-/// #[aztec_opts(AztecOptions::new().with_custom_message_handler("handle_multi_log_message"))]
-/// #[aztec]
-/// contract MyContract {
-///     #[contract_library_method]
-///     unconstrained fn handle_multi_log_message(...) { ... }
-/// }
+/// #[aztec]  // Simple case with defaults
+/// contract MyContract { ... }
+///
+/// #[aztec(AztecOptions::new().with_custom_message_handler("my_handler"))]  // With options
+/// contract MyOtherContract { ... }
 /// ```
-pub comptime fn aztec_opts(m: Module, options: AztecOptions) -> Quoted {
-    let opts = AztecContractOpts { custom_message_handler: options.custom_message_handler };
-    AZTEC_CONTRACT_OPTS.insert(m, opts);
-    quote {}
-}
-
-/// Marks a contract as an Aztec contract, generating the interfaces for its functions and notes, as well as injecting
-/// the `sync_private_state` utility function.
+///
 /// Note: This is a module annotation, so the returned quote gets injected inside the module (contract) itself.
-pub comptime fn aztec(m: Module) -> Quoted {
+#[varargs]
+pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
+    // Parse options from varargs (0 or 1 element)
+    let num_args = args.len();
+    let options = if num_args == 0 {
+        AztecOptions::new()
+    } else if num_args == 1 {
+        args[0]
+    } else {
+        panic(f"#[aztec] expects 0 or 1 argument, got {num_args}")
+    };
+
     // Functions that don't have #[external(...)], #[contract_library_method], or #[test] are not allowed in contracts.
     check_each_fn_macroified(m);
 
@@ -100,26 +91,17 @@ pub comptime fn aztec(m: Module) -> Quoted {
     } else {
         quote {}
     };
-    // Look for a user-provided custom message handler via #[aztec_opts(...)], or generate a default.
-    let (contract_library_method_process_custom_message, custom_message_handler_name) = if AZTEC_CONTRACT_OPTS
-        .get(m)
+    // Use user-provided custom message handler or generate a default.
+    let (contract_library_method_process_custom_message, custom_message_handler_name) = if options
+        .custom_message_handler
         .is_some() {
-        let opts = AZTEC_CONTRACT_OPTS.get(m).unwrap();
-        if opts.custom_message_handler.is_some() {
-            // User specified handler via #[aztec_opts(handler_name)] - validate and use it.
-            let handler_name_str = opts.custom_message_handler.unwrap();
-            let handler_fn = validate_custom_message_handler(m, handler_name_str);
-            // Use the function's name as quoted token for generated code
-            (quote {}, handler_fn.name())
-        } else {
-            // aztec_opts present but no handler specified - generate the default.
-            (
-                generate_contract_library_method_process_custom_message(),
-                quote { _process_custom_message },
-            )
-        }
+        // User specified handler - validate and use it.
+        let handler_name_str = options.custom_message_handler.unwrap();
+        let handler_fn = validate_custom_message_handler(m, handler_name_str);
+        // Use the function's name as quoted token for generated code
+        (quote {}, handler_fn.name())
     } else {
-        // No aztec_opts - generate the default.
+        // No handler specified - generate the default.
         (
             generate_contract_library_method_process_custom_message(),
             quote { _process_custom_message },

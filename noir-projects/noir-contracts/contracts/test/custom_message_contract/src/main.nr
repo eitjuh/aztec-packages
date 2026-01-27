@@ -1,9 +1,6 @@
 use aztec::macros::aztec;
 
-#[aztec::aztec_opts(
-    aztec::AztecOptions::new().with_custom_message_handler("handle_multi_log_message"),
-)]
-#[aztec]
+#[aztec(aztec::AztecOptions::new().with_custom_message_handler("handle_multi_log_message"))]
 contract CustomMessage {
     use aztec::{
         capsules::CapsuleArray,
