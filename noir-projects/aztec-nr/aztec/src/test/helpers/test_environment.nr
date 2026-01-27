@@ -16,7 +16,7 @@ use crate::{
             ComputeNoteHashAndNullifier, NoteHashAndNullifier,
             process_message::process_message_plaintext, ProcessCustomMessage,
         },
-        encoding::{MAX_MESSAGE_CONTENT_LEN, MESSAGE_PLAINTEXT_LEN},
+        encoding::MESSAGE_PLAINTEXT_LEN,
         logs::{event::encode_private_event_message, note::encode_private_note_message},
         processing::{MessageContext, validate_enqueued_notes_and_events},
     },
@@ -791,8 +791,7 @@ impl TestEnvironment {
             Option::some(NoteHashAndNullifier { note_hash, inner_nullifier })
         };
 
-        let process_custom_message: ProcessCustomMessage<_> = |_contract_address, _msg_type_id, _msg_metadata, _msg_content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>, _message_context| {};
-
+        let process_custom_message: Option<ProcessCustomMessage<()>> = Option::none();
         self.discover_data_in_message_plaintext(
             message_plaintext,
             opts.contract_address,
@@ -903,8 +902,7 @@ impl TestEnvironment {
             )
         };
 
-        let process_custom_message: ProcessCustomMessage<_> = |_contract_address, _msg_type_id, _msg_metadata, _msg_content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>, _message_context| {};
-
+        let process_custom_message: Option<ProcessCustomMessage<()>> = Option::none();
         self.discover_data_in_message_plaintext(
             message_plaintext,
             opts.contract_address,
@@ -914,13 +912,13 @@ impl TestEnvironment {
         );
     }
 
-    unconstrained fn discover_data_in_message_plaintext<Env, Env2>(
+    unconstrained fn discover_data_in_message_plaintext<Env1, Env2>(
         self,
         message_plaintext: BoundedVec<Field, MESSAGE_PLAINTEXT_LEN>,
         contract_address: Option<AztecAddress>,
         recipient: Option<AztecAddress>,
-        compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env>,
-        process_custom_message: ProcessCustomMessage<Env2>,
+        compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env1>,
+        process_custom_message: Option<ProcessCustomMessage<Env2>>,
     ) {
         // This function will emulate the message discovery and processing that would happen in a real contract, based
         // on a message plaintext.

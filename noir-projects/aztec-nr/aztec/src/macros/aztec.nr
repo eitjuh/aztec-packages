@@ -91,26 +91,24 @@ pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
     } else {
         quote {}
     };
-    // Use user-provided custom message handler or generate a default.
-    let (contract_library_method_process_custom_message, custom_message_handler_name) = if options
-        .custom_message_handler
-        .is_some() {
+    // Build the process_custom_message option for AztecContractOptions.
+    // When no handler is specified, we need an explicit type annotation for the Option::none().
+    let process_custom_message_option = if options.custom_message_handler.is_some() {
         // User specified handler - validate and use it.
         let handler_name_str = options.custom_message_handler.unwrap();
         let handler_fn = validate_custom_message_handler(m, handler_name_str);
-        // Use the function's name as quoted token for generated code
-        (quote {}, handler_fn.name())
+        // Suppress "unused function" warning since the handler is used via function pointer
+        handler_fn.add_attribute("allow(dead_code)");
+        let handler_name = handler_fn.name();
+        quote { Option::some($handler_name) }
     } else {
-        // No handler specified - generate the default.
-        (
-            generate_contract_library_method_process_custom_message(),
-            quote { _process_custom_message },
-        )
+        quote { Option::<aztec::messages::discovery::ProcessCustomMessage<()>>::none() }
     };
+
     let sync_private_state_fn_and_abi_export = if !m.functions().any(|f| {
         f.name() == quote { sync_private_state }
     }) {
-        generate_sync_private_state(custom_message_handler_name)
+        generate_sync_private_state(process_custom_message_option)
     } else {
         quote {}
     };
@@ -118,7 +116,7 @@ pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
     let process_message_fn_and_abi_export = if !m.functions().any(|f| {
         f.name() == quote { process_message }
     }) {
-        generate_process_message(custom_message_handler_name)
+        generate_process_message(process_custom_message_option)
     } else {
         quote {}
     };
@@ -131,7 +129,6 @@ pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
         $functions
         $fn_abi_exports
         $contract_library_method_compute_note_hash_and_nullifier
-        $contract_library_method_process_custom_message
         $public_dispatch
         $sync_private_state_fn_and_abi_export
         $process_message_fn_and_abi_export
@@ -343,22 +340,7 @@ comptime fn generate_contract_library_method_compute_note_hash_and_nullifier() -
 /// Generates a default `_process_custom_message` function which handles unknown message types encountered during
 /// message processing. The default implementation simply logs the unknown type ID.
 /// This is only generated when no custom message handler is specified via `#[aztec_opts(...)]`.
-comptime fn generate_contract_library_method_process_custom_message() -> Quoted {
-    quote {
-        #[contract_library_method]
-        unconstrained fn _process_custom_message(
-            _contract_address: aztec::protocol_types::address::AztecAddress,
-            msg_type_id: u64,
-            _msg_metadata: u64,
-            _msg_content: BoundedVec<Field, aztec::messages::encoding::MAX_MESSAGE_CONTENT_LEN>,
-            _message_context: aztec::messages::processing::MessageContext,
-        ) {
-            aztec::protocol_types::debug_log::debug_log_format("Unknown msg type id {0}", [msg_type_id as Field]);
-        }
-    }
-}
-
-comptime fn generate_sync_private_state(custom_message_handler_name: Quoted) -> Quoted {
+comptime fn generate_sync_private_state(process_custom_message_option: Quoted) -> Quoted {
     quote {
         pub struct sync_private_state_parameters {}
 
@@ -371,12 +353,16 @@ comptime fn generate_sync_private_state(custom_message_handler_name: Quoted) -> 
         unconstrained fn sync_private_state() {
             let address = aztec::context::UtilityContext::new().this_address();
 
-            aztec::messages::discovery::discover_new_messages(address, _compute_note_hash_and_nullifier, $custom_message_handler_name);
+            let options = aztec::messages::discovery::AztecContractOptions {
+                compute_note_hash_and_nullifier: _compute_note_hash_and_nullifier,
+                process_custom_message: $process_custom_message_option,
+            };
+            aztec::messages::discovery::discover_new_messages(address, options);
         }
     }
 }
 
-comptime fn generate_process_message(custom_message_handler_name: Quoted) -> Quoted {
+comptime fn generate_process_message(process_custom_message_option: Quoted) -> Quoted {
     quote {
         pub struct process_message_parameters {
             pub message_ciphertext: BoundedVec<Field, aztec::messages::encoding::MESSAGE_CIPHERTEXT_LEN>,
@@ -398,7 +384,7 @@ comptime fn generate_process_message(custom_message_handler_name: Quoted) -> Quo
             aztec::messages::discovery::process_message::process_message_ciphertext(
                 address,
                 _compute_note_hash_and_nullifier,
-                $custom_message_handler_name,
+                $process_custom_message_option,
                 message_ciphertext,
                 message_context,
             );

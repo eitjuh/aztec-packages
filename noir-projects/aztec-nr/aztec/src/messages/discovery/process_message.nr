@@ -26,10 +26,10 @@ use protocol_types::{address::AztecAddress, debug_log::{debug_log, debug_log_for
 ///
 /// Events are processed by computing an event commitment from the serialized event data and its randomness field, then
 /// enqueueing the event data and commitment for validation.
-pub unconstrained fn process_message_ciphertext<Env, Env2>(
+pub unconstrained fn process_message_ciphertext<Env1, Env2>(
     contract_address: AztecAddress,
-    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env>,
-    process_custom_message: ProcessCustomMessage<Env2>,
+    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env1>,
+    process_custom_message: Option<ProcessCustomMessage<Env2>>,
     message_ciphertext: BoundedVec<Field, MESSAGE_CIPHERTEXT_LEN>,
     message_context: MessageContext,
 ) {
@@ -51,10 +51,10 @@ pub unconstrained fn process_message_ciphertext<Env, Env2>(
     }
 }
 
-pub unconstrained fn process_message_plaintext<Env, Env2>(
+pub unconstrained fn process_message_plaintext<Env1, Env2>(
     contract_address: AztecAddress,
-    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env>,
-    process_custom_message: ProcessCustomMessage<Env2>,
+    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env1>,
+    process_custom_message: Option<ProcessCustomMessage<Env2>>,
     message_plaintext: BoundedVec<Field, MESSAGE_PLAINTEXT_LEN>,
     message_context: MessageContext,
 ) {
@@ -96,13 +96,15 @@ pub unconstrained fn process_message_plaintext<Env, Env2>(
             msg_content,
             message_context.tx_hash,
         );
-    } else {
-        process_custom_message(
+    } else if process_custom_message.is_some() {
+        process_custom_message.unwrap()(
             contract_address,
             msg_type_id,
             msg_metadata,
             msg_content,
             message_context,
         );
+    } else {
+        debug_log_format("Unknown msg type id {0}", [msg_type_id as Field]);
     }
 }

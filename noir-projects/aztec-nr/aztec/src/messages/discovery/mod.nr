@@ -76,6 +76,15 @@ pub type ProcessCustomMessage<Env> = unconstrained fn[Env](
 /* msg_content */ BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
 /* message_context */ MessageContext);
 
+/// Runtime options for Aztec contract operations like message discovery.
+/// This struct holds function references for customizable behavior.
+pub struct AztecContractOptions<Env1, Env2> {
+    /// Function to compute note hash and nullifier for different note types.
+    pub compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env1>,
+    /// Optional custom handler for unknown message types.
+    pub process_custom_message: Option<ProcessCustomMessage<Env2>>,
+}
+
 /// Performs the message discovery process, in which private logs are downloaded and inspected to find new private
 /// notes, partial notes and events, etc., and pending partial notes are processed to search for their completion logs.
 /// This is the mechanism via which a contract updates its knowledge of its private state.
@@ -83,12 +92,11 @@ pub type ProcessCustomMessage<Env> = unconstrained fn[Env](
 /// Note that the state is synchronized up to the latest block synchronized by PXE. That should be close to the chain
 /// tip as block synchronization is performed before contract function simulation is done.
 ///
-/// Receives the address of the contract on which discovery is performed along with its
-/// `compute_note_hash_and_nullifier` function.
-pub unconstrained fn discover_new_messages<Env, Env2>(
+/// Receives the address of the contract on which discovery is performed along with contract options
+/// containing customizable functions like `compute_note_hash_and_nullifier`.
+pub unconstrained fn discover_new_messages<Env1, Env2>(
     contract_address: AztecAddress,
-    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env>,
-    process_custom_message: ProcessCustomMessage<Env2>,
+    options: AztecContractOptions<Env1, Env2>,
 ) {
     debug_log("Performing message discovery");
 
@@ -106,8 +114,8 @@ pub unconstrained fn discover_new_messages<Env, Env2>(
 
         process_message_ciphertext(
             contract_address,
-            compute_note_hash_and_nullifier,
-            process_custom_message,
+            options.compute_note_hash_and_nullifier,
+            options.process_custom_message,
             message_ciphertext,
             pending_tagged_log.context,
         );
@@ -118,7 +126,7 @@ pub unconstrained fn discover_new_messages<Env, Env2>(
     // executions.
     partial_notes::fetch_and_process_partial_note_completion_logs(
         contract_address,
-        compute_note_hash_and_nullifier,
+        options.compute_note_hash_and_nullifier,
     );
 
     // Finally we validate all notes and events that were found as part of the previous processes, resulting in them
