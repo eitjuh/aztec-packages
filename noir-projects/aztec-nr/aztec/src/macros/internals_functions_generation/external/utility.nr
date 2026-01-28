@@ -34,10 +34,7 @@ pub(crate) comptime fn generate_utility_external(f: FunctionDefinition) -> Quote
     let original_function_name = f.name();
     let fn_name = f"__aztec_nr_internals__{original_function_name}".quoted_contents();
     let body = f.body();
-    let params = f
-        .parameters()
-        .map(|(param_name, param_type)| quote { $param_name: $param_type })
-        .join(quote {, });
+    let params = f.parameters().map(|(param_name, param_type)| quote { $param_name: $param_type }).join(quote {, });
     let return_type = f.return_type();
 
     quote {

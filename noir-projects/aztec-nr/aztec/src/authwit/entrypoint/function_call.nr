@@ -15,11 +15,14 @@ global FUNCTION_CALL_SIZE_IN_BYTES: u32 = 99;
 // - encoding.ts
 #[derive(Serialize)]
 pub struct FunctionCall {
-    pub args_hash: Field, /* args_hash is calldata_hash if is_public is true */
+    // args_hash is calldata_hash if is_public is true
+    pub args_hash: Field,
     pub function_selector: FunctionSelector,
     pub target_address: AztecAddress,
     pub is_public: bool,
-    pub hide_msg_sender: bool, /* This option is only available for public calls. Must be `false` if `is_public = false`. Private calls, by definition, hide msg_sender from the world. */
+    // This option is only available for public calls. Must be `false` if `is_public = false`. Private calls, by
+    // definition, hide msg_sender from the world.
+    pub hide_msg_sender: bool,
     pub is_static: bool,
 }
 

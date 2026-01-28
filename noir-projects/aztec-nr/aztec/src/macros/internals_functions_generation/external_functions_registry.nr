@@ -1,10 +1,9 @@
-//! Registry for external functions that are added to the corresponding global variable when the `#[external(...)]`
-//! macro is applied. This registry is then used by the `#[aztec]` macro to generate the functions prefixed with
-//! `__aztec_nr_internals___` and the `public_dispatch` function.
-//!
-//! Note that we need to use this registry approach instead of directly iterating over the functions in the `#[aztec]`
-//! macro, because at that point we do not have the information about whether a given external function is private or
-//! public. We only see the internal attribute itself, not the "private" or "public" argument.
+//! Registry for external functions that are added to the corresponding global variable when the `#[external(...)]` !
+// macro is applied. This registry is then used by the `#[aztec]` macro to generate the functions prefixed with !
+// `__aztec_nr_internals___` and the `public_dispatch` function. ! ! Note that we need to use this registry approach
+// instead of directly iterating over the functions in the `#[aztec]` ! macro, because at that point we do not have the
+// information about whether a given external function is private or ! public. We only see the internal attribute
+// itself, not the "private" or "public" argument.
 
 use poseidon::poseidon2::Poseidon2Hasher;
 use std::{collections::umap::UHashMap, hash::BuildHasherDefault};

@@ -24,8 +24,8 @@ impl ReturnsHash {
     {
         // Safety: We verify that the value returned by `load` is the preimage of `hash`, fully constraining it. If `T`
         // is `()`, then `preimage` must be an array of length 0 (since that is `()`'s deserialization length).
-        // `hash_args` handles empty arrays following the protocol rules (i.e. an empty args array is signaled
-        // with a zero hash), correctly constraining `self.hash`.
+        // `hash_args` handles empty arrays following the protocol rules (i.e. an empty args array is signaled with a
+        // zero hash), correctly constraining `self.hash`.
         let preimage = unsafe { execution_cache::load(self.hash) };
         assert_eq(self.hash, hash_args(preimage), "Preimage mismatch");
 
@@ -85,15 +85,13 @@ mod test {
         assert_eq(ReturnsHash::new(hash).get_preimage(), value);
     }
 
-    // This test passes due to a Noir bug.
-    // #[test(should_fail_with="Preimage mismatch")]
-    // unconstrained fn rejects_bad_empty_preimage() {
-    //     let value = ();
-    //     let serialized = [];
+    // This test passes due to a Noir bug. #[test(should_fail_with="Preimage mismatch")] unconstrained fn
+    // rejects_bad_empty_preimage() {
+    //     let value = (); let serialized = [];
 
     //     let hash = hash_args(serialized);
 
     //     let _ = OracleMock::mock("privateLoadFromExecutionCache").returns([1]);
-    //     assert_eq(ReturnsHash::new(hash).get_preimage(), value);
+    // assert_eq(ReturnsHash::new(hash).get_preimage(), value);
     // }
 }

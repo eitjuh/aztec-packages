@@ -28,16 +28,10 @@ impl<Note, let M: u32> NoteViewerOptions<Note, M> {
         }
     }
 
-    // This method adds a `Select` criterion to the options.
-    // It takes a field_index indicating which field to select,
-    // a value representing the specific value to match in that field, and
-    // a comparator (For possible values of comparators, please see the Comparator enum from note_getter_options)
-    pub fn select<T>(
-        &mut self,
-        property_selector: PropertySelector,
-        comparator: u8,
-        value: T,
-    ) -> Self
+    // This method adds a `Select` criterion to the options. It takes a field_index indicating which field to select, a
+    // value representing the specific value to match in that field, and a comparator (For possible values of
+    // comparators, please see the Comparator enum from note_getter_options)
+    pub fn select<T>(&mut self, property_selector: PropertySelector, comparator: u8, value: T) -> Self
     where
         T: ToField,
     {
@@ -72,8 +66,8 @@ impl<Note, let M: u32> NoteViewerOptions<Note, M> {
         *self
     }
 
-    // This method sets the owner value, which determines which owner's notes to retrieve.
-    // If None, notes from all owners will be retrieved.
+    // This method sets the owner value, which determines which owner's notes to retrieve. If None, notes from all
+    // owners will be retrieved.
     pub fn set_owner(&mut self, owner: AztecAddress) -> Self {
         self.owner = Option::some(owner);
         *self

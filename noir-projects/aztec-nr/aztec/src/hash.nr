@@ -3,8 +3,8 @@
 use dep::protocol_types::{
     address::{AztecAddress, EthAddress},
     constants::{
-        DOM_SEP__FUNCTION_ARGS, DOM_SEP__MESSAGE_NULLIFIER, DOM_SEP__PUBLIC_BYTECODE,
-        DOM_SEP__PUBLIC_CALLDATA, DOM_SEP__SECRET_HASH, MAX_PACKED_PUBLIC_BYTECODE_SIZE_IN_FIELDS,
+        DOM_SEP__FUNCTION_ARGS, DOM_SEP__MESSAGE_NULLIFIER, DOM_SEP__PUBLIC_BYTECODE, DOM_SEP__PUBLIC_CALLDATA,
+        DOM_SEP__SECRET_HASH, MAX_PACKED_PUBLIC_BYTECODE_SIZE_IN_FIELDS,
     },
     hash::{poseidon2_hash_subarray, poseidon2_hash_with_separator, sha256_to_field},
     traits::ToField,
@@ -66,25 +66,19 @@ pub fn hash_calldata_array<let N: u32>(calldata: [Field; N]) -> Field {
     poseidon2_hash_with_separator(calldata, DOM_SEP__PUBLIC_CALLDATA)
 }
 
-/**
- * Computes the public bytecode commitment for a contract class.
- * The commitment is `hash([separator, ...bytecode])` where bytecode omits the length prefix present
- * in `packed_bytecode`.
- *
- * @param packed_bytecode - The packed bytecode of the contract class. 0th word is the length in bytes.
- *    packed_bytecode is mutable so that we can avoid copying the array to construct one starting with
- *    separator instead of length.
- * @returns The public bytecode commitment.
- */
+/// Computes the public bytecode commitment for a contract class. The commitment is `hash([separator, ...bytecode])`
+/// where bytecode omits the length prefix present in `packed_bytecode`.
+///
+/// @param packed_bytecode - The packed bytecode of the contract class. 0th word is the length in bytes.
+/// packed_bytecode is mutable so that we can avoid copying the array to construct one starting with separator instead
+/// of length. @returns The public bytecode commitment.
 pub fn compute_public_bytecode_commitment(
     mut packed_public_bytecode: [Field; MAX_PACKED_PUBLIC_BYTECODE_SIZE_IN_FIELDS],
 ) -> Field {
     // First field element contains the length of the bytecode
     let bytecode_length_in_bytes: u32 = packed_public_bytecode[0] as u32;
-    let bytecode_length_in_fields: u32 =
-        (bytecode_length_in_bytes / 31) + (bytecode_length_in_bytes % 31 != 0) as u32;
-    // Don't allow empty public bytecode.
-    // AVM doesn't handle execution of contracts that exist with empty bytecode.
+    let bytecode_length_in_fields: u32 = (bytecode_length_in_bytes / 31) + (bytecode_length_in_bytes % 31 != 0) as u32;
+    // Don't allow empty public bytecode. AVM doesn't handle execution of contracts that exist with empty bytecode.
     assert(bytecode_length_in_fields != 0);
     assert(bytecode_length_in_fields < MAX_PACKED_PUBLIC_BYTECODE_SIZE_IN_FIELDS);
 
@@ -93,8 +87,7 @@ pub fn compute_public_bytecode_commitment(
     packed_public_bytecode[0] = separator;
 
     // `fields_to_hash` is the number of fields from the start of `packed_public_bytecode` that should be included in
-    // the hash. Fields after this length are ignored.
-    // +1 to account for the separator.
+    // the hash. Fields after this length are ignored. +1 to account for the separator.
     let num_fields_to_hash = bytecode_length_in_fields + 1;
 
     poseidon2_hash_subarray(packed_public_bytecode, num_fields_to_hash)

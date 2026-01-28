@@ -10,8 +10,7 @@ pub comptime fn generate_public_dispatch(m: Module) -> Quoted {
 
     let unit = get_type::<()>();
 
-    let seen_selectors =
-        &mut UHashMap::<Field, Quoted, BuildHasherDefault<Poseidon2Hasher>>::default();
+    let seen_selectors = &mut UHashMap::<Field, Quoted, BuildHasherDefault<Poseidon2Hasher>>::default();
 
     let ifs = functions.map(|function: FunctionDefinition| {
         let parameters = function.parameters();
@@ -20,9 +19,8 @@ pub comptime fn generate_public_dispatch(m: Module) -> Quoted {
         let selector: Field = compute_fn_selector(function);
         let fn_name = function.name();
 
-        // Since function selectors are computed as the first 4 bytes of the hash of the function signature,
-        // it's possible to have collisions. With the following check, we ensure it doesn't happen within
-        // the same contract.
+        // Since function selectors are computed as the first 4 bytes of the hash of the function signature, it's
+        // possible to have collisions. With the following check, we ensure it doesn't happen within the same contract.
         if seen_selectors.contains_key(selector) {
             let existing_fn = seen_selectors.get(selector).unwrap();
             panic(
@@ -36,12 +34,11 @@ pub comptime fn generate_public_dispatch(m: Module) -> Quoted {
         let initial_read = if parameters.len() == 0 {
             quote {}
         } else {
-            // The initial calldata_copy offset is 1 to skip the Field selector
-            // The expected calldata is the serialization of
+            // The initial calldata_copy offset is 1 to skip the Field selector The expected calldata is the
+            // serialization of
             // - FunctionSelector: the selector of the function intended to dispatch
-            // - Parameters: the parameters of the function intended to dispatch
-            // That is, exactly what is expected for a call to the target function,
-            // but with a selector added at the beginning.
+            // - Parameters: the parameters of the function intended to dispatch That is, exactly what is expected for
+            // a call to the target function, but with a selector added at the beginning.
             quote {
                 let input_calldata: [Field; $params_len_quote] = dep::aztec::oracle::avm::calldata_copy(1, $params_len_quote);
                 let mut reader = dep::aztec::protocol_types::utils::reader::Reader::new(input_calldata);

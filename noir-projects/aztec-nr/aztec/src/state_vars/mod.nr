@@ -1,12 +1,8 @@
-//! Storage for contract state.
-//!
-//! Contracts store their state in _state variables_. In Solidity, a state variable is simply any value declared inside
-//! a contract, e.g. `contract Token { uint256 totalSupply; }`, and they can be one of many kinds (primitive values,
-//! mappings, arrays, immutable, etc.).
-//!
-//! Due to Aztec contracts being able to store both public and private state, there are many more different types of
-//! state variables, each with their nuance and use cases. Understanding these is key to understanding how a contract
-//! works.
+//! Storage for contract state. ! ! Contracts store their state in _state variables_. In Solidity, a state variable is
+// simply any value declared inside ! a contract, e.g. `contract Token { uint256 totalSupply; }`, and they can be one
+// of many kinds (primitive values, ! mappings, arrays, immutable, etc.). ! ! Due to Aztec contracts being able to
+// store both public and private state, there are many more different types of ! state variables, each with their
+// nuance and use cases. Understanding these is key to understanding how a contract ! works.
 
 mod state_variable;
 pub use state_variable::StateVariable;
