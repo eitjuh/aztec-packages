@@ -2,7 +2,7 @@ use crate::{
     keys::constants::{NULLIFIER_INDEX, OUTGOING_INDEX},
     oracle::{key_validation_request::get_key_validation_request, keys::get_public_keys_and_partial_address},
 };
-use dep::protocol_types::{address::AztecAddress, public_keys::PublicKeys};
+use protocol_types::{address::AztecAddress, public_keys::PublicKeys};
 
 pub unconstrained fn get_nsk_app(npk_m_hash: Field) -> Field {
     get_key_validation_request(npk_m_hash, NULLIFIER_INDEX).sk_app

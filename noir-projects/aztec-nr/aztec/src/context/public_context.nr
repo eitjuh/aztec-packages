@@ -6,7 +6,7 @@ use crate::{
     },
     oracle::avm,
 };
-use dep::protocol_types::{
+use protocol_types::{
     abis::function_selector::FunctionSelector,
     address::{AztecAddress, EthAddress},
     constants::{MAX_U32_VALUE, NULL_MSG_SENDER_CONTRACT_ADDRESS},

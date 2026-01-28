@@ -1,4 +1,4 @@
-use dep::aztec::{
+use aztec::{
     context::{PrivateContext, PublicContext},
     history::nullifier::assert_nullifier_existed_by,
     keys::getters::{get_nsk_app, get_public_keys},
@@ -288,7 +288,7 @@ impl FromField for PartialUintNote {
 
 mod test {
     use super::{compute_partial_commitment, PartialUintNote, UintNote};
-    use dep::aztec::{note::note_interface::NoteHash, protocol_types::{address::AztecAddress, traits::FromField}};
+    use aztec::{note::note_interface::NoteHash, protocol_types::{address::AztecAddress, traits::FromField}};
 
     global value: u128 = 17;
     global randomness: Field = 42;

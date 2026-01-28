@@ -166,7 +166,7 @@ pub(crate) comptime fn generate_private_external(f: FunctionDefinition) -> Quote
     let fn_name = f"__aztec_nr_internals__{original_function_name}".quoted_contents();
 
     let to_prepend = quote {
-        dep::aztec::oracle::version::assert_compatible_oracle_version();
+        aztec::oracle::version::assert_compatible_oracle_version();
         $contract_self_creation
         $initial_phase_store
         $assert_initializer

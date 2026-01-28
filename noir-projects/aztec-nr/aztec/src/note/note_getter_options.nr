@@ -1,5 +1,5 @@
 use crate::note::{HintedNote, note_interface::NoteType};
-use dep::protocol_types::{
+use protocol_types::{
     address::AztecAddress,
     constants::MAX_NOTE_HASH_READ_REQUESTS_PER_CALL,
     traits::{Packable, ToField},
@@ -104,7 +104,7 @@ impl<Note, let N: u32, PreprocessorArgs, FilterArgs> NoteGetterOptions<Note, N, 
     // This method lets you set a limit for the maximum number of notes to be retrieved in a single query result.
     pub fn set_limit(&mut self, limit: u32) -> Self {
         assert(limit <= MAX_NOTE_HASH_READ_REQUESTS_PER_CALL as u32);
-        if !dep::std::runtime::is_unconstrained() {
+        if !std::runtime::is_unconstrained() {
             // By requesting that the limit is a constant, we guarantee that it will be possible to loop over it,
             // reducing gate counts when a limit has been set.
             assert_constant(limit);

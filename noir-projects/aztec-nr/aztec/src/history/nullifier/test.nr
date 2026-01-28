@@ -5,7 +5,7 @@ use crate::history::{
 };
 use crate::oracle::{nullifiers::notify_created_nullifier, random::random};
 use crate::test::helpers::test_environment::{PrivateContextOptions, TestEnvironment};
-use dep::protocol_types::{constants::DOM_SEP__OUTER_NULLIFIER, hash::poseidon2_hash_with_separator, traits::ToField};
+use protocol_types::{constants::DOM_SEP__OUTER_NULLIFIER, hash::poseidon2_hash_with_separator, traits::ToField};
 
 #[test]
 unconstrained fn note_is_nullified_succeeds_on_blocks_after_note_nullification() {

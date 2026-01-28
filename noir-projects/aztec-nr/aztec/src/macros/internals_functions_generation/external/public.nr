@@ -46,10 +46,10 @@ pub(crate) comptime fn generate_public_external(f: FunctionDefinition) -> Quoted
     let contract_self_creation = quote {
         #[allow(unused_variables)]
         let mut self = {
-            let context = dep::aztec::context::PublicContext::new(|| {
+            let context = aztec::context::PublicContext::new(|| {
             // We start from 1 because we skip the selector for the dispatch function.
-            let serialized_args : [Field; $args_len_quote] = dep::aztec::oracle::avm::calldata_copy(1, $args_len_quote);
-            dep::aztec::hash::hash_args(serialized_args)
+            let serialized_args : [Field; $args_len_quote] = aztec::oracle::avm::calldata_copy(1, $args_len_quote);
+            aztec::hash::hash_args(serialized_args)
             });
             $storage_init
             let self_address = context.this_address();

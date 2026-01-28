@@ -1,8 +1,4 @@
-use dep::protocol_types::{
-    abis::function_selector::FunctionSelector,
-    address::AztecAddress,
-    traits::{Serialize, ToField},
-};
+use protocol_types::{abis::function_selector::FunctionSelector, address::AztecAddress, traits::{Serialize, ToField}};
 use std::meta::derive;
 
 // 3 * 32 + 3

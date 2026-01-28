@@ -1,4 +1,4 @@
-use dep::protocol_types::{
+use protocol_types::{
     address::AztecAddress, constants::DOM_SEP__NOTE_HASH, hash::poseidon2_hash_with_separator, traits::Hash,
 };
 

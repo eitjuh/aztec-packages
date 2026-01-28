@@ -1,6 +1,6 @@
 //! Contract deployments.
 
-use dep::protocol_types::{
+use protocol_types::{
     abis::block_header::BlockHeader, address::AztecAddress, constants::CONTRACT_INSTANCE_REGISTRY_CONTRACT_ADDRESS,
     hash::compute_siloed_nullifier, traits::ToField,
 };

@@ -1,7 +1,7 @@
 use crate::{context::gas::GasOpts, test::{helpers::test_environment::TestEnvironment, mocks::MockStruct}};
 use protocol_types::{abis::function_selector::FunctionSelector, address::AztecAddress, traits::FromField};
 
-use dep::std::mem::zeroed;
+use std::mem::zeroed;
 
 global storage_slot: Field = 13;
 

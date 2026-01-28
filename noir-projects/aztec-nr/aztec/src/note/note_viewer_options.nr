@@ -1,7 +1,7 @@
 use crate::note::constants::MAX_NOTES_PER_PAGE;
 use crate::note::note_getter_options::{NoteStatus, PropertySelector, Select, Sort};
 use crate::note::note_interface::NoteType;
-use dep::protocol_types::{address::AztecAddress, traits::{Packable, ToField}};
+use protocol_types::{address::AztecAddress, traits::{Packable, ToField}};
 use std::option::Option;
 
 pub struct NoteViewerOptions<Note, let M: u32> {
@@ -48,7 +48,7 @@ impl<Note, let M: u32> NoteViewerOptions<Note, M> {
         assert(limit <= MAX_NOTES_PER_PAGE as u32);
         // By requesting that the limit is a constant, we guarantee that it will be possible to loop over it, reducing
         // gate counts when a limit has been set.
-        if !dep::std::runtime::is_unconstrained() {
+        if !std::runtime::is_unconstrained() {
             assert_constant(limit);
         }
         self.limit = limit;

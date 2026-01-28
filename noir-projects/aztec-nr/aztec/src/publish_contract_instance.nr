@@ -2,7 +2,7 @@
 
 use crate::{context::PrivateContext, oracle::get_contract_instance::get_contract_instance};
 
-use dep::protocol_types::{
+use protocol_types::{
     abis::function_selector::FunctionSelector,
     address::AztecAddress,
     constants::CONTRACT_INSTANCE_REGISTRY_CONTRACT_ADDRESS,

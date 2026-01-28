@@ -1,4 +1,4 @@
-use dep::protocol_types::{
+use protocol_types::{
     address::AztecAddress,
     constants::{DOM_SEP__SYMMETRIC_KEY, DOM_SEP__SYMMETRIC_KEY_2},
     hash::poseidon2_hash_with_separator,

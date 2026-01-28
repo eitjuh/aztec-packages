@@ -1,4 +1,4 @@
-use dep::aztec::{
+use aztec::{
     context::{PrivateContext, UtilityContext},
     note::{
         HintedNote,
@@ -10,8 +10,8 @@ use dep::aztec::{
     protocol_types::{address::AztecAddress, constants::MAX_NOTE_HASH_READ_REQUESTS_PER_CALL, traits::Packable},
     state_vars::{OwnedStateVariable, PrivateSet},
 };
-use dep::uint_note::UintNote;
 use std::ops::Add;
+use uint_note::UintNote;
 
 pub struct BalanceSet<Context> {
     set: PrivateSet<UintNote, Context>,

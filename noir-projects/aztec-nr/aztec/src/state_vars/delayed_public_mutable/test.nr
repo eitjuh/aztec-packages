@@ -5,7 +5,7 @@ use crate::{
 };
 use protocol_types::traits::Empty;
 
-use dep::std::mem::zeroed;
+use std::mem::zeroed;
 
 global new_value: MockStruct = MockStruct { a: 17, b: 42 };
 

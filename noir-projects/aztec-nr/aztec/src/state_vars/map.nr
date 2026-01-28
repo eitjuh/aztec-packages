@@ -1,5 +1,5 @@
 use crate::state_vars::StateVariable;
-use dep::protocol_types::{storage::map::derive_storage_slot_in_map, traits::ToField};
+use protocol_types::{storage::map::derive_storage_slot_in_map, traits::ToField};
 
 /// A key-value container for state variables.
 ///

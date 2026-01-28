@@ -1,4 +1,4 @@
-use dep::protocol_types::meta::derive_serialize;
+use protocol_types::meta::derive_serialize;
 use std::meta::unquote;
 
 pub(crate) comptime fn is_fn_external(f: FunctionDefinition) -> bool {

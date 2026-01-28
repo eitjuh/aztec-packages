@@ -40,8 +40,8 @@ pub comptime fn generate_public_dispatch(m: Module) -> Quoted {
             // - Parameters: the parameters of the function intended to dispatch That is, exactly what is expected for
             // a call to the target function, but with a selector added at the beginning.
             quote {
-                let input_calldata: [Field; $params_len_quote] = dep::aztec::oracle::avm::calldata_copy(1, $params_len_quote);
-                let mut reader = dep::aztec::protocol_types::utils::reader::Reader::new(input_calldata);
+                let input_calldata: [Field; $params_len_quote] = aztec::oracle::avm::calldata_copy(1, $params_len_quote);
+                let mut reader = aztec::protocol_types::utils::reader::Reader::new(input_calldata);
             }
         };
 
@@ -51,7 +51,7 @@ pub comptime fn generate_public_dispatch(m: Module) -> Quoted {
             let param_name = f"arg{parameter_index_value}".quoted_contents();
             let param_type = param.1;
             let read = quote {
-                let $param_name: $param_type = reader.read_struct(dep::aztec::protocol_types::traits::Deserialize::deserialize);
+                let $param_name: $param_type = reader.read_struct(aztec::protocol_types::traits::Deserialize::deserialize);
             };
             *parameter_index += 1;
             quote { $read }
@@ -76,12 +76,12 @@ pub comptime fn generate_public_dispatch(m: Module) -> Quoted {
             quote {
                 $call;
                 // Force early return.
-                dep::aztec::oracle::avm::avm_return([]);
+                aztec::oracle::avm::avm_return([]);
             }
         } else {
             quote {
-                let return_value = dep::aztec::protocol_types::traits::Serialize::serialize($call);
-                dep::aztec::oracle::avm::avm_return(return_value.as_vector());
+                let return_value = aztec::protocol_types::traits::Serialize::serialize($call);
+                aztec::oracle::avm::avm_return(return_value.as_vector());
             }
         };
 

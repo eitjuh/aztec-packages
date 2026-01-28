@@ -1,4 +1,4 @@
-use dep::protocol_types::{
+use protocol_types::{
     address::{AztecAddress, PartialAddress},
     point::Point,
     public_keys::{IvpkM, NpkM, OvpkM, PublicKeys, TpkM},

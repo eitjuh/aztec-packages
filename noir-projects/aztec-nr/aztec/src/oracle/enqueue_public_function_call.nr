@@ -1,4 +1,4 @@
-use dep::protocol_types::address::AztecAddress;
+use protocol_types::address::AztecAddress;
 
 #[oracle(privateNotifyEnqueuedPublicFunctionCall)]
 unconstrained fn notify_enqueued_public_function_call_oracle(

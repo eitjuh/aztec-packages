@@ -69,7 +69,7 @@ pub(crate) comptime fn create_authorize_once_check(f: FunctionDefinition, is_pri
             f"Function {name} does not have a {from_arg_name} parameter. Please specify which one to use in #[authorize_once(\"...\", \"authwit_nonce\")]",
         )
     };
-    if from_arg_type != quote { dep::protocol_types::address::aztec_address::AztecAddress }.as_type() {
+    if from_arg_type != quote { protocol_types::address::aztec_address::AztecAddress }.as_type() {
         panic(
             f"Argument {from_arg_name_quoted} in function {name} must be of type AztecAddress, but is of type {from_arg_type}",
         )
@@ -93,9 +93,9 @@ pub(crate) comptime fn create_authorize_once_check(f: FunctionDefinition, is_pri
 
     let fn_call = if is_private {
         let args_len = f.parameters().len();
-        quote { dep::aztec::authwit::auth::assert_current_call_valid_authwit::<$args_len> }
+        quote { aztec::authwit::auth::assert_current_call_valid_authwit::<$args_len> }
     } else {
-        quote { dep::aztec::authwit::auth::assert_current_call_valid_authwit_public }
+        quote { aztec::authwit::auth::assert_current_call_valid_authwit_public }
     };
     let invalid_nonce_message = f"Invalid authwit nonce. When '{from_arg_name}' and 'msg_sender' are the same, '{nonce_arg_name}' must be zero"
         .as_ctstring()

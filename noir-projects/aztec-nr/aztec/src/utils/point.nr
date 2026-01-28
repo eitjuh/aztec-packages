@@ -48,7 +48,7 @@ mod test {
     use crate::utils::point::{
         BN254_FR_MODULUS_DIV_2, get_sign_of_point, point_from_x_coord, point_from_x_coord_and_sign,
     };
-    use dep::protocol_types::point::Point;
+    use protocol_types::point::Point;
 
     #[test]
     unconstrained fn test_point_from_x_coord_and_sign() {

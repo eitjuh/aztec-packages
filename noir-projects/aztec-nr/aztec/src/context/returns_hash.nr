@@ -1,5 +1,5 @@
 use crate::{hash::hash_args, oracle::execution_cache};
-use dep::protocol_types::traits::Deserialize;
+use protocol_types::traits::Deserialize;
 
 /// A hash that represents a private contract function call's return value. Call `get_preimage` to get the underlying
 /// value.

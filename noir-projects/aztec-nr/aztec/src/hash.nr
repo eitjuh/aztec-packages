@@ -1,6 +1,6 @@
 //! Aztec hash functions.
 
-use dep::protocol_types::{
+use protocol_types::{
     address::{AztecAddress, EthAddress},
     constants::{
         DOM_SEP__FUNCTION_ARGS, DOM_SEP__MESSAGE_NULLIFIER, DOM_SEP__PUBLIC_BYTECODE, DOM_SEP__PUBLIC_CALLDATA,
@@ -10,7 +10,7 @@ use dep::protocol_types::{
     traits::ToField,
 };
 
-pub use dep::protocol_types::hash::compute_siloed_nullifier;
+pub use protocol_types::hash::compute_siloed_nullifier;
 
 pub fn compute_secret_hash(secret: Field) -> Field {
     poseidon2_hash_with_separator([secret], DOM_SEP__SECRET_HASH)
@@ -100,7 +100,7 @@ unconstrained fn compute_var_args_hash() {
         input[i] = i as Field;
     }
     let hash = hash_args(input);
-    dep::std::println(hash);
+    std::println(hash);
     // Used in yarn-project/stdlib test snapshots:
     assert(hash == 0x19b0d74feb06ebde19edd85a28986c97063e84b3b351a8b666c7cac963ce655f);
 }
@@ -125,7 +125,7 @@ unconstrained fn public_bytecode_commitment() {
     }
     input[0] = (len as Field) * 31;
     let hash = compute_public_bytecode_commitment(input);
-    dep::std::println(hash);
+    std::println(hash);
     // Used in cpp vm2 tests:
     assert(hash == 0x16d621c3387156ef53754679e7b2c9be8f0bceeb44aa59a74991df3b0b42a0bf);
 }

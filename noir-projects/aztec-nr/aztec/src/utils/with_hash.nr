@@ -1,7 +1,5 @@
 use crate::{context::{PublicContext, UtilityContext}, history::storage::public_storage_historical_read, oracle};
-use dep::protocol_types::{
-    abis::block_header::BlockHeader, address::AztecAddress, hash::poseidon2_hash, traits::Packable,
-};
+use protocol_types::{abis::block_header::BlockHeader, address::AztecAddress, hash::poseidon2_hash, traits::Packable};
 
 /// A struct that allows for efficient reading of value `T` from public storage in private.
 ///

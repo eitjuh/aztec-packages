@@ -1,6 +1,6 @@
 //! Historical storage accesses.
 
-use dep::protocol_types::{
+use protocol_types::{
     abis::block_header::BlockHeader, address::AztecAddress, constants::DOM_SEP__PUBLIC_LEAF_INDEX,
     data::public_data_storage_read, hash::poseidon2_hash_with_separator, merkle_tree::MembershipWitness,
     traits::ToField,
