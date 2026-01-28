@@ -14,8 +14,9 @@ use crate::macros::{
 };
 
 /// Marks a contract as an Aztec contract, generating the interfaces for its functions and notes, as well as injecting
-/// the `sync_state` utility function. Note: This is a module annotation, so the returned quote gets injected inside
-/// the module (contract) itself.
+/// the `sync_state` utility function.
+///
+/// Note: This is a module annotation, so the returned quote gets injected inside the module (contract) itself.
 pub comptime fn aztec(m: Module) -> Quoted {
     // Functions that don't have #[external(...)], #[contract_library_method], or #[test] are not allowed in contracts.
     check_each_fn_macroified(m);

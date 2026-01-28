@@ -46,8 +46,9 @@ where
         log_content[i] = serialized_event[i];
     }
 
-    // We put the selector in the "last" place, to avoid reading or assigning to an expression in an index TODO(F-224):
-    // change this order.
+    // We put the selector in the "last" place, to avoid reading or assigning to an expression in an index
+    //
+    // TODO(F-224): change this order.
     log_content[serialized_event.len()] = Event::get_event_type_id().to_field();
 
     context.emit_public_log(log_content);

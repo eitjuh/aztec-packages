@@ -1,6 +1,11 @@
-//! Generates functionality such that the following API for performing calls to `#[internal("...")]` functions is !
-// available: ! ```noir ! self.internal.my_internal_function(...) ! ``` ! Injected into the contract by the `#[aztec]`
-// macro.
+//! Generates functionality such that the following API for performing calls to `#[internal("...")]` functions is
+//! available:
+//!
+//! ```noir
+//! self.internal.my_internal_function(...)
+//! ```
+//!
+//! Injected into the contract by the `#[aztec]` macro.
 
 use crate::macros::internals_functions_generation::internal_functions_registry;
 

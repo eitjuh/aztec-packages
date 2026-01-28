@@ -29,7 +29,10 @@ mod test;
 /// Because this private value has no semantic owner, it is up to the application to determine which accounts will
 /// learn of its existence via [crate::note::note_message::NoteMessage::deliver_to].
 ///
-/// # Usage Unlike [crate::state_vars::private_immutable::PrivateImmutable] which is "owned" (requiring wrapping in an [crate::state_vars::owned::Owned] state variable), SinglePrivateMutable is used directly in storage:
+/// # Usage
+///
+/// Unlike [crate::state_vars::private_immutable::PrivateImmutable] which is "owned" (requiring wrapping in an
+/// [crate::state_vars::owned::Owned] state variable), SinglePrivateMutable is used directly in storage:
 ///
 /// ```noir
 /// #[storage]

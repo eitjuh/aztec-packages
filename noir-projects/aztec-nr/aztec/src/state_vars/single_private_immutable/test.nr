@@ -94,8 +94,9 @@ unconstrained fn initialize_and_get_pending() {
         assert_eq(hinted_note, note);
 
         // Reading a SinglePrivateImmutable results in:
-        // - a read request for the read value Note: Unlike PrivateMutable, SinglePrivateImmutable doesn't nullify and
-        // recreate the note
+        // - a read request for the read value
+        //
+        // Note: Unlike PrivateMutable, SinglePrivateImmutable doesn't nullify and recreate the note
         assert_eq(context.note_hash_read_requests.len(), note_hash_read_requests_pre_get + 1);
     });
 }

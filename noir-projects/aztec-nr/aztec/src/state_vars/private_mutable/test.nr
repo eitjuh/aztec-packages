@@ -330,8 +330,9 @@ unconstrained fn initialize_or_replace_initialized_settled() {
         // Replacing a PrivateMutable results in:
         // - a read request for the read value
         // - a nullifier for the read note
-        // - a new note for the replacement note This would only succeed if the variable had already been initialized,
-        // as otherwise the read request would fail.
+        // - a new note for the replacement note
+        // This would only succeed if the variable had already been initialized, as otherwise the read request would
+        // fail.
         assert_eq(context.note_hash_read_requests.len(), note_hash_read_requests_pre_replace + 1);
         assert_eq(context.nullifiers.len(), nullifiers_pre_replace + 1);
         assert_eq(context.note_hashes.len(), note_hashes_pre_replace + 1);

@@ -17,7 +17,7 @@ comptime global FROM_FIELD: TypedExpr = {
 
 /// Utility function creating stubs used by all the stub functions in this file.
 comptime fn create_stub_base(f: FunctionDefinition) -> (Quoted, Quoted, Quoted, Quoted, u32, Quoted, u32, Field) {
-    // Dear privacy adventurer, Chances are, you've command+clicked on the name of an external function call -- seeking
+    // Dear privacy adventurer, chances are, you've command+clicked on the name of an external function call -- seeking
     // to view that function -- only to end up here. Here's an explanation: The external contract that you're calling
     // was likely annotated with the `#[aztec]` annotation -- as all good aztec contracts are. This triggers a macro
     // which generates a "contract interface" for that contract, which is effectively a pretty interface that gives

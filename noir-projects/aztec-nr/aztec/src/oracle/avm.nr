@@ -1,5 +1,7 @@
-//! AVM oracles. ! ! There are only available during public execution. Calling any of them from a private or utility
-// function will ! result in runtime errors.
+//! AVM oracles.
+//!
+//! There are only available during public execution. Calling any of them from a private or utility function will
+//! result in runtime errors.
 
 use protocol_types::address::{AztecAddress, EthAddress};
 

@@ -11,7 +11,11 @@ use protocol_types::address::AztecAddress;
 /// - `MESSAGE_CIPHERTEXT_LEN`: Fixed length of encrypted message (defined globally)
 /// - `MESSAGE_PLAINTEXT_LEN`: Maximum size of decrypted plaintext (defined globally)
 ///
-/// # Note on privacy sets To preserve privacy, [MessageEncryption::encrypt] returns a fixed-length array ensuring all log types are indistinguishable onchain. Implementations of this trait must handle padding the encrypted log to match this standardized length.
+/// # Note on privacy sets
+///
+/// To preserve privacy, [MessageEncryption::encrypt] returns a fixed-length array ensuring all log types are
+/// indistinguishable onchain. Implementations of this trait must handle padding the encrypted log to match this
+/// standardized length.
 pub trait MessageEncryption {
     /// Encrypts a plaintext message to `recipient`.
     ///

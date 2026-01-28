@@ -24,7 +24,12 @@ use std::meta::type_of;
 /// }
 /// ```
 ///
-/// ## The #[abi(functions)] Attribute The `#[abi(functions)]` attribute marks this struct for inclusion in the contract ABI's `outputs.functions` array. This array preserves the original function signatures, including parameters and return types, before any macro transformations are applied. This preservation is crucial because macro processing alters the actual return type of contract functions to `PrivateCircuitPublicInputs`, which differs from the developer's originally specified return type. Our toolchain requires access to these original signatures.
+/// ## The #[abi(functions)] Attribute
+/// The `#[abi(functions)]` attribute marks this struct for inclusion in the contract ABI's `outputs.functions` array.
+/// This array preserves the original function signatures, including parameters and return types, before any macro
+/// transformations are applied. This preservation is crucial because macro processing alters the actual return type of
+/// contract functions to `PrivateCircuitPublicInputs`, which differs from the developer's originally specified return
+/// type. Our toolchain requires access to these original signatures.
 pub(crate) comptime fn create_fn_abi_export(f: FunctionDefinition) -> Quoted {
     let name = f.name();
     let mut parameters = f.parameters().map(|(name, typ): (Quoted, Type)| quote { pub $name: $typ }).join(quote {,});

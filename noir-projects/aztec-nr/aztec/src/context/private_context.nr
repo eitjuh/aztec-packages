@@ -295,7 +295,10 @@ impl PrivateContext {
     /// # Returns
     /// * `FunctionSelector` - The 4-byte function identifier
     ///
-    /// # Advanced Only #[external("private")] functions have a function selector as a protocol- enshrined concept. The function selectors of private functions are baked into the preimage of the contract address, and are used by the protocol's kernel circuits to identify each private function and ensure the correct one is being executed.
+    /// # Advanced
+    /// Only #[external("private")] functions have a function selector as a protocol- enshrined concept. The function
+    /// selectors of private functions are baked into the preimage of the contract address, and are used by the
+    /// protocol's kernel circuits to identify each private function and ensure the correct one is being executed.
     ///
     /// Used internally for function dispatch and call verification.
     ///
@@ -330,7 +333,9 @@ impl PrivateContext {
     /// # Arguments
     /// * `note_hash` - The new note_hash.
     ///
-    /// # Advanced From here, the protocol's kernel circuits will take over and insert the note_hash into the protocol's "note hash tree" (in the Base Rollup circuit). Before insertion, the protocol will:
+    /// # Advanced
+    /// From here, the protocol's kernel circuits will take over and insert the note_hash into the protocol's "note
+    /// hash tree" (in the Base Rollup circuit). Before insertion, the protocol will:
     /// - "Silo" the `note_hash` with the contract address of this function, to yield a `siloed_note_hash`. This
     /// prevents state collisions between different smart contracts.
     /// - Ensure uniqueness of the `siloed_note_hash`, to prevent Faerie-Gold attacks, by hashing the
@@ -374,7 +379,9 @@ impl PrivateContext {
     /// # Arguments
     /// * `nullifier`
     ///
-    /// # Advanced From here, the protocol's kernel circuits will take over and insert the nullifier into the protocol's "nullifier tree" (in the Base Rollup circuit). Before insertion, the protocol will:
+    /// # Advanced
+    /// From here, the protocol's kernel circuits will take over and insert the nullifier into the protocol's
+    /// "nullifier tree" (in the Base Rollup circuit). Before insertion, the protocol will:
     /// - "Silo" the `nullifier` with the contract address of this function, to yield a `siloed_nullifier`. This
     /// prevents state collisions between different smart contracts.
     /// - Ensure the `siloed_nullifier` is unique (the nullifier tree is an indexed merkle tree which supports
@@ -398,7 +405,13 @@ impl PrivateContext {
     /// * `nullifier`
     /// * `nullified_note_hash` - The note hash of the note being nullified
     ///
-    /// # Advanced Important: usage of this function doesn't mean that the world will _see_ that this nullifier relates to the given nullified_note_hash (as that would violate "tx unlinkability"); it simply informs the user's PXE about the relationship (via `notify_nullified_note`). The PXE can then use this information to feed hints to the kernel circuits for "squashing" purposes: If a note is nullified during the same tx which created it, we can "squash" (delete) the note and nullifier (and any private logs associated with the note), to save on data emission costs.
+    /// # Advanced
+    ///Important: usage of this function doesn't mean that the world will _see_ that this nullifier relates to the
+    /// given nullified_note_hash (as that would violate "tx unlinkability"); it simply informs the user's PXE about
+    /// the relationship (via `notify_nullified_note`). The PXE can then use this information to feed hints to the
+    /// kernel circuits for "squashing" purposes: If a note is nullified during the same tx which created it, we can
+    /// "squash" (delete) the note and nullifier (and any private logs associated with the note), to save on data
+    /// emission costs.
     ///
     pub fn push_nullifier_for_note_hash(&mut self, nullifier: Field, nullified_note_hash: Field) {
         let nullifier_counter = self.next_counter();
@@ -437,7 +450,10 @@ impl PrivateContext {
     /// # Returns
     /// * `BlockHeader` - The header of the requested historical block
     ///
-    /// # Advanced This function uses an oracle to fetch block header data from the user's PXE. Depending on how much blockchain data the user's PXE has been set up to store, this might require a query from the PXE to another Aztec node to get the data. > This is generally true of all oracle getters (see `../oracle`).
+    /// # Advanced
+    /// This function uses an oracle to fetch block header data from the user's PXE. Depending on how much blockchain
+    /// data the user's PXE has been set up to store, this might require a query from the PXE to another Aztec node to
+    /// get the data. > This is generally true of all oracle getters (see `../oracle`).
     ///
     /// Each block header gets hashed and stored as a leaf in the protocol's Archive Tree. In fact, the i-th block
     /// header gets stored at the i-th leaf index of the Archive Tree. Behind the scenes, this `get_block_header_at`
@@ -833,8 +849,9 @@ impl PrivateContext {
     /// * `sender` - Ethereum address that sent the message
     /// * `leaf_index` - Index of the message in the L1-to-L2 message tree
     ///
-    /// # Advanced Validates message existence in the L1-to-L2 message tree and nullifies the message to prevent double-consumption.
-    ///
+    /// # Advanced
+    /// Validates message existence in the L1-to-L2 message tree and nullifies the message to prevent
+    /// double-consumption.
     pub fn consume_l1_to_l2_message(&mut self, content: Field, secret: Field, sender: EthAddress, leaf_index: Field) {
         let nullifier = process_l1_to_l2_message(
             self.anchor_block_header.state.l1_to_l2_message_tree.root,
@@ -889,9 +906,6 @@ impl PrivateContext {
     /// fields as "padding" after the `length`, so that the logs of this smart contract look indistinguishable from
     /// (the same length as) the logs of all other applications. It's up to wallets how much padding to apply, so
     /// ideally all wallets should agree on standards for this.
-    ///
-    /// # Advanced
-    ///
     pub fn emit_private_log(&mut self, log: [Field; PRIVATE_LOG_SIZE_IN_FIELDS], length: u32) {
         let counter = self.next_counter();
         let private_log = PrivateLogData { log: PrivateLog::new(log, length), note_hash_counter: 0 }.count(counter);
