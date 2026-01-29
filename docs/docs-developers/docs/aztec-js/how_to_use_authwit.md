@@ -55,7 +55,7 @@ const witness = await wallet.createAuthWit(alice, {
 });
 
 // Bob executes the transfer, providing the authwit
-await action.send({ from: bob, authWitnesses: [witness] }).wait();
+await action.send({ from: bob, authWitnesses: [witness] });
 ```
 
 :::tip
@@ -84,10 +84,10 @@ const authwit = await wallet.setPublicAuthWit(
   { caller: bob, action },
   true // authorized
 );
-await authwit.send().wait();
+await authwit.send();
 
 // Now Bob can execute the transfer
-await action.send({ from: bob }).wait();
+await action.send({ from: bob });
 ```
 
 ## Create arbitrary message authwits
@@ -127,7 +127,7 @@ const revokeInteraction = await wallet.setPublicAuthWit(
   { caller: bob, action },
   false // revoke authorization
 );
-await revokeInteraction.send().wait();
+await revokeInteraction.send();
 ```
 
 ## Next steps

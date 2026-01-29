@@ -51,12 +51,10 @@ import { AztecAddress } from "@aztec/aztec.js/addresses";
 
 // newAccount is the account created in the previous section
 const deployMethod = await newAccount.getDeployMethod();
-await deployMethod
-  .send({
-    from: AztecAddress.ZERO,
-    fee: { paymentMethod: sponsoredPaymentMethod },
-  })
-  .wait();
+await deployMethod.send({
+  from: AztecAddress.ZERO,
+  fee: { paymentMethod: sponsoredPaymentMethod },
+});
 ```
 
 :::info
@@ -72,11 +70,9 @@ import { AztecAddress } from "@aztec/aztec.js/addresses";
 
 // newAccount is the account created in the previous section
 const deployMethod = await newAccount.getDeployMethod();
-await deployMethod
-  .send({
-    from: AztecAddress.ZERO,
-  })
-  .wait();
+await deployMethod.send({
+  from: AztecAddress.ZERO,
+});
 ```
 
 The `from: AztecAddress.ZERO` is required because there's no existing account to send from—the transaction itself creates the account.

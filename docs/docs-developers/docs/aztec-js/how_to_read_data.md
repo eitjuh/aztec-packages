@@ -100,7 +100,7 @@ Use `aztecNode.getPublicLogs()` to retrieve raw log data:
 
 ```typescript
 // aztecNode is from createAztecNodeClient() in the connection guide
-// receipt is from a transaction's .wait() call
+// receipt is from a transaction's send() call
 // Get logs for a specific transaction
 const logs = await aztecNode.getPublicLogs({ txHash: receipt.txHash });
 const rawFields = logs.logs[0].log.getEmittedFields(); // Fr[]

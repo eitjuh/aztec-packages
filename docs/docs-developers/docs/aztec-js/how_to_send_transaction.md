@@ -34,8 +34,7 @@ Call a function and wait for it to be mined:
 // contract is from the step above; alice is from the connection guide
 const receipt = await contract.methods
   .transfer(bobAddress, amount)
-  .send({ from: aliceAddress })
-  .wait();
+  .send({ from: aliceAddress });
 
 console.log(`Transaction mined in block ${receipt.blockNumber}`);
 console.log(`Transaction fee: ${receipt.transactionFee}`);
@@ -45,18 +44,21 @@ The `from` field specifies which account sends the transaction. If that account 
 
 ### Send without waiting
 
-```typescript
-// contract and alice are from the examples above
-const sentTx = contract.methods
-  .transfer(bobAddress, amount)
-  .send({ from: aliceAddress });
+Use the `NO_WAIT` option to get the transaction hash immediately without waiting for inclusion:
 
-// Get transaction hash immediately
-const txHash = await sentTx.getTxHash();
+```typescript
+import { NO_WAIT } from "@aztec/aztec.js/contracts";
+import { waitForTx } from "@aztec/aztec.js/node";
+
+// contract and alice are from the examples above; node is from the connection guide
+const txHash = await contract.methods
+  .transfer(bobAddress, amount)
+  .send({ from: aliceAddress, wait: NO_WAIT });
+
 console.log(`Transaction sent: ${txHash.toString()}`);
 
-// Wait for inclusion later
-const receipt = await sentTx.wait();
+// Wait for inclusion later using the node
+const receipt = await waitForTx(node, txHash);
 console.log(`Transaction mined in block ${receipt.blockNumber}`);
 ```
 
@@ -74,7 +76,7 @@ const batch = new BatchCall(wallet, [
   contract.methods.updateState(),
 ]);
 
-const receipt = await batch.send({ from: aliceAddress }).wait();
+const receipt = await batch.send({ from: aliceAddress });
 console.log(`Batch executed in block ${receipt.blockNumber}`);
 ```
 
@@ -84,12 +86,11 @@ All calls in a batch must succeed or the entire batch reverts. Use batch transac
 
 ## Query transaction status
 
-After sending a transaction, you can query its receipt:
+After sending a transaction without waiting, you can query its receipt using the node:
 
 ```typescript
-// sentTx is from the "Send without waiting" example; wallet is from the connection guide
-const txHash = await sentTx.getTxHash();
-const receipt = await wallet.getTxReceipt(txHash);
+// txHash is from the "Send without waiting" example; node is from the connection guide
+const receipt = await node.getTxReceipt(txHash);
 
 console.log(`Status: ${receipt.status}`);
 console.log(`Block number: ${receipt.blockNumber}`);

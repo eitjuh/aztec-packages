@@ -36,15 +36,14 @@ If your account has Fee Juice (for example, from a faucet), is [deployed](./how_
 
 ```typescript
 // contract is a deployed contract instance; aliceAddress is from the connection guide
-const tx = await contract.methods
+const receipt = await contract.methods
   .myFunction(param1, param2)
   .send({
     from: aliceAddress,
     // no fee payment method needed
-  })
-  .wait();
+  });
 
-console.log("Transaction fee:", tx.transactionFee);
+console.log("Transaction fee:", receipt.transactionFee);
 ```
 
 ## Use Fee Payment Contracts
@@ -172,8 +171,7 @@ import { FeeJuicePaymentMethodWithClaim } from "@aztec/aztec.js/fee";
 const paymentMethod = new FeeJuicePaymentMethodWithClaim(aliceAddress, claim);
 const receipt = await contract.methods
   .myFunction()
-  .send({ from: aliceAddress, fee: { gasSettings, paymentMethod } })
-  .wait();
+  .send({ from: aliceAddress, fee: { gasSettings, paymentMethod } });
 ```
 
 ## Configure gas settings
@@ -195,7 +193,7 @@ const gasSettings = GasSettings.from({
   maxPriorityFeesPerGas: { daGas: 1, l2Gas: 1 },
 });
 
-const tx = await contract.methods
+const receipt = await contract.methods
   .myFunction()
   .send({
     from: aliceAddress,
@@ -203,15 +201,14 @@ const tx = await contract.methods
       paymentMethod,
       gasSettings,
     },
-  })
-  .wait();
+  });
 ```
 
 ### Use automatic gas estimation
 
 ```typescript
 // contract, aliceAddress, and paymentMethod are from the examples above
-const tx = await contract.methods
+const receipt = await contract.methods
   .myFunction()
   .send({
     from: aliceAddress,
@@ -220,8 +217,7 @@ const tx = await contract.methods
       estimateGas: true,
       estimatedGasPadding: 0.2, // 20% padding
     },
-  })
-  .wait();
+  });
 ```
 
 :::tip

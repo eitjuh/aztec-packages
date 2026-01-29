@@ -45,10 +45,8 @@ const contract = await TokenContract.deploy(
   alice, // admin
   "TestToken",
   "TST",
-  18
-)
-  .send({ from: alice })
-  .deployed();
+  18,
+).send({ from: alice });
 ```
 
 ## Verifying contract state
@@ -69,13 +67,10 @@ Send transactions and wait for confirmation:
 
 ```typescript
 // contract is from the deployment section; alice and bob are from registerInitialLocalNetworkAccountsInWallet
-await contract.methods
-  .transfer(bob, 100n)
-  .send({ from: alice })
-  .wait();
+await contract.methods.transfer(bob, 100n).send({ from: alice });
 ```
 
-The `.wait()` method blocks until the transaction is included in a block.
+The `send()` method returns when the transaction is included in a block.
 
 ## Example test structure
 
@@ -102,13 +97,13 @@ describe("Token contract", () => {
     wallet = await TestWallet.create(node);
     [alice, bob] = await registerInitialLocalNetworkAccountsInWallet(wallet);
 
-    token = await TokenContract.deploy(wallet, alice, "Test", "TST", 18)
-      .send({ from: alice })
-      .deployed();
+    token = await TokenContract.deploy(wallet, alice, "Test", "TST", 18).send({
+      from: alice,
+    });
   });
 
   it("mints tokens to an account", async () => {
-    await token.methods.mint_to_public(alice, 1000n).send({ from: alice }).wait();
+    await token.methods.mint_to_public(alice, 1000n).send({ from: alice });
 
     const balance = await token.methods
       .balance_of_public(alice)
@@ -118,7 +113,7 @@ describe("Token contract", () => {
   });
 
   it("transfers tokens between accounts", async () => {
-    await token.methods.transfer_in_public(bob, 100n).send({ from: alice }).wait();
+    await token.methods.transfer_in_public(bob, 100n).send({ from: alice });
 
     const aliceBalance = await token.methods
       .balance_of_public(alice)

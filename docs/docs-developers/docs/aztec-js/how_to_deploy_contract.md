@@ -9,7 +9,7 @@ This guide shows you how to deploy compiled contracts to Aztec using the generat
 
 ## Overview
 
-Deploying a contract to Aztec involves publishing the contract class (the bytecode) and creating a contract instance at a specific address. The generated TypeScript classes handle this process through an API: you call `deploy()` with constructor arguments, `send()` with transaction options, and `deployed()` to wait for completion. The contract address is deterministically computed from the contract class, constructor arguments, salt, and deployer address.
+Deploying a contract to Aztec involves publishing the contract class (the bytecode) and creating a contract instance at a specific address. The generated TypeScript classes handle this process through an API: you call `deploy()` with constructor arguments and `send()` with transaction options to deploy and get the contract instance. The contract address is deterministically computed from the contract class, constructor arguments, salt, and deployer address.
 
 ## Prerequisites
 
@@ -56,9 +56,7 @@ const contract = await MyContract.deploy(
   wallet,
   constructorArg1,
   constructorArg2,
-)
-  .send({ from: aliceAddress }) // alice has fee juice and is registered in the wallet
-  .deployed();
+).send({ from: aliceAddress }); // alice has fee juice and is registered in the wallet
 ```
 
 On testnet, your account likely won't have Fee Juice. Instead, pay fees using the [Sponsored Fee Payment Contract method](./how_to_pay_fees.md):
@@ -69,9 +67,7 @@ const contract = await MyContract.deploy(
   wallet,
   constructorArg1,
   constructorArg2,
-)
-  .send({ from: aliceAddress, fee: { paymentMethod: sponsoredPaymentMethod } }) // using the Sponsored FPC
-  .deployed();
+).send({ from: aliceAddress, fee: { paymentMethod: sponsoredPaymentMethod } }); // using the Sponsored FPC
 ```
 
 Here's a complete example from the test suite:
@@ -90,12 +86,10 @@ import { Fr } from "@aztec/aztec.js/fields";
 // wallet and alice are from the connection guide
 const salt = Fr.random();
 
-const contract = await MyContract.deploy(wallet, arg1, arg2)
-  .send({
-    from: aliceAddress,
-    contractAddressSalt: salt,
-  })
-  .deployed();
+const contract = await MyContract.deploy(wallet, arg1, arg2).send({
+  from: aliceAddress,
+  contractAddressSalt: salt,
+});
 ```
 
 ### Deploy universally
@@ -114,18 +108,13 @@ Deploy without running the constructor:
 
 ```typescript
 // wallet and alice are from the connection guide
-const contract = await MyContract.deploy(wallet)
-  .send({
-    from: aliceAddress,
-    skipInitialization: true,
-  })
-  .deployed();
+const contract = await MyContract.deploy(wallet).send({
+  from: aliceAddress,
+  skipInitialization: true,
+});
 
 // Initialize later
-await contract.methods
-  .initialize(arg1, arg2)
-  .send({ from: aliceAddress })
-  .wait();
+await contract.methods.initialize(arg1, arg2).send({ from: aliceAddress });
 ```
 
 ### Deploy with a specific initializer
@@ -172,22 +161,31 @@ This is an advanced pattern. For most use cases, deploy the contract directly an
 
 ### Track deployment transaction
 
+Use `NO_WAIT` to get the transaction hash immediately and track deployment:
+
 ```typescript
-// wallet and alice are from the connection guide
-const deployTx = MyContract.deploy(wallet, arg1, arg2).send({
+import { NO_WAIT } from "@aztec/aztec.js/contracts";
+import { waitForTx } from "@aztec/aztec.js/node";
+
+// wallet, alice, and node are from the connection guide
+const txHash = await MyContract.deploy(wallet, arg1, arg2).send({
   from: aliceAddress,
+  wait: NO_WAIT,
 });
 
-// Get transaction hash immediately
-const txHash = await deployTx.getTxHash();
 console.log(`Deployment tx: ${txHash}`);
 
-// Wait for the transaction to be mined
-const receipt = await deployTx.wait();
+// Wait for the transaction to be mined using the node
+const receipt = await waitForTx(node, txHash);
 console.log(`Deployed in block ${receipt.blockNumber}`);
+```
 
-// Get the deployed contract instance
-const contract = await deployTx.deployed();
+For most use cases, simply await the deployment to get the contract directly:
+
+```typescript
+const contract = await MyContract.deploy(wallet, arg1, arg2).send({
+  from: aliceAddress,
+});
 console.log(`Contract address: ${contract.address}`);
 ```
 
@@ -212,32 +210,28 @@ const token = await TokenContract.deploy(
   "MyToken",
   "MTK",
   18,
-)
-  .send({ from: aliceAddress })
-  .deployed();
+).send({ from: aliceAddress });
 
 // Deploy second contract with reference to first
-const vault = await VaultContract.deploy(wallet, token.address)
-  .send({ from: aliceAddress })
-  .deployed();
+const vault = await VaultContract.deploy(wallet, token.address).send({
+  from: aliceAddress,
+});
 ```
 
 ### Deploy contracts in parallel
 
 ```typescript
 // wallet and alice are from the connection guide
-// Start all deployments simultaneously
-const deployments = [
+// Start all deployments simultaneously and wait for completion
+const contracts = await Promise.all([
   Contract1.deploy(wallet, arg1).send({ from: aliceAddress }),
   Contract2.deploy(wallet, arg2).send({ from: aliceAddress }),
   Contract3.deploy(wallet, arg3).send({ from: aliceAddress }),
-];
+]);
 
-// Wait for all to complete
-const receipts = await Promise.all(deployments.map((d) => d.wait()));
-
-// Get deployed contract instances
-const contracts = await Promise.all(deployments.map((d) => d.deployed()));
+console.log(`Contract 1 at: ${contracts[0].address}`);
+console.log(`Contract 2 at: ${contracts[1].address}`);
+console.log(`Contract 3 at: ${contracts[2].address}`);
 ```
 
 :::tip[Parallel deployment considerations]
