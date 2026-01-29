@@ -28,6 +28,7 @@ The local network comes with pre-funded accounts. Load them into your wallet:
 ```typescript
 import { registerInitialLocalNetworkAccountsInWallet } from "@aztec/test-wallet/server";
 
+// wallet is the TestWallet from the setup section above
 const [alice, bob] = await registerInitialLocalNetworkAccountsInWallet(wallet);
 ```
 
@@ -38,6 +39,7 @@ Deploy contracts using the generated contract class:
 ```typescript
 import { TokenContract } from "@aztec/noir-contracts.js/Token";
 
+// wallet is from the setup section; alice is from registerInitialLocalNetworkAccountsInWallet
 const contract = await TokenContract.deploy(
   wallet,
   alice, // admin
@@ -66,6 +68,7 @@ Simulations are free (no gas cost) and return the function's result directly. Us
 Send transactions and wait for confirmation:
 
 ```typescript
+// contract is from the deployment section; alice and bob are from registerInitialLocalNetworkAccountsInWallet
 await contract.methods
   .transfer(bob, 100n)
   .send({ from: alice })
@@ -85,6 +88,7 @@ import {
   registerInitialLocalNetworkAccountsInWallet,
 } from "@aztec/test-wallet/server";
 import { TokenContract } from "@aztec/noir-contracts.js/Token";
+import { AztecAddress } from "@aztec/aztec.js/addresses";
 
 describe("Token contract", () => {
   let wallet: TestWallet;
@@ -134,6 +138,7 @@ describe("Token contract", () => {
 Test that invalid operations revert as expected:
 
 ```typescript
+// token, alice, and bob are from the test setup in beforeAll
 it("reverts when transferring more than balance", async () => {
   const balance = await token.methods
     .balance_of_public(alice)

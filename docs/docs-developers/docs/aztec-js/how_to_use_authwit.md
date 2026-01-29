@@ -17,7 +17,7 @@ Therefore it is recommended to read the `aztec-nr` [guide on authwitnesses](../a
 
 ## Prerequisites
 
-- Deployed account wallets
+- [Connected to a network](./how_to_connect_to_local_network.md) with a `TestWallet` instance and funded accounts
 - Contract with authwit validation (see [smart contract authwits](../aztec-nr/framework-description/how_to_use_authwit.md))
 - Understanding of [authwit concepts](../foundational-topics/advanced/authwit.md)
 
@@ -37,24 +37,25 @@ Let's say Alice wants to allow Bob to transfer tokens from her account. Alice is
 ```typescript
 import { Fr } from "@aztec/aztec.js";
 
+// wallet, alice, and bob are from the connection guide; tokenContract is a deployed token contract
 const nonce = Fr.random();
 
 // Define the action Bob will execute
 const action = tokenContract.methods.transfer_in_private(
-  alice.address, // from
-  bob.address, // to
+  alice, // from
+  bob, // to
   100n, // amount
   nonce // authwit nonce for replay protection
 );
 
 // Alice creates an authwit authorizing Bob to call this function
-const witness = await wallet.createAuthWit(alice.address, {
-  caller: bob.address,
+const witness = await wallet.createAuthWit(alice, {
+  caller: bob,
   action,
 });
 
 // Bob executes the transfer, providing the authwit
-await action.send({ from: bob.address, authWitnesses: [witness] }).wait();
+await action.send({ from: bob, authWitnesses: [witness] }).wait();
 ```
 
 :::tip
@@ -66,26 +67,27 @@ The nonce prevents replay attacks. When `from` and `msg_sender` are the same (se
 Public authwits require a transaction to store the authorization in the `AuthRegistry` contract before the authorized action can be executed:
 
 ```typescript
+// wallet, alice, bob, and tokenContract are from the private authwit example above
 const nonce = Fr.random();
 
 // Define the action Bob will execute
 const action = tokenContract.methods.transfer_in_public(
-  alice.address, // from
-  bob.address, // to
+  alice, // from
+  bob, // to
   100n, // amount
   nonce // authwit nonce
 );
 
 // Alice sets the public authwit (this requires a transaction)
 const authwit = await wallet.setPublicAuthWit(
-  alice.address,
-  { caller: bob.address, action },
+  alice,
+  { caller: bob, action },
   true // authorized
 );
 await authwit.send().wait();
 
 // Now Bob can execute the transfer
-await action.send({ from: bob.address }).wait();
+await action.send({ from: bob }).wait();
 ```
 
 ## Create arbitrary message authwits
@@ -95,6 +97,7 @@ Use this when authorizing arbitrary data rather than a specific contract functio
 ```typescript
 import { computeInnerAuthWitHash } from "@aztec/aztec.js/authorization";
 
+// wallet and alice are from the connection guide; targetContract is a deployed contract
 // Create hash of arbitrary data
 const innerHash = await computeInnerAuthWitHash([
   Fr.fromHexString("0xcafe"),
@@ -108,7 +111,7 @@ const intent = {
 };
 
 // Create the authwit
-const witness = await wallet.createAuthWit(alice.address, intent);
+const witness = await wallet.createAuthWit(alice, intent);
 ```
 
 The `consumer` is the contract address that will verify this authwit.
@@ -118,9 +121,10 @@ The `consumer` is the contract address that will verify this authwit.
 Public authwits can be revoked by setting `authorized` to `false`:
 
 ```typescript
+// wallet, alice, bob, and action are from the public authwit example above
 const revokeInteraction = await wallet.setPublicAuthWit(
-  alice.address,
-  { caller: bob.address, action },
+  alice,
+  { caller: bob, action },
   false // revoke authorization
 );
 await revokeInteraction.send().wait();

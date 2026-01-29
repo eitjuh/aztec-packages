@@ -14,8 +14,7 @@ Deploying a contract to Aztec involves publishing the contract class (the byteco
 ## Prerequisites
 
 - Compiled contract artifacts (see [How to Compile](../aztec-nr/how_to_compile_contract.md))
-- Running Aztec local network
-- Funded wallet for deployment fees
+- [Connected to a network](./how_to_connect_to_local_network.md) with a `TestWallet` instance and funded accounts
 - TypeScript project set up
 
 ## Generate TypeScript bindings
@@ -51,25 +50,27 @@ In the examples below, `wallet` refers to a `Wallet` instance that manages keys 
 How you deploy depends on how you pay for it. When paying using an account's fee juice (like a test account on the local network):
 
 ```typescript
+// wallet and alice are from the connection guide
 // Deploy with constructor arguments
-const contract = await MyContract.deploy(
-  deployer_wallet,
-  constructorArg1,
-  constructorArg2
-)
-  .send({ from: testAccount.address }) // testAccount has fee juice and is registered in the deployer_wallet
-  .deployed();
-```
-
-On testnet, you likely won't have funds in `testAccount` to pay for fee juice. Instead, pay fees using the [Sponsored Fee Payment Contract method](./how_to_pay_fees.md):
-
-```typescript
 const contract = await MyContract.deploy(
   wallet,
   constructorArg1,
-  constructorArg2
+  constructorArg2,
 )
-  .send({ from: alice.address, fee: { paymentMethod: sponsoredPaymentMethod } }) // using the Sponsored FPC
+  .send({ from: aliceAddress }) // alice has fee juice and is registered in the wallet
+  .deployed();
+```
+
+On testnet, your account likely won't have Fee Juice. Instead, pay fees using the [Sponsored Fee Payment Contract method](./how_to_pay_fees.md):
+
+```typescript
+// wallet is from the connection guide; sponsoredPaymentMethod is from the fees guide
+const contract = await MyContract.deploy(
+  wallet,
+  constructorArg1,
+  constructorArg2,
+)
+  .send({ from: aliceAddress, fee: { paymentMethod: sponsoredPaymentMethod } }) // using the Sponsored FPC
   .deployed();
 ```
 
@@ -86,11 +87,12 @@ By default, the deployment's salt is random, but you can specify it (for example
 ```typescript
 import { Fr } from "@aztec/aztec.js/fields";
 
+// wallet and alice are from the connection guide
 const salt = Fr.random();
 
 const contract = await MyContract.deploy(wallet, arg1, arg2)
   .send({
-    from: testAccount.address,
+    from: aliceAddress,
     contractAddressSalt: salt,
   })
   .deployed();
@@ -111,9 +113,10 @@ Universal deployment excludes the sender from address computation, allowing the 
 Deploy without running the constructor:
 
 ```typescript
+// wallet and alice are from the connection guide
 const contract = await MyContract.deploy(wallet)
   .send({
-    from: testAccount.address,
+    from: aliceAddress,
     skipInitialization: true,
   })
   .deployed();
@@ -121,7 +124,7 @@ const contract = await MyContract.deploy(wallet)
 // Initialize later
 await contract.methods
   .initialize(arg1, arg2)
-  .send({ from: testAccount.address })
+  .send({ from: aliceAddress })
   .wait();
 ```
 
@@ -132,6 +135,7 @@ Some contracts have multiple initializer functions (e.g., both a private `constr
 #include_code deploy_with_opts yarn-project/end-to-end/src/e2e_deploy_contract/deploy_method.test.ts typescript
 
 The `deployWithOpts` method accepts an options object as its first argument:
+
 - `wallet`: The wallet to use for deployment (required)
 - `method`: The name of the initializer function to call (optional, defaults to `constructor`)
 - `publicKeys`: Custom public keys for the contract instance (optional)
@@ -152,6 +156,7 @@ import { Fr } from "@aztec/aztec.js/fields";
 const salt = Fr.random();
 
 // Calculate address without deploying
+// wallet is from the connection guide (see prerequisites)
 const deployMethod = MyContract.deploy(wallet, arg1, arg2);
 const instance = await deployMethod.getInstance({ contractAddressSalt: salt });
 const address = instance.address;
@@ -168,8 +173,9 @@ This is an advanced pattern. For most use cases, deploy the contract directly an
 ### Track deployment transaction
 
 ```typescript
+// wallet and alice are from the connection guide
 const deployTx = MyContract.deploy(wallet, arg1, arg2).send({
-  from: testAccount.address,
+  from: aliceAddress,
 });
 
 // Get transaction hash immediately
@@ -198,31 +204,33 @@ Here's an example deploying a `TokenContract` with constructor arguments for adm
 When one contract depends on another, deploy them sequentially and pass the first contract's address:
 
 ```typescript
+// wallet and alice are from the connection guide
 // Deploy first contract
 const token = await TokenContract.deploy(
   wallet,
-  admin.address,
+  aliceAddress,
   "MyToken",
   "MTK",
-  18
+  18,
 )
-  .send({ from: admin.address })
+  .send({ from: aliceAddress })
   .deployed();
 
 // Deploy second contract with reference to first
 const vault = await VaultContract.deploy(wallet, token.address)
-  .send({ from: admin.address })
+  .send({ from: aliceAddress })
   .deployed();
 ```
 
 ### Deploy contracts in parallel
 
 ```typescript
+// wallet and alice are from the connection guide
 // Start all deployments simultaneously
 const deployments = [
-  Contract1.deploy(wallet, arg1).send({ from: deployer.address }),
-  Contract2.deploy(wallet, arg2).send({ from: deployer.address }),
-  Contract3.deploy(wallet, arg3).send({ from: deployer.address }),
+  Contract1.deploy(wallet, arg1).send({ from: aliceAddress }),
+  Contract2.deploy(wallet, arg2).send({ from: aliceAddress }),
+  Contract3.deploy(wallet, arg3).send({ from: aliceAddress }),
 ];
 
 // Wait for all to complete
@@ -263,11 +271,12 @@ The `getContractMetadata` method returns:
 ### Verify contract is callable
 
 ```typescript
+// contract is from the deployment step above; alice is from the connection guide
 try {
   // Try calling a view function
   const result = await contract.methods
     .get_version()
-    .simulate({ from: testAccount.address });
+    .simulate({ from: aliceAddress });
   console.log("Contract is callable, version:", result);
 } catch (error) {
   console.error("Contract not accessible:", error.message);
@@ -281,6 +290,7 @@ try {
 If a contract was deployed by another account:
 
 ```typescript
+// wallet is from the connection guide; contractAddress is the address of the deployed contract
 const contract = await MyContract.at(contractAddress, wallet);
 
 // Register the contract with the wallet
@@ -306,7 +316,7 @@ const instance = await getContractInstanceFromInstantiationParams(
     constructorArgs: [arg1, arg2],
     deployer: deployerAddress,
     salt: deploymentSalt,
-  }
+  },
 );
 
 await wallet.registerContract(instance, MyContract.artifact);

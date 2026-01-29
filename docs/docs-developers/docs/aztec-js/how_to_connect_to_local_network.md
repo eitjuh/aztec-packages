@@ -57,10 +57,11 @@ console.log("Chain ID:", nodeInfo.l1ChainId);
 The local network has accounts pre-funded with fee juice to pay for gas. Register them in your wallet:
 
 ```typescript
-const [alice, bob] = await registerInitialLocalNetworkAccountsInWallet(wallet);
+const [aliceAddress, bobAddress] =
+  await registerInitialLocalNetworkAccountsInWallet(wallet);
 
-console.log(`Alice's address: ${alice.toString()}`);
-console.log(`Bob's address: ${bob.toString()}`);
+console.log(`Alice's address: ${aliceAddress.toString()}`);
+console.log(`Bob's address: ${bobAddress.toString()}`);
 ```
 
 These accounts are pre-funded with fee juice (the native gas token) at genesis, so you can immediately send transactions without needing to bridge funds from L1.
@@ -72,7 +73,7 @@ Verify that an account has fee juice for transactions:
 ```typescript
 import { getFeeJuiceBalance } from "@aztec/aztec.js/utils";
 
-const aliceBalance = await getFeeJuiceBalance(alice, node);
+const aliceBalance = await getFeeJuiceBalance(aliceAddress, node);
 console.log(`Alice's fee juice balance: ${aliceBalance}`);
 ```
 

@@ -9,14 +9,15 @@ This guide shows you how to read data from Aztec contracts in TypeScript, includ
 
 ## Prerequisites
 
+- [Connected to a network](./how_to_connect_to_local_network.md) with a `TestWallet` instance and funded accounts
 - A deployed contract instance (see [How to Deploy a Contract](./how_to_deploy_contract.md))
-- A wallet connection (see [How to Create an Account](./how_to_create_account.md))
 
 ## Simulating functions
 
 The `simulate` method executes a contract function locally and returns its result. It works with private, public, and utility functions. No transaction is created and no gas is spent.
 
 ```typescript
+// contract is a deployed contract instance; callerAddress is an account address (e.g., aliceAddress from the connection guide)
 const result = await contract.methods
   .myFunction(arg1, arg2)
   .simulate({ from: callerAddress });
@@ -33,6 +34,7 @@ The `from` option specifies which address context to use for the simulation. Thi
 For functions returning multiple values, destructure the result:
 
 ```typescript
+// contract and callerAddress are from the example above
 const [value1, value2] = await contract.methods
   .get_multiple_values()
   .simulate({ from: callerAddress });
@@ -43,6 +45,7 @@ const [value1, value2] = await contract.methods
 Set `includeMetadata: true` to get additional information about the simulation:
 
 ```typescript
+// contract and callerAddress are from the examples above
 const result = await contract.methods
   .balance_of_public(address)
   .simulate({ from: callerAddress, includeMetadata: true });
@@ -62,6 +65,7 @@ console.log("DA gas limit:", result.estimatedGas.gasLimits.daGas);
 When simulating private functions, the caller must have access to any private state being read. The PXE only has visibility into notes belonging to registered accounts.
 
 ```typescript
+// contract and callerAddress are from the examples above
 // This works if callerAddress owns the notes
 const balance = await contract.methods
   .balance_of_private(callerAddress)
@@ -95,6 +99,8 @@ Contracts emit data in two forms you can read:
 Use `aztecNode.getPublicLogs()` to retrieve raw log data:
 
 ```typescript
+// aztecNode is from createAztecNodeClient() in the connection guide
+// receipt is from a transaction's .wait() call
 // Get logs for a specific transaction
 const logs = await aztecNode.getPublicLogs({ txHash: receipt.txHash });
 const rawFields = logs.logs[0].log.getEmittedFields(); // Fr[]
@@ -167,6 +173,8 @@ To continuously monitor for new events, poll at regular intervals while tracking
 ```typescript
 import { BlockNumber } from "@aztec/foundation/branded-types";
 
+// aztecNode is from createAztecNodeClient() in the connection guide
+// TokenContract is your deployed token contract class
 let lastProcessedBlock = startBlock; // BlockNumber type
 
 async function pollForEvents() {
@@ -177,7 +185,7 @@ async function pollForEvents() {
       aztecNode,
       TokenContract.events.Transfer,
       lastProcessedBlock + 1,
-      currentBlock - lastProcessedBlock
+      currentBlock - lastProcessedBlock,
     );
 
     for (const event of events) {

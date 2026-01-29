@@ -13,9 +13,8 @@ Transactions on Aztec execute contract functions that modify state. Unlike simpl
 
 ## Prerequisites
 
-- Deployed contract with its address and ABI
-- Funded account wallet (see [paying fees](./how_to_pay_fees.md))
-- Running Aztec local network or connected to a network
+- [Connected to a network](./how_to_connect_to_local_network.md) with a `TestWallet` instance and funded accounts
+- Deployed contract with its address and ABI (see [How to Deploy](./how_to_deploy_contract.md))
 - Understanding of [contract interactions](../aztec-nr/framework-description/how_to_call_contracts.md)
 
 ## Send a transaction
@@ -25,15 +24,17 @@ After connecting to a contract:
 ```typescript
 import { Contract } from "@aztec/aztec.js";
 
+// wallet is from the connection guide; contractAddress and artifact are from your deployed contract
 const contract = await Contract.at(contractAddress, artifact, wallet);
 ```
 
 Call a function and wait for it to be mined:
 
 ```typescript
+// contract is from the step above; alice is from the connection guide
 const receipt = await contract.methods
-  .transfer(recipientAddress, amount)
-  .send({ from: sender.address })
+  .transfer(bobAddress, amount)
+  .send({ from: aliceAddress })
   .wait();
 
 console.log(`Transaction mined in block ${receipt.blockNumber}`);
@@ -45,9 +46,10 @@ The `from` field specifies which account sends the transaction. If that account 
 ### Send without waiting
 
 ```typescript
+// contract and alice are from the examples above
 const sentTx = contract.methods
-  .transfer(recipientAddress, amount)
-  .send({ from: sender.address });
+  .transfer(bobAddress, amount)
+  .send({ from: aliceAddress });
 
 // Get transaction hash immediately
 const txHash = await sentTx.getTxHash();
@@ -65,13 +67,14 @@ Execute multiple calls atomically using `BatchCall`:
 ```typescript
 import { BatchCall } from "@aztec/aztec.js";
 
+// wallet and alice are from the connection guide; token and contract are deployed instances
 const batch = new BatchCall(wallet, [
   token.methods.approve(spender, amount),
   contract.methods.deposit(amount),
   contract.methods.updateState(),
 ]);
 
-const receipt = await batch.send({ from: sender.address }).wait();
+const receipt = await batch.send({ from: aliceAddress }).wait();
 console.log(`Batch executed in block ${receipt.blockNumber}`);
 ```
 
@@ -84,6 +87,7 @@ All calls in a batch must succeed or the entire batch reverts. Use batch transac
 After sending a transaction, you can query its receipt:
 
 ```typescript
+// sentTx is from the "Send without waiting" example; wallet is from the connection guide
 const txHash = await sentTx.getTxHash();
 const receipt = await wallet.getTxReceipt(txHash);
 

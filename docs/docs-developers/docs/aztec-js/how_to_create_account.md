@@ -20,11 +20,12 @@ yarn add @aztec/aztec.js@#include_version_without_prefix @aztec/test-wallet@#inc
 
 ## Create a new account
 
-Use the wallet's `createSchnorrAccount` method to create a new account with a random secret and salt:
+Using the [`wallet` from the connection guide](./how_to_connect_to_local_network.md), call `createSchnorrAccount` to create a new account with a random secret and salt:
 
 ```typescript
 import { Fr } from "@aztec/aztec.js/fields";
 
+// wallet is a TestWallet instance from the connection guide
 const secret = Fr.random();
 const salt = Fr.random();
 const newAccount = await wallet.createSchnorrAccount(secret, salt);
@@ -48,6 +49,7 @@ If your account doesn't have Fee Juice, use the [Sponsored Fee Payment Contract]
 ```typescript
 import { AztecAddress } from "@aztec/aztec.js/addresses";
 
+// newAccount is the account created in the previous section
 const deployMethod = await newAccount.getDeployMethod();
 await deployMethod
   .send({
@@ -68,6 +70,7 @@ If your account already has Fee Juice (for example, [bridged from L1](./how_to_p
 ```typescript
 import { AztecAddress } from "@aztec/aztec.js/addresses";
 
+// newAccount is the account created in the previous section
 const deployMethod = await newAccount.getDeployMethod();
 await deployMethod
   .send({
