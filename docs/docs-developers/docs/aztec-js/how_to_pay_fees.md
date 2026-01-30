@@ -54,33 +54,11 @@ Fee Payment Contracts (FPC) pay fees on your behalf, typically accepting a diffe
 
 The Sponsored FPC pays for fees unconditionally without requiring payment in return. It is available on both the local network and the testnet (deployed by Aztec Labs).
 
-You can derive the Sponsored FPC address from its deployment parameters and salt (which defaults to `0`):
+You can derive the Sponsored FPC address from its deployment parameters, register it with your wallet, and use it to pay for transactions:
 
-```typescript
-import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
-import { getContractInstanceFromInstantiationParams } from "@aztec/stdlib/contract";
-import { SponsoredFeePaymentMethod } from "@aztec/aztec.js/fee/testing";
-import { Fr } from "@aztec/aztec.js/fields";
+#include_code sponsored_fpc_setup /docs/examples/ts/aztecjs_advanced/index.ts typescript
 
-const sponsoredFPCInstance = await getContractInstanceFromInstantiationParams(
-  SponsoredFPCContract.artifact,
-  {
-    salt: new Fr(0),
-  },
-);
-```
-
-Register the contract with your wallet before using it:
-
-```typescript
-// wallet is from the connection guide; sponsoredFPCInstance is from the step above
-await wallet.registerContract(
-  sponsoredFPCInstance,
-  SponsoredFPCContract.artifact,
-);
-```
-
-Then use it to pay for transactions:
+Here's a simpler example from the test suite:
 
 #include_code sponsored_fpc_simple yarn-project/end-to-end/src/e2e_fees/sponsored_payments.test.ts typescript
 

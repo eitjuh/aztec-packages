@@ -22,15 +22,7 @@ yarn add @aztec/aztec.js@#include_version_without_prefix @aztec/test-wallet@#inc
 
 Using the [`wallet` from the connection guide](./how_to_connect_to_local_network.md), call `createSchnorrAccount` to create a new account with a random secret and salt:
 
-```typescript
-import { Fr } from "@aztec/aztec.js/fields";
-
-// wallet is a TestWallet instance from the connection guide
-const secret = Fr.random();
-const salt = Fr.random();
-const newAccount = await wallet.createSchnorrAccount(secret, salt);
-console.log("New account address:", newAccount.address.toString());
-```
+#include_code create_account /docs/examples/ts/aztecjs_connection/index.ts typescript
 
 The secret is used to derive the account's encryption keys, and the salt ensures address uniqueness. The signing key is automatically derived from the secret.
 

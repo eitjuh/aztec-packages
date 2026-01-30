@@ -23,22 +23,7 @@ yarn add @aztec/aztec.js@#include_version_without_prefix @aztec/test-wallet@#inc
 
 Create a node client and TestWallet to interact with the local network:
 
-```typescript
-import { createAztecNodeClient, waitForNode } from "@aztec/aztec.js/node";
-import {
-  TestWallet,
-  registerInitialLocalNetworkAccountsInWallet,
-} from "@aztec/test-wallet/server";
-
-const nodeUrl = "http://localhost:8080";
-const node = createAztecNodeClient(nodeUrl);
-
-// Wait for the network to be ready
-await waitForNode(node);
-
-// Create a TestWallet connected to the node
-const wallet = await TestWallet.create(node);
-```
+#include_code connect_to_network /docs/examples/ts/aztecjs_connection/index.ts typescript
 
 `TestWallet` is a development wallet that handles account management and transaction signing locally, suitable for testing and development.
 
@@ -46,23 +31,13 @@ const wallet = await TestWallet.create(node);
 
 Get node information to confirm your connection:
 
-```typescript
-const nodeInfo = await node.getNodeInfo();
-console.log("Connected to local network version:", nodeInfo.nodeVersion);
-console.log("Chain ID:", nodeInfo.l1ChainId);
-```
+#include_code verify_connection /docs/examples/ts/aztecjs_connection/index.ts typescript
 
 ### Load pre-funded accounts
 
 The local network has accounts pre-funded with fee juice to pay for gas. Register them in your wallet:
 
-```typescript
-const [aliceAddress, bobAddress] =
-  await registerInitialLocalNetworkAccountsInWallet(wallet);
-
-console.log(`Alice's address: ${aliceAddress.toString()}`);
-console.log(`Bob's address: ${bobAddress.toString()}`);
-```
+#include_code load_accounts /docs/examples/ts/aztecjs_connection/index.ts typescript
 
 These accounts are pre-funded with fee juice (the native gas token) at genesis, so you can immediately send transactions without needing to bridge funds from L1.
 
@@ -70,12 +45,7 @@ These accounts are pre-funded with fee juice (the native gas token) at genesis, 
 
 Verify that an account has fee juice for transactions:
 
-```typescript
-import { getFeeJuiceBalance } from "@aztec/aztec.js/utils";
-
-const aliceBalance = await getFeeJuiceBalance(aliceAddress, node);
-console.log(`Alice's fee juice balance: ${aliceBalance}`);
-```
+#include_code check_fee_juice /docs/examples/ts/aztecjs_connection/index.ts typescript
 
 ## Next steps
 

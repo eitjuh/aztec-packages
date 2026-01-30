@@ -16,12 +16,7 @@ This guide shows you how to read data from Aztec contracts in TypeScript, includ
 
 The `simulate` method executes a contract function locally and returns its result. It works with private, public, and utility functions. No transaction is created and no gas is spent.
 
-```typescript
-// contract is a deployed contract instance; callerAddress is an account address (e.g., aliceAddress from the connection guide)
-const result = await contract.methods
-  .myFunction(arg1, arg2)
-  .simulate({ from: callerAddress });
-```
+#include_code simulate_function /docs/examples/ts/aztecjs_connection/index.ts typescript
 
 The `from` option specifies which address context to use for the simulation. This is required for all simulations, though it only affects private function execution (public functions ignore this value).
 

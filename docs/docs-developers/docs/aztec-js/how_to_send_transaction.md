@@ -46,39 +46,13 @@ The `from` field specifies which account sends the transaction. If that account 
 
 Use the `NO_WAIT` option to get the transaction hash immediately without waiting for inclusion:
 
-```typescript
-import { NO_WAIT } from "@aztec/aztec.js/contracts";
-import { waitForTx } from "@aztec/aztec.js/node";
-
-// contract and alice are from the examples above; node is from the connection guide
-const txHash = await contract.methods
-  .transfer(bobAddress, amount)
-  .send({ from: aliceAddress, wait: NO_WAIT });
-
-console.log(`Transaction sent: ${txHash.toString()}`);
-
-// Wait for inclusion later using the node
-const receipt = await waitForTx(node, txHash);
-console.log(`Transaction mined in block ${receipt.blockNumber}`);
-```
+#include_code no_wait_transaction /docs/examples/ts/aztecjs_advanced/index.ts typescript
 
 ## Send batch transactions
 
 Execute multiple calls atomically using `BatchCall`:
 
-```typescript
-import { BatchCall } from "@aztec/aztec.js";
-
-// wallet and alice are from the connection guide; token and contract are deployed instances
-const batch = new BatchCall(wallet, [
-  token.methods.approve(spender, amount),
-  contract.methods.deposit(amount),
-  contract.methods.updateState(),
-]);
-
-const receipt = await batch.send({ from: aliceAddress });
-console.log(`Batch executed in block ${receipt.blockNumber}`);
-```
+#include_code batch_call /docs/examples/ts/aztecjs_advanced/index.ts typescript
 
 :::warning
 All calls in a batch must succeed or the entire batch reverts. Use batch transactions when you need atomic execution of multiple operations.
@@ -88,14 +62,7 @@ All calls in a batch must succeed or the entire batch reverts. Use batch transac
 
 After sending a transaction without waiting, you can query its receipt using the node:
 
-```typescript
-// txHash is from the "Send without waiting" example; node is from the connection guide
-const receipt = await node.getTxReceipt(txHash);
-
-console.log(`Status: ${receipt.status}`);
-console.log(`Block number: ${receipt.blockNumber}`);
-console.log(`Transaction fee: ${receipt.transactionFee}`);
-```
+#include_code query_tx_status /docs/examples/ts/aztecjs_advanced/index.ts typescript
 
 The receipt includes:
 

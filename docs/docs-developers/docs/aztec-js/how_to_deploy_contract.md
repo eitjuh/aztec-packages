@@ -163,31 +163,11 @@ This is an advanced pattern. For most use cases, deploy the contract directly an
 
 Use `NO_WAIT` to get the transaction hash immediately and track deployment:
 
-```typescript
-import { NO_WAIT } from "@aztec/aztec.js/contracts";
-import { waitForTx } from "@aztec/aztec.js/node";
-
-// wallet, alice, and node are from the connection guide
-const txHash = await MyContract.deploy(wallet, arg1, arg2).send({
-  from: aliceAddress,
-  wait: NO_WAIT,
-});
-
-console.log(`Deployment tx: ${txHash}`);
-
-// Wait for the transaction to be mined using the node
-const receipt = await waitForTx(node, txHash);
-console.log(`Deployed in block ${receipt.blockNumber}`);
-```
+#include_code no_wait_deploy /docs/examples/ts/aztecjs_advanced/index.ts typescript
 
 For most use cases, simply await the deployment to get the contract directly:
 
-```typescript
-const contract = await MyContract.deploy(wallet, arg1, arg2).send({
-  from: aliceAddress,
-});
-console.log(`Contract address: ${contract.address}`);
-```
+#include_code deploy_contract /docs/examples/ts/aztecjs_connection/index.ts typescript
 
 ## Deploy multiple contracts
 
@@ -201,38 +181,11 @@ Here's an example deploying a `TokenContract` with constructor arguments for adm
 
 When one contract depends on another, deploy them sequentially and pass the first contract's address:
 
-```typescript
-// wallet and alice are from the connection guide
-// Deploy first contract
-const token = await TokenContract.deploy(
-  wallet,
-  aliceAddress,
-  "MyToken",
-  "MTK",
-  18,
-).send({ from: aliceAddress });
-
-// Deploy second contract with reference to first
-const vault = await VaultContract.deploy(wallet, token.address).send({
-  from: aliceAddress,
-});
-```
+#include_code deploy_with_dependencies /docs/examples/ts/aztecjs_advanced/index.ts typescript
 
 ### Deploy contracts in parallel
 
-```typescript
-// wallet and alice are from the connection guide
-// Start all deployments simultaneously and wait for completion
-const contracts = await Promise.all([
-  Contract1.deploy(wallet, arg1).send({ from: aliceAddress }),
-  Contract2.deploy(wallet, arg2).send({ from: aliceAddress }),
-  Contract3.deploy(wallet, arg3).send({ from: aliceAddress }),
-]);
-
-console.log(`Contract 1 at: ${contracts[0].address}`);
-console.log(`Contract 2 at: ${contracts[1].address}`);
-console.log(`Contract 3 at: ${contracts[2].address}`);
-```
+#include_code parallel_deploy /docs/examples/ts/aztecjs_advanced/index.ts typescript
 
 :::tip[Parallel deployment considerations]
 Parallel deployment is faster, but transactions from the same account share a nonce sequence. The wallet handles nonce assignment automatically, but if one deployment fails, subsequent deployments may also fail due to nonce gaps. For reliable parallel deployments:
