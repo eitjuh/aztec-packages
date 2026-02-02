@@ -33,6 +33,11 @@ await token.methods
   .mint_to_public(aliceAddress, 10000n)
   .send({ from: aliceAddress });
 
+// Move some tokens to private balance for private transfer examples
+await token.methods
+  .transfer_to_private(aliceAddress, 5000n)
+  .send({ from: aliceAddress });
+
 // docs:start:no_wait_deploy
 // Use NO_WAIT to get the transaction hash immediately and track deployment
 const txHash = await TokenContract.deploy(

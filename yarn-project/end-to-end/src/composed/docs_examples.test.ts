@@ -5,6 +5,9 @@ import { createAztecNodeClient } from '@aztec/aztec.js/node';
 import { TokenContract, TokenContractArtifact } from '@aztec/noir-contracts.js/Token';
 import { TestWallet } from '@aztec/test-wallet/server';
 
+import { execSync } from 'child_process';
+import { join } from 'path';
+
 // To run these tests against a local network:
 // 1. Start a local Ethereum node (Anvil):
 //    anvil --host 127.0.0.1 --port 8545
@@ -50,4 +53,17 @@ describe('docs_examples', () => {
     expect(balance).toEqual(1n);
     // docs:end:simulate_function
   });
+
+  it(
+    'runs aztecjs documentation examples',
+    () => {
+      const runnerPath = join(__dirname, '../../../../docs/examples/ts/aztecjs_runner/run.sh');
+      execSync(runnerPath, {
+        stdio: 'inherit',
+        env: { ...process.env },
+        cwd: join(__dirname, '../../../../docs/examples/ts/aztecjs_runner'),
+      });
+    },
+    5 * 60 * 1000,
+  ); // 5 minute timeout
 });

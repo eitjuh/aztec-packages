@@ -58,7 +58,12 @@ async function testTransferTokens() {
     .mint_to_public(aliceAddress, 1000n)
     .send({ from: aliceAddress });
 
-  // Transfer to bob using the simple transfer method
+  // Move tokens to private balance for private transfer
+  await token.methods
+    .transfer_to_private(aliceAddress, 500n)
+    .send({ from: aliceAddress });
+
+  // Transfer to bob using the private transfer method
   await token.methods.transfer(bobAddress, 100n).send({ from: aliceAddress });
 
   const aliceBalance = await token.methods
@@ -75,13 +80,10 @@ async function testTransferTokens() {
 
 // Test: reverts when transferring more than balance
 async function testRevertOnOverTransfer() {
-  const balance = await token.methods
-    .balance_of_public(aliceAddress)
-    .simulate({ from: aliceAddress });
-
+  // Try to transfer more than our private balance (should fail)
   try {
     await token.methods
-      .transfer(bobAddress, balance + 1n)
+      .transfer(bobAddress, 1000000n)
       .simulate({ from: aliceAddress });
     throw new Error("Expected simulation to throw");
   } catch (error) {
