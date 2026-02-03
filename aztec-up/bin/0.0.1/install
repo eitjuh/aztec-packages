@@ -14,7 +14,7 @@ r="\033[0m"  # Reset
 function get_version {
   local tool="$1"
   local version
-  version=$(grep "^$tool " "$version_path/versions" | cut -d' ' -f2) || true
+  version=$(grep "^$tool" "$version_path/versions" | cut -d' ' -f2) || true
   if [ -z "$version" ]; then
     echo "Error: Could not find $tool version in $version_path/versions" >&2
     exit 1
