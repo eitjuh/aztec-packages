@@ -55,12 +55,35 @@ function handle_benchmarks {
   fi
 }
 
+function handle_vk_update {
+  local github_repository="$1"
+  if [ "${SHOULD_UPDATE_VKS:-0}" -eq 0 ]; then
+    return
+  fi
+  echo "Processing VK update..."
+  # Reauth the git repo with our GITHUB_TOKEN
+  git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${github_repository}
+
+  # Generate IVC inputs, upload to S3, and verify
+  ./barretenberg/cpp/scripts/test_chonk_standalone_vks_havent_changed.sh --ci-update
+
+  # Commit and push the updated pinned hash
+  git add barretenberg/cpp/scripts/test_chonk_standalone_vks_havent_changed.sh
+  git commit -m "chore: regenerate chonk VKs"
+  git push
+
+  # Remove label after processing (one-time use)
+  gh pr edit "${PR_NUMBER}" --remove-label "ci-update-vks"
+  echo "VK update completed"
+}
+
 function main {
   echo_header "CI3 Post-Actions"
   # Get repository from git remote
   local github_repository=$(git remote get-url origin | sed -E 's|.*github\.com[/:]([^/]+/[^/]+)(\.git)?$|\1|')
   save_cache "${github_repository}"
   handle_squash_merge "${github_repository}"
+  handle_vk_update "${github_repository}"
   handle_benchmarks
   echo_header "Post-Actions Complete"
 }

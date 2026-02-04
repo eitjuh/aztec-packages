@@ -122,13 +122,40 @@ function extract_exit_code {
   fi
 }
 
+# Generate IVC inputs, upload to S3, and verify with prove_and_verify
+function generate_upload_and_verify {
+    export inputs_dir="../../yarn-project/end-to-end/example-app-ivc-inputs-out"
+
+    set -eu
+    trap 'rm -f bb-chonk-inputs.tar.gz' EXIT SIGINT
+
+    # Generate IVC inputs
+    echo "Generating IVC inputs..."
+    ../../yarn-project/end-to-end/bootstrap.sh build_bench
+
+    echo "Uploading IVC inputs from: $inputs_dir"
+    compress_and_upload "$inputs_dir"
+
+    # Verify the inputs are valid by running prove and verify
+    prove_exit_code=0
+    parallel -v --line-buffer --tag prove_and_verify_inputs {} ::: $(ls "$inputs_dir") || prove_exit_code=$?
+
+    if [[ $prove_exit_code -ne 0 ]]; then
+      echo "One or more flows failed the proof test. Please investigate."
+      exit 1
+    fi
+
+    echo "Inputs successfully uploaded and verified."
+}
+
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   cat << EOF
   Usage: $(basename "$0") [OPTIONS]
 
   Options:
       none                       Test that Chonk standalone VKs haven't changed
-      --update_inputs            Generate new IVC inputs and upload to S3
+      --update_inputs            Full bootstrap + generate IVC inputs + upload to S3
+      --ci-update                Generate IVC inputs + upload to S3 (for CI, skips full bootstrap)
       --prove_and_verify         Prove and verify current pinned inputs
       -h, --help                 Show this help message
 
@@ -138,30 +165,17 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 EOF
   exit 0
 elif [[ "${1:-}" == "--update_inputs" ]]; then
-    export inputs_dir="../../yarn-project/end-to-end/example-app-ivc-inputs-out"
-
-    # For easily rerunning the inputs generation
-    set -eu
-    trap 'rm -f bb-chonk-inputs.tar.gz' EXIT SIGINT
     echo "Updating pinned IVC inputs..."
 
-    # Generate new inputs
-    echo "Running bootstrap to generate new IVC inputs..."
+    # Full bootstrap first
+    echo "Running full bootstrap..."
+    BOOTSTRAP_TO=yarn-project ../../bootstrap.sh
 
-    BOOTSTRAP_TO=yarn-project ../../bootstrap.sh # bootstrap aztec-packages from root
-    ../../yarn-project/end-to-end/bootstrap.sh build_bench # build bench to generate IVC inputs
-
-    compress_and_upload "$inputs_dir"
-
-    prove_exit_code=0
-    parallel -v --line-buffer --tag prove_and_verify_inputs {} ::: $(ls "$inputs_dir") || prove_exit_code=$?
-
-    if [[ $prove_exit_code -eq 1 ]]; then
-      echo "One or more flows failed the proof test after updating inputs. Please investigate."
-      exit 1
-    fi
-
-    echo "Inputs successfully updated."
+    generate_upload_and_verify
+    exit 0
+elif [[ "${1:-}" == "--ci-update" ]]; then
+    # For CI use: skips full bootstrap since CI already did that
+    generate_upload_and_verify
     exit 0
 else
   export inputs_dir=$(mktemp -d)
