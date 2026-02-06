@@ -149,6 +149,16 @@ function check_toolchains {
   done
 }
 
+function install_mac_deps {
+  # Check if brew is available.
+  if ! command -v brew &>/dev/null; then
+    echo "Installation requires Homebrew."
+    echo "Install it from https://brew.sh"
+    exit 1
+  fi
+  brew install bash cmake ninja llvm@20 doxygen coreutils grep gnu-sed
+}
+
 function versions {
   local noir_version anvil_version node_version cmake_version clang_version zig_version rustc_version wasi_sdk_version
   noir_version=$(git -C noir/noir-repo describe --tags --always HEAD)
