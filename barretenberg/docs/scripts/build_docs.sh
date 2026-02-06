@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -13,7 +13,7 @@ if ! [ -d "docs/build" ]; then
   exit 1
 fi
 # First, clean the destination to avoid any leftover files
-rm -rf ../docs/static/api/*
+rm -rf ../docs/static/api
 
 # Copy the built documentation
 mkdir -p ../docs/static/api/
