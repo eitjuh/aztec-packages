@@ -20,10 +20,16 @@ from rk_core import (
 )
 
 LOGS_DISK_PATH = os.getenv('LOGS_DISK_PATH', '/logs-disk')
-DASHBOARD_PASSWORD = os.getenv('DASHBOARD_PASSWORD', 'password')
+DASHBOARD_PASSWORD = os.getenv('DASHBOARD_PASSWORD', '')
 app = Flask(__name__)
 Compress(app)
 auth = HTTPBasicAuth()
+
+# Conditional auth decorator - only require auth if password is set
+def optional_auth(f):
+    if DASHBOARD_PASSWORD:
+        return auth.login_required(f)
+    return f
 
 def read_from_disk(key):
     """Read log from disk as fallback when Redis key not found."""
@@ -308,7 +314,7 @@ TEMPLATE = """
 """
 
 @app.route('/')
-@auth.login_required
+@optional_auth
 def show_root():
     return render_template_string(
         TEMPLATE,
@@ -318,7 +324,7 @@ def show_root():
     )
 
 @app.route('/section/<section>')
-@auth.login_required
+@optional_auth
 def show_section(section):
     return render_template_string(
         TEMPLATE,
@@ -329,14 +335,14 @@ def show_section(section):
     )
 
 @app.route('/list/<key>')
-@auth.login_required
+@optional_auth
 def get_list(key):
     value = get_list_as_string(key)
     follow = request.args.get('follow', 'top')
     return render_template_string(TEMPLATE, value=ansi_to_html(value), follow=follow, filter_str='', filter_prop='')
 
 @app.route('/chonk-breakdowns')
-@auth.login_required
+@optional_auth
 def chonk_breakdowns():
     """Serve the chonk breakdowns viewer page."""
     breakdown_html_path = Path('chonk-breakdowns/breakdown-viewer.html')
@@ -347,7 +353,7 @@ def chonk_breakdowns():
         return "Breakdown viewer not found", 404
 
 @app.route('/api/breakdown/flows')
-@auth.login_required
+@optional_auth
 def list_available_flows():
     """API endpoint to list available breakdown flows from disk, filtered by runtime and SHA."""
     runtime = request.args.get('runtime')
@@ -383,7 +389,7 @@ def list_available_flows():
     return Response(json.dumps(sorted(list(flows))), mimetype='application/json')
 
 @app.route('/api/breakdown/<runtime>/<flow_name>/<sha>')
-@auth.login_required
+@optional_auth
 def get_breakdown(runtime, flow_name, sha):
     """API endpoint to fetch breakdown JSON from disk."""
     breakdown_data = read_breakdown_from_disk(runtime, flow_name, sha)
@@ -394,7 +400,7 @@ def get_breakdown(runtime, flow_name, sha):
 
 
 @app.route('/grind')
-@auth.login_required
+@optional_auth
 def trigger_grind():
     """Trigger a grind job for a flaky test."""
     from urllib.parse import urlencode as url_encode
@@ -488,7 +494,7 @@ def trigger_grind():
     return redirect(f'/{run_id}')
 
 @app.route('/<key>')
-@auth.login_required
+@optional_auth
 def get_value(key):
     # Check if raw text format is requested
     raw_text = key.endswith('.txt')
