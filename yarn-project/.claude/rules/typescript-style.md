@@ -3,7 +3,7 @@
 ## Type Safety
 
 - Avoid `as Type` casts; prefer type guards
-- Never use `as any`
+- Never use `as any`; if a subclass need access to private members, change the visibility to `protected` instead of doing `this as any`
 - Use branded types for common domain types (`SlotNumber`, `BlockNumber`, `EpochNumber`, etc.)
 - Type guard functions follow `is<TypeName>` naming convention:
   ```typescript
@@ -197,6 +197,38 @@ try {
 - Use `using` for `Disposable` resources (implements `[Symbol.dispose](): void`)
 - Use `await using` for `AsyncDisposable` resources (implements `[Symbol.asyncDispose](): Promise<void>`)
 - When the resource is obtained asynchronously but disposed synchronously, use `using x = await getResource()`
+
+## KV Store Transactions
+
+When working with `AztecAsyncKVStore`, wrap related reads and writes in `store.transactionAsync()` to ensure atomicity:
+
+```typescript
+// Good: All reads and writes in a single transaction
+public async tryAdd(item: Item): Promise<boolean> {
+  return await this.store.transactionAsync(async () => {
+    const exists = await this.items.hasAsync(item.id);
+    if (exists) {
+      return false;
+    }
+    await this.items.set(item.id, item.toBuffer());
+    return true;
+  });
+}
+
+// Bad: Race condition - reads outside transaction, write inside
+public async tryAdd(item: Item): Promise<boolean> {
+  const exists = await this.items.hasAsync(item.id);  // Read outside transaction
+  if (exists) {
+    return false;
+  }
+  await this.store.transactionAsync(async () => {
+    await this.items.set(item.id, item.toBuffer());  // Write inside transaction
+  });
+  return true;
+}
+```
+
+Without transactions, concurrent operations can see inconsistent state (e.g., two callers both pass the `exists` check and both write).
 
 ## General Style
 

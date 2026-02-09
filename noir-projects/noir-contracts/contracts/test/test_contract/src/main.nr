@@ -28,7 +28,7 @@ pub contract Test {
             PublicImmutable,
         },
         // Protocol types and constants
-        protocol_types::{
+        protocol::{
             abis::function_selector::FunctionSelector,
             address::{AztecAddress, EthAddress},
             constants::PRIVATE_LOG_SIZE_IN_FIELDS,
@@ -37,13 +37,13 @@ pub contract Test {
         // Event related
         messages::message_delivery::MessageDelivery,
         // History and inclusion proofs
-        history::note_inclusion::ProveNoteInclusion,
+        history::note::assert_note_existed_by,
         // Key management
         keys::getters::get_public_keys,
         // Macros
         macros::{
             events::event,
-            functions::{initializer, only_self, noinitcheck, external, nophasecheck},
+            functions::{initializer, only_self, noinitcheck, external, allow_phase_change},
             storage::storage,
         },
         // Contract instance management
@@ -82,7 +82,9 @@ pub contract Test {
     // test function must also be updated accordingly.
     #[storage]
     struct Storage<Context> {
+        // docs:start:private_immutable
         note_in_private_immutable: Owned<PrivateImmutable<TestNote, Context>, Context>,
+        // docs:end:private_immutable
         struct_in_private_immutable: Owned<PrivateImmutable<ExampleStruct, Context>, Context>,
         note_in_private_mutable: Owned<PrivateMutable<TestNote, Context>, Context>,
         struct_in_private_mutable: Owned<PrivateMutable<ExampleStruct, Context>, Context>,
@@ -261,7 +263,7 @@ pub contract Test {
         };
 
         let header = self.context.get_anchor_block_header();
-        let _ = header.prove_note_inclusion(hinted_note);
+        let _ = assert_note_existed_by(header, hinted_note);
     }
 
     #[external("private")]
@@ -280,7 +282,7 @@ pub contract Test {
     }
 
     #[external("private")]
-    #[nophasecheck]
+    #[allow_phase_change]
     fn end_setup_checking_phases() {
         assert(!self.context.in_revertible_phase());
         self.context.end_setup();
@@ -294,7 +296,7 @@ pub contract Test {
     }
 
     #[external("private")]
-    #[nophasecheck]
+    #[allow_phase_change]
     fn call_function_that_ends_setup_without_phase_check() {
         self.call_self.end_setup_checking_phases();
     }

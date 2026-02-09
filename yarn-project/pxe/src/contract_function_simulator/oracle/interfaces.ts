@@ -5,7 +5,7 @@ import { Point } from '@aztec/foundation/curves/grumpkin';
 import { MembershipWitness } from '@aztec/foundation/trees';
 import type { FunctionSelector, NoteSelector } from '@aztec/stdlib/abi';
 import type { AztecAddress } from '@aztec/stdlib/aztec-address';
-import { L2BlockHash } from '@aztec/stdlib/block';
+import { BlockHash } from '@aztec/stdlib/block';
 import type { CompleteAddress, ContractInstance } from '@aztec/stdlib/contract';
 import type { KeyValidationRequest } from '@aztec/stdlib/kernel';
 import type { ContractClassLog, Tag } from '@aztec/stdlib/logs';
@@ -68,24 +68,24 @@ export interface IUtilityExecutionOracle {
   utilityGetKeyValidationRequest(pkMHash: Fr): Promise<KeyValidationRequest>;
   utilityGetContractInstance(address: AztecAddress): Promise<ContractInstance>;
   utilityGetNoteHashMembershipWitness(
-    blockHash: L2BlockHash,
-    leafValue: Fr,
+    anchorBlockHash: BlockHash,
+    noteHash: Fr,
   ): Promise<MembershipWitness<typeof NOTE_HASH_TREE_HEIGHT> | undefined>;
-  utilityGetArchiveMembershipWitness(
-    blockHash: L2BlockHash,
-    leafValue: Fr,
+  utilityGetBlockHashMembershipWitness(
+    anchorBlockHash: BlockHash,
+    blockHash: BlockHash,
   ): Promise<MembershipWitness<typeof ARCHIVE_HEIGHT> | undefined>;
   utilityGetNullifierMembershipWitness(
-    blockHash: L2BlockHash,
+    anchorBlockHash: BlockHash,
     nullifier: Fr,
   ): Promise<NullifierMembershipWitness | undefined>;
-  utilityGetPublicDataWitness(blockHash: L2BlockHash, leafSlot: Fr): Promise<PublicDataWitness | undefined>;
+  utilityGetPublicDataWitness(anchorBlockHash: BlockHash, leafSlot: Fr): Promise<PublicDataWitness | undefined>;
   utilityGetLowNullifierMembershipWitness(
-    blockHash: L2BlockHash,
+    anchorBlockHash: BlockHash,
     nullifier: Fr,
   ): Promise<NullifierMembershipWitness | undefined>;
   utilityGetBlockHeader(blockNumber: BlockNumber): Promise<BlockHeader | undefined>;
-  utilityGetPublicKeysAndPartialAddress(account: AztecAddress): Promise<CompleteAddress>;
+  utilityTryGetPublicKeysAndPartialAddress(account: AztecAddress): Promise<CompleteAddress | undefined>;
   utilityGetAuthWitness(messageHash: Fr): Promise<Fr[] | undefined>;
   utilityGetNotes(
     owner: AztecAddress | undefined,
@@ -111,13 +111,13 @@ export interface IUtilityExecutionOracle {
     secret: Fr,
   ): Promise<MessageLoadOracleInputs<typeof L1_TO_L2_MSG_TREE_HEIGHT>>;
   utilityStorageRead(
-    blockHash: L2BlockHash,
+    anchorBlockHash: BlockHash,
     contractAddress: AztecAddress,
     startStorageSlot: Fr,
     numberOfElements: number,
   ): Promise<Fr[]>;
   utilityFetchTaggedLogs(pendingTaggedLogArrayBaseSlot: Fr): Promise<void>;
-  utilityValidateEnqueuedNotesAndEvents(
+  utilityValidateAndStoreEnqueuedNotesAndEvents(
     contractAddress: AztecAddress,
     noteValidationRequestsArrayBaseSlot: Fr,
     eventValidationRequestsArrayBaseSlot: Fr,

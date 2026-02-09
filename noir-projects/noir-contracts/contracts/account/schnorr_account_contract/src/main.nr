@@ -15,7 +15,7 @@ pub contract SchnorrAccount {
         context::PrivateContext,
         hash::compute_siloed_nullifier,
         macros::{
-            functions::{external, initializer, noinitcheck, nophasecheck, view},
+            functions::{allow_phase_change, external, initializer, noinitcheck, view},
             storage::storage,
         },
         messages::message_delivery::MessageDelivery,
@@ -24,7 +24,7 @@ pub contract SchnorrAccount {
             get_nullifier_membership_witness::get_low_nullifier_membership_witness,
             notes::{get_sender_for_tags, set_sender_for_tags},
         },
-        protocol_types::address::AztecAddress,
+        protocol::address::AztecAddress,
         state_vars::SinglePrivateImmutable,
     };
 
@@ -69,7 +69,7 @@ pub contract SchnorrAccount {
     // using noinitcheck is an optimization, it reduces gates by omitting a check that the contract has been initialized
     #[external("private")]
     #[noinitcheck]
-    #[nophasecheck]
+    #[allow_phase_change]
     fn entrypoint(app_payload: AppPayload, fee_payment_method: u8, cancellable: bool) {
         // Safety: The sender for tags is only used to compute unconstrained shared secrets for emitting logs.
         // Since this value is only used for unconstrained tagging and not for any constrained logic,

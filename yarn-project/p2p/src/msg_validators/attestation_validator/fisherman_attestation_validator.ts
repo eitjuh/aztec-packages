@@ -1,8 +1,8 @@
 import type { EpochCacheInterface } from '@aztec/epoch-cache';
 import { type CheckpointAttestation, PeerErrorSeverity, type ValidationResult } from '@aztec/stdlib/p2p';
-import { Attributes, Metrics, type TelemetryClient } from '@aztec/telemetry-client';
+import { Attributes, Metrics, type TelemetryClient, createUpDownCounterWithDefault } from '@aztec/telemetry-client';
 
-import type { AttestationPool } from '../../mem_pools/attestation_pool/attestation_pool.js';
+import type { AttestationPoolApi } from '../../mem_pools/attestation_pool/attestation_pool.js';
 import { CheckpointAttestationValidator } from './attestation_validator.js';
 
 /**
@@ -18,14 +18,20 @@ export class FishermanAttestationValidator extends CheckpointAttestationValidato
 
   constructor(
     epochCache: EpochCacheInterface,
-    private attestationPool: AttestationPool,
+    private attestationPool: AttestationPoolApi,
     telemetryClient: TelemetryClient,
   ) {
     super(epochCache);
     this.logger = this.logger.createChild('[FISHERMAN]');
 
     const meter = telemetryClient.getMeter('FishermanAttestationValidator');
-    this.invalidAttestationCounter = meter.createUpDownCounter(Metrics.VALIDATOR_INVALID_ATTESTATION_RECEIVED_COUNT);
+    this.invalidAttestationCounter = createUpDownCounterWithDefault(
+      meter,
+      Metrics.VALIDATOR_INVALID_ATTESTATION_RECEIVED_COUNT,
+      {
+        [Attributes.ERROR_TYPE]: ['base_validation_failed', 'payload_mismatch'],
+      },
+    );
   }
 
   override async validate(message: CheckpointAttestation): Promise<ValidationResult> {

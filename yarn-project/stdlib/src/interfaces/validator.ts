@@ -51,8 +51,7 @@ export type ValidatorClientConfig = ValidatorHASignerConfig & {
   /** Whether to run in fisherman mode: validates all proposals and attestations but does not broadcast attestations or participate in consensus */
   fishermanMode?: boolean;
 
-  // TODO(palla/mbps): Change default to false once checkpoint validation is stable
-  /** Skip checkpoint proposal validation and always attest (default: true) */
+  /** Skip checkpoint proposal validation and always attest (default: false) */
   skipCheckpointProposalValidation?: boolean;
 
   /** Skip pushing re-executed blocks to archiver (default: false) */
@@ -61,7 +60,7 @@ export type ValidatorClientConfig = ValidatorHASignerConfig & {
 
 export type ValidatorClientFullConfig = ValidatorClientConfig &
   Pick<SequencerConfig, 'txPublicSetupAllowList' | 'broadcastInvalidBlockProposal'> &
-  Pick<SlasherConfig, 'slashBroadcastedInvalidBlockPenalty'> & {
+  Pick<SlasherConfig, 'slashBroadcastedInvalidBlockPenalty' | 'slashDuplicateProposalPenalty'> & {
     /**
      * Whether transactions are disabled for this node
      * @remarks This should match the property in P2PConfig. It's not picked from there to avoid circular dependencies.
@@ -88,6 +87,7 @@ export const ValidatorClientFullConfigSchema = zodFor<Omit<ValidatorClientFullCo
     txPublicSetupAllowList: z.array(AllowedElementSchema).optional(),
     broadcastInvalidBlockProposal: z.boolean().optional(),
     slashBroadcastedInvalidBlockPenalty: schemas.BigInt,
+    slashDuplicateProposalPenalty: schemas.BigInt,
     disableTransactions: z.boolean().optional(),
   }),
 );

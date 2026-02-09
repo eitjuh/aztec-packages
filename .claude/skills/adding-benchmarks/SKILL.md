@@ -20,7 +20,7 @@ Benchmarks flow through the system as follows:
 3. **Upload**: CI caches the merged JSON and GitHub Action uploads to the benchmark dashboard
 4. **Display**: Results appear at the dashboard with historical tracking
 
-**Live dashboard:** https://aztecprotocol.github.io/aztec-packages/bench/?branch=next
+**Live dashboard:** https://aztecprotocol.github.io/benchmark-page-data/bench/?branch=next
 
 ## How Benchmark Names Work
 
@@ -81,6 +81,35 @@ All benchmark files must be arrays using the `customSmallerIsBetter` format:
 - `value` must be numeric (lower is better)
 - File must end with `.bench.json`
 
+**Optional fields** (preserved by benchmark-action):
+- `range` (string): Variance info (e.g., `"± 5%"`)
+- `extra` (string): Metadata — used for stacked chart grouping (see below)
+
+## Stacked Charts
+
+To render multiple metrics as a **single stacked area chart** (e.g., component breakdowns), add an `extra` field with a `stacked:GROUP_NAME` value. Entries sharing the same GROUP_NAME are overlaid on one chart.
+
+```json
+[
+  {"name": "proving/cpus-8/total_ms", "value": 31663, "unit": "ms"},
+  {"name": "proving/cpus-8/oink_prove_ms", "value": 4992, "unit": "ms", "extra": "stacked:proving/cpus-8/components"},
+  {"name": "proving/cpus-8/sumcheck_ms", "value": 3318, "unit": "ms", "extra": "stacked:proving/cpus-8/components"},
+  {"name": "proving/cpus-8/circuit_ms", "value": 4642, "unit": "ms", "extra": "stacked:proving/cpus-8/components"}
+]
+```
+
+**How it works:**
+- `extra: "stacked:GROUP_NAME"` → entries with the same GROUP_NAME are rendered as one stacked chart
+- No `extra` field → individual line chart (default behavior)
+- Stacked entries still appear as individual charts on the main benchmark-action dashboard; the stacked view is rendered by a custom dashboard page
+- The GROUP_NAME becomes the chart title (after `bench_merge` prefixing, same as `name`)
+- The `extra` field is one of the 5 fields preserved by the benchmark-action Zod schema (`name`, `value`, `unit`, `range`, `extra`); any other custom fields will be stripped
+
+**When to use stacked charts:**
+- Component-level timing breakdowns (e.g., sumcheck, PCS, circuit construction)
+- Resource allocation views (e.g., memory by subsystem)
+- Any case where you want to see how a total decomposes into parts over time
+
 ## Adding a New Benchmark
 
 ### Step 1: Create the Benchmark
@@ -138,6 +167,16 @@ function bench_cmds {
 ```
 
 **Options:** `:ISOLATE=1`, `:CPUS=8`, `:MEM=16g`, `:TIMEOUT=7200`
+
+**CPUS Suggestion:** For long running or compute-heavy benchmarks allocate CPUs (`:CPUS=N`). Benchmarks have strict scheduling, so if you request X CPUs, you'll have them available for consistent results.
+
+**ISOLATE Suggestion:** Use `:ISOLATE=1` when your benchmark needs a clean, isolated environment with no network access and pinned resources. This runs the test in a Docker container, ensuring reproducible results without interference from other processes.
+
+**MEM Suggestion:** Use `:MEM=Xg` (e.g., `:MEM=16g`) for memory-intensive benchmarks that may exceed the default allocation (CPUS × 4GB). Pair with `:ISOLATE=1` since memory limits are enforced via Docker.
+
+**TIMEOUT Suggestion:** Use `:TIMEOUT=N` (in seconds) for benchmarks that take longer than the default timeout. For example, `:TIMEOUT=1800` for 30 minutes, `:TIMEOUT=7200` for 2 hours.
+
+**Important naming gotcha:** Benchmark test files must use `.bench.test.ts` (with a dot before `bench`), NOT `_bench.test.ts`. The test discovery pattern `[[ "$test" =~ \.bench\.test\.ts$ ]]` specifically looks for `.bench.test.ts`.
 
 ### Step 3: Verify
 

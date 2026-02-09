@@ -8,7 +8,9 @@ import type { ENR } from '@nethermindeth/enr';
 import EventEmitter from 'events';
 
 import type { PeerManagerInterface } from './peer-manager/interface.js';
+import type { BatchTxRequesterLibP2PService } from './reqresp/batch-tx-requester/interface.js';
 import type { P2PReqRespConfig } from './reqresp/config.js';
+import type { ConnectionSampler } from './reqresp/connection-sampler/connection_sampler.js';
 import { type AuthRequest, StatusMessage } from './reqresp/index.js';
 import type {
   ReqRespInterface,
@@ -24,6 +26,7 @@ import { ReqRespStatus } from './reqresp/status.js';
 import {
   type P2PBlockReceivedCallback,
   type P2PCheckpointReceivedCallback,
+  type P2PDuplicateProposalCallback,
   type P2PService,
   type PeerDiscoveryService,
   PeerDiscoveryState,
@@ -81,6 +84,11 @@ export class DummyP2PService implements P2PService {
   public registerCheckpointReceivedCallback(_callback: P2PCheckpointReceivedCallback) {}
 
   /**
+   * Register a callback for when a duplicate proposal is detected
+   */
+  public registerDuplicateProposalCallback(_callback: P2PDuplicateProposalCallback): void {}
+
+  /**
    * Sends a request to a peer.
    * @param _protocol - The protocol to send the request on.
    * @param _request - The request to send.
@@ -106,6 +114,15 @@ export class DummyP2PService implements P2PService {
     return Promise.resolve([]);
   }
 
+  public sendRequestToPeer(
+    _peerId: PeerId,
+    _subProtocol: ReqRespSubProtocol,
+    _payload: Buffer,
+    _dialTimeout?: number,
+  ): Promise<ReqRespResponse> {
+    return Promise.resolve({ status: ReqRespStatus.SUCCESS, data: Buffer.from([]) });
+  }
+
   /**
    * Returns the ENR of the peer.
    * @returns The ENR of the peer, otherwise undefined.
@@ -116,6 +133,10 @@ export class DummyP2PService implements P2PService {
 
   validate(_txs: Tx[]): Promise<void> {
     return Promise.resolve();
+  }
+
+  validatePropagatedTx(_tx: Tx, _peerId: PeerId): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   addReqRespSubProtocol(
@@ -132,6 +153,27 @@ export class DummyP2PService implements P2PService {
 
   //this is no-op
   registerThisValidatorAddresses(_address: EthAddress[]): void {}
+
+  /**
+   * Get dummy BatchTxRequesterLibP2PService for testing
+   */
+  getBatchTxRequesterService(): BatchTxRequesterLibP2PService {
+    return {
+      reqResp: this, // The dummy service implements ReqRespInterface
+      connectionSampler: new DummyReqResp().getConnectionSampler(),
+      txValidatorConfig: {
+        l1ChainId: 1,
+        rollupVersion: 1,
+        proofVerifier: {
+          verifyProof: () => Promise.resolve({ valid: true, durationMs: 0, totalDurationMs: 0 }),
+          stop: () => Promise.resolve(),
+        },
+      },
+      peerScoring: {
+        penalizePeer: (_peerId, _penalty) => {},
+      },
+    };
+  }
 }
 
 /**
@@ -266,6 +308,15 @@ export class DummyReqResp implements ReqRespInterface {
     _dialTimeout?: number,
   ): Promise<ReqRespResponse> {
     return Promise.resolve({ status: ReqRespStatus.SUCCESS, data: Buffer.from([]) });
+  }
+
+  /**
+   * Get dummy connection sampler for testing
+   */
+  getConnectionSampler(): Pick<ConnectionSampler, 'getPeerListSortedByConnectionCountAsc'> {
+    return {
+      getPeerListSortedByConnectionCountAsc: () => [],
+    };
   }
 
   addSubProtocol(
