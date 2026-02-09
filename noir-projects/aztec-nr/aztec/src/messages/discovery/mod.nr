@@ -12,7 +12,8 @@ use crate::{
         encoding::MAX_MESSAGE_CONTENT_LEN,
         logs::note::MAX_NOTE_PACKED_LEN,
         processing::{
-            get_private_logs, MessageContext, pending_tagged_log::PendingTaggedLog, validate_and_store_enqueued_notes_and_events,
+            get_private_logs, MessageContext, pending_tagged_log::PendingTaggedLog,
+            validate_and_store_enqueued_notes_and_events,
         },
     },
     utils::array,
@@ -65,12 +66,27 @@ pub type ComputeNoteHashAndNullifier<Env> = unconstrained fn[Env](/* packed_note
  owner */ AztecAddress, /* storage_slot */ Field, /* note_type_id */ Field, /* contract_address */ AztecAddress, /*
 randomness */ Field, /* note nonce */ Field) -> Option<NoteHashAndNullifier>;
 
-/// A function which handles unknown message types encountered during message processing. When
-/// `process_message_plaintext` encounters a `msg_type_id` that doesn't match any built-in type (private notes,
-/// partial notes, or events), it calls this function instead of silently ignoring the message.
+/// The type signature for custom message handlers. When `process_message_plaintext` encounters a `msg_type_id`
+/// that doesn't match any built-in type (private notes, partial notes, or events), it calls the custom handler
+/// instead of silently ignoring the message.
 ///
-/// Contracts can specify a custom handler via `#[aztec_opts(handler_name)]`. If not specified, the `#[aztec]`
-/// macro generates a default that simply logs the unknown type ID.
+/// Contracts specify a custom handler via `AztecOptions::with_custom_message_handler("handler_name")` in the
+/// `#[aztec(...)]` attribute. The named function must be a `#[contract_library_method]` conforming to this type.
+///
+/// Example:
+/// ```
+/// #[aztec(aztec::AztecOptions::new().with_custom_message_handler("my_handler"))]
+/// contract MyContract {
+///     #[contract_library_method]
+///     unconstrained fn my_handler(
+///         contract_address: AztecAddress,
+///         msg_type_id: u64,
+///         msg_metadata: u64,
+///         msg_content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
+///         message_context: MessageContext,
+///     ) { ... }
+/// }
+/// ```
 pub type ProcessCustomMessage<Env> = unconstrained fn[Env](
 /* contract_address */AztecAddress,
 /* msg_type_id */ u64,
@@ -127,7 +143,10 @@ pub unconstrained fn do_sync_state<Env1, Env2>(
 
     // Then we process all pending partial notes, regardless of whether they were found in the current or previous
     // executions.
-    partial_notes::fetch_and_process_partial_note_completion_logs(contract_address, options.compute_note_hash_and_nullifier);
+    partial_notes::fetch_and_process_partial_note_completion_logs(
+        contract_address,
+        options.compute_note_hash_and_nullifier,
+    );
 
     // Finally we validate all notes and events that were found as part of the previous processes, resulting in them
     // being added to PXE's database and retrievable via oracles (get_notes) and our TS API (PXE::getPrivateEvents).

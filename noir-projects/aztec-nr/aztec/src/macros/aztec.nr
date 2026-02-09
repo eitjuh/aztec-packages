@@ -33,7 +33,8 @@ impl AztecOptions {
     }
 
     /// Sets the custom message handler function name.
-    /// The function must be `#[contract_library_method]`, `unconstrained`, with 5 parameters.
+    /// The function must be a `#[contract_library_method]` that conforms to the
+    /// `aztec::messages::discovery::ProcessCustomMessage` type signature.
     pub comptime fn with_custom_message_handler(_self: Self, handler_name: CtString) -> Self {
         Self { custom_message_handler: Option::some(handler_name) }
     }
@@ -399,9 +400,24 @@ comptime fn generate_process_message() -> Quoted {
     }
 }
 
-/// Validates that a custom message handler specified via #[aztec_opts(...)] is valid.
+/// Validates that a custom message handler specified via `AztecOptions::with_custom_message_handler` conforms to the
+/// `aztec::messages::discovery::ProcessCustomMessage` type signature. The function must be a
+/// `#[contract_library_method]`, `unconstrained`, with the following signature:
+///
+/// ```
+/// unconstrained fn handler(
+///     contract_address: AztecAddress,
+///     msg_type_id: u64,
+///     msg_metadata: u64,
+///     msg_content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
+///     message_context: MessageContext,
+/// )
+/// ```
+///
 /// Returns the FunctionDefinition so we can get its properly quoted name.
 comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -> FunctionDefinition {
+    let expected_type_name = "aztec::messages::discovery::ProcessCustomMessage";
+
     // Find the function by comparing name strings
     let matching_fns = m.functions().filter(|f: FunctionDefinition| {
         let fn_name_quoted = f.name();
@@ -411,7 +427,7 @@ comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -
 
     if matching_fns.len() == 0 {
         panic(
-            f"#[aztec_opts] specifies custom_message_handler '{handler_name}' but no such function exists in the contract",
+            f"Custom message handler '{handler_name}' not found in the contract. The handler must be a #[contract_library_method] conforming to {expected_type_name}.",
         );
     }
 
@@ -419,20 +435,20 @@ comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -
 
     if !is_fn_contract_library_method(handler) {
         panic(
-            f"Custom message handler '{handler_name}' must be marked #[contract_library_method]",
+            f"Custom message handler '{handler_name}' must be marked #[contract_library_method]. See {expected_type_name} for the expected signature.",
         );
     }
 
     if !handler.is_unconstrained() {
         panic(
-            f"Custom message handler '{handler_name}' must be unconstrained",
+            f"Custom message handler '{handler_name}' must be unconstrained. See {expected_type_name} for the expected signature.",
         );
     }
 
     let param_count = handler.parameters().len();
     if param_count != 5 {
         panic(
-            f"Custom message handler '{handler_name}' must have exactly 5 parameters (contract_address, msg_type_id, msg_metadata, msg_content, message_context), but has {param_count}",
+            f"Custom message handler '{handler_name}' must have exactly 5 parameters matching {expected_type_name}: (contract_address: AztecAddress, msg_type_id: u64, msg_metadata: u64, msg_content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>, message_context: MessageContext), but has {param_count}",
         );
     }
 

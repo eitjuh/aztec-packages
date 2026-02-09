@@ -1,8 +1,7 @@
 use crate::messages::{
     discovery::{
         ComputeNoteHashAndNullifier, partial_notes::process_partial_note_private_msg,
-        private_events::process_private_event_msg, private_notes::process_private_note_msg,
-        ProcessCustomMessage,
+        private_events::process_private_event_msg, private_notes::process_private_note_msg, ProcessCustomMessage,
     },
     encoding::{decode_message, MESSAGE_CIPHERTEXT_LEN, MESSAGE_PLAINTEXT_LEN},
     encryption::{aes128::AES128, message_encryption::MessageEncryption},
