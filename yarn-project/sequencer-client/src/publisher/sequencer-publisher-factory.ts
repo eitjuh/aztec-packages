@@ -46,6 +46,15 @@ export class SequencerPublisherFactory {
     this.publisherMetrics = new SequencerPublisherMetrics(deps.telemetry, 'SequencerPublisher');
     this.logger = deps.logger ?? createLogger('sequencer');
   }
+
+  /**
+   * Updates the node keystore adapter used for publisher lookups.
+   * Called when the keystore is reloaded at runtime to reflect new validator-publisher mappings.
+   */
+  public updateNodeKeyStore(adapter: NodeKeystoreAdapter): void {
+    this.deps.nodeKeyStore = adapter;
+  }
+
   /**
    * Creates a new SequencerPublisher instance.
    * @param _validatorAddress - The address of the validator that will be using the publisher.

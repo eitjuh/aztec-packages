@@ -208,6 +208,11 @@ export class SequencerClient {
     return this.sequencer;
   }
 
+  /** Updates the publisher factory's node keystore adapter after a keystore reload. */
+  public updatePublisherNodeKeyStore(adapter: NodeKeystoreAdapter): void {
+    this.sequencer.updatePublisherNodeKeyStore(adapter);
+  }
+
   get validatorAddresses(): EthAddress[] | undefined {
     return this.sequencer.getValidatorAddresses();
   }
