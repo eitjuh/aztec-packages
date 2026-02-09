@@ -103,10 +103,9 @@ pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
     };
 
     // Generate the shared _get_aztec_contract_options function that creates the options once
-    let get_aztec_contract_options_fn =
-        generate_get_aztec_contract_options(process_custom_message_option);
+    let get_aztec_contract_options_fn = generate_get_aztec_contract_options(process_custom_message_option);
 
-     let sync_state_fn_and_abi_export = if !m.functions().any(|f| f.name() == quote { sync_state }) {
+    let sync_state_fn_and_abi_export = if !m.functions().any(|f| f.name() == quote { sync_state }) {
         generate_sync_state()
     } else {
         quote {}
@@ -358,7 +357,7 @@ comptime fn generate_sync_state() -> Quoted {
         unconstrained fn sync_state() {
             let address = aztec::context::UtilityContext::new().this_address();
             let options = _get_aztec_contract_options();            
-            aztec::messages::discovery::do_sync_state(address, _compute_note_hash_and_nullifier, options);
+            aztec::messages::discovery::do_sync_state(address, options);
         }
     }
 }
@@ -402,10 +401,7 @@ comptime fn generate_process_message() -> Quoted {
 
 /// Validates that a custom message handler specified via #[aztec_opts(...)] is valid.
 /// Returns the FunctionDefinition so we can get its properly quoted name.
-comptime fn validate_custom_message_handler(
-    m: Module,
-    handler_name: CtString,
-) -> FunctionDefinition {
+comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -> FunctionDefinition {
     // Find the function by comparing name strings
     let matching_fns = m.functions().filter(|f: FunctionDefinition| {
         let fn_name_quoted = f.name();

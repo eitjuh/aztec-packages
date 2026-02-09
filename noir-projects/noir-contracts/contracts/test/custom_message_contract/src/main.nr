@@ -16,7 +16,7 @@ contract CustomMessage {
             processing::{enqueue_event_for_validation, MessageContext},
         },
         oracle::random::random,
-        protocol_types::{
+        protocol::{
             address::AztecAddress,
             hash::sha256_to_field,
             traits::{Deserialize, FromField, Serialize, ToField},
