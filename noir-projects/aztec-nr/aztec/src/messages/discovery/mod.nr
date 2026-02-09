@@ -96,11 +96,11 @@ pub type ProcessCustomMessage<Env> = unconstrained fn[Env](
 
 /// Runtime options for Aztec contract operations like message discovery.
 /// This struct holds function references for customizable behavior.
-pub struct AztecContractOptions<Env1, Env2> {
+pub struct AztecContractOptions {
     /// Function to compute note hash and nullifier for different note types.
-    pub compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env1>,
+    pub compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
     /// Optional custom handler for unknown message types.
-    pub process_custom_message: Option<ProcessCustomMessage<Env2>>,
+    pub process_custom_message: Option<ProcessCustomMessage<()>>,
 }
 
 /// Performs the state synchronization process, in which private logs are downloaded and inspected to find new private
@@ -113,10 +113,7 @@ pub struct AztecContractOptions<Env1, Env2> {
 ///
 /// Receives the address of the contract on which discovery is performed along with its
 /// `compute_note_hash_and_nullifier` function.
-pub unconstrained fn do_sync_state<Env1, Env2>(
-    contract_address: AztecAddress,
-    options: AztecContractOptions<Env1, Env2>,
-) {
+pub unconstrained fn do_sync_state(contract_address: AztecAddress, options: AztecContractOptions) {
     debug_log("Performing state synchronization");
 
     // First we process all private logs, which can contain different kinds of messages e.g. private notes, partial

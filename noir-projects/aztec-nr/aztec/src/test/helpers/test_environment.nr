@@ -878,13 +878,13 @@ impl TestEnvironment {
         );
     }
 
-    unconstrained fn discover_data_in_message_plaintext<Env1, Env2>(
+    unconstrained fn discover_data_in_message_plaintext(
         self,
         message_plaintext: BoundedVec<Field, MESSAGE_PLAINTEXT_LEN>,
         contract_address: Option<AztecAddress>,
         recipient: Option<AztecAddress>,
-        compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<Env1>,
-        process_custom_message: Option<ProcessCustomMessage<Env2>>,
+        compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
+        process_custom_message: Option<ProcessCustomMessage<()>>,
     ) {
         // This function will emulate the message discovery and processing that would happen in a real contract, based
         // on a message plaintext.
