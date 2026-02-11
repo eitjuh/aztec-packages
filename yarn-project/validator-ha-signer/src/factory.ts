@@ -1,7 +1,7 @@
 /**
  * Factory functions for creating validator HA signers
  */
-import { type ValidatorHASignerConfig } from '@aztec/stdlib/ha-signing';
+import type { ValidatorHASignerConfig } from '@aztec/stdlib/ha-signing';
 import { type TelemetryClient, getTelemetryClient } from '@aztec/telemetry-client';
 
 import { Pool } from 'pg';

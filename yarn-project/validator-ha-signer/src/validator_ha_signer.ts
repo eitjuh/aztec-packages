@@ -16,7 +16,7 @@ import {
   getBlockNumberFromSigningContext,
 } from '@aztec/stdlib/ha-signing';
 
-import { type DutyIdentifier } from './db/types.js';
+import type { DutyIdentifier } from './db/types.js';
 import type { HASignerMetrics } from './metrics.js';
 import { SlashingProtectionService } from './slashing_protection_service.js';
 import type { SlashingProtectionDatabase } from './types.js';
