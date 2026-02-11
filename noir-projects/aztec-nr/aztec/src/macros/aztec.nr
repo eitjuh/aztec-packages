@@ -391,12 +391,13 @@ comptime fn generate_process_message() -> Quoted {
     }
 }
 
-/// Validates that a custom message handler specified via `AztecOptions::with_custom_message_handler` conforms to the
-/// `aztec::messages::discovery::ProcessCustomMessage` type signature. The function must be unconstrained and marked as
-/// `#[contract_library_method]`.
-/// ```
+/// Validates a custom message handler.
 ///
-/// Returns the FunctionDefinition so we can get its properly quoted name.
+/// Custom message handlers are specified by name via `AztecOptions::with_custom_message_handler`. A custom message
+/// handler must be a function that conform to the `aztec::messages::discovery::ProcessCustomMessage` type signature.
+/// The function must be unconstrained and marked as `#[contract_library_method]`.
+///
+/// Returns a `FunctionDefinition` so we can get its properly quoted name.
 comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -> FunctionDefinition {
     let expected_type: Type = quote { crate::messages::discovery::ProcessCustomMessage<()> }.as_type();
     let expected_type_name = f"{expected_type}";
