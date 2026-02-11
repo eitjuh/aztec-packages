@@ -16,6 +16,7 @@ import {
   getBlockIndexFromDutyIdentifier,
 } from './db/types.js';
 import { DutyAlreadySignedError, SlashingProtectionError } from './errors.js';
+import type { HASignerMetrics } from './metrics.js';
 import type { SlashingProtectionDatabase, ValidatorHASignerConfig } from './types.js';
 
 /**
@@ -45,6 +46,7 @@ export class SlashingProtectionService {
   constructor(
     private readonly db: SlashingProtectionDatabase,
     private readonly config: ValidatorHASignerConfig,
+    private readonly metrics: HASignerMetrics,
   ) {
     this.log = createLogger('slashing-protection');
     this.pollingIntervalMs = config.pollingIntervalMs;
@@ -89,6 +91,7 @@ export class SlashingProtectionService {
           validatorAddress: validatorAddress.toString(),
           nodeId,
         });
+        this.metrics.recordLockAcquire(true);
         return record.lockToken;
       }
 
@@ -103,6 +106,7 @@ export class SlashingProtectionService {
             existingNodeId: record.nodeId,
             attemptingNodeId: nodeId,
           });
+          this.metrics.recordSlashingProtection(dutyType);
           throw new SlashingProtectionError(
             slot,
             dutyType,
@@ -112,6 +116,7 @@ export class SlashingProtectionService {
             record.nodeId,
           );
         }
+        this.metrics.recordDutyAlreadySigned(dutyType);
         throw new DutyAlreadySignedError(slot, dutyType, record.blockIndexWithinCheckpoint, record.nodeId);
       } else if (record.status === DutyStatus.SIGNING) {
         // Another node is currently signing - check for timeout
@@ -121,6 +126,7 @@ export class SlashingProtectionService {
             timeoutMs: this.signingTimeoutMs,
             signingNodeId: record.nodeId,
           });
+          this.metrics.recordDutyAlreadySigned(dutyType);
           throw new DutyAlreadySignedError(slot, dutyType, record.blockIndexWithinCheckpoint, 'unknown (timeout)');
         }
 
@@ -228,6 +234,7 @@ export class SlashingProtectionService {
       this.log.info(`Cleaned up ${numOutdatedRollupDuties} duties with outdated rollup address at startup`, {
         currentRollupAddress: this.config.l1Contracts.rollupAddress.toString(),
       });
+      this.metrics.recordCleanup('outdated_rollup', numOutdatedRollupDuties);
     }
 
     this.cleanupRunningPromise.start();
@@ -263,6 +270,7 @@ export class SlashingProtectionService {
         nodeId: this.config.nodeId,
         maxStuckDutiesAgeMs: this.maxStuckDutiesAgeMs,
       });
+      this.metrics.recordCleanup('stuck', numStuckDuties);
     }
 
     // 2. Clean up old signed duties if configured
@@ -280,6 +288,7 @@ export class SlashingProtectionService {
             cleanupOldDutiesAfterHours: this.config.cleanupOldDutiesAfterHours,
             maxAgeMs,
           });
+          this.metrics.recordCleanup('old', numOldDuties);
         }
       }
     }

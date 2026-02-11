@@ -2,6 +2,7 @@ import { BlockNumber, IndexWithinCheckpoint, SlotNumber } from '@aztec/foundatio
 import { Buffer32 } from '@aztec/foundation/buffer';
 import { EthAddress } from '@aztec/foundation/eth-address';
 import { sleep } from '@aztec/foundation/sleep';
+import { getTelemetryClient } from '@aztec/telemetry-client';
 
 import { PGlite } from '@electric-sql/pglite';
 import { jest } from '@jest/globals';
@@ -9,6 +10,7 @@ import { jest } from '@jest/globals';
 import { PostgresSlashingProtectionDatabase } from './db/postgres.js';
 import { setupTestSchema } from './db/test_helper.js';
 import { DutyAlreadySignedError, SlashingProtectionError } from './errors.js';
+import { HASignerMetrics } from './metrics.js';
 import { SlashingProtectionService } from './slashing_protection_service.js';
 import { Pool } from './test/pglite_pool.js';
 import { type CheckAndRecordParams, DutyStatus, DutyType, type ValidatorHASignerConfig } from './types.js';
@@ -32,6 +34,7 @@ describe('SlashingProtectionService', () => {
   let db: PostgresSlashingProtectionDatabase;
   let service: SlashingProtectionService;
   let config: ValidatorHASignerConfig;
+  const telemetryClient = getTelemetryClient();
 
   beforeEach(async () => {
     pglite = new PGlite();
@@ -49,7 +52,8 @@ describe('SlashingProtectionService', () => {
       signingTimeoutMs: 1000,
       maxStuckDutiesAgeMs: 60_000,
     };
-    service = new SlashingProtectionService(db, config);
+    const metrics = new HASignerMetrics(telemetryClient, NODE_ID);
+    service = new SlashingProtectionService(db, config, metrics);
   });
 
   afterEach(async () => {
@@ -283,7 +287,11 @@ describe('SlashingProtectionService', () => {
 
     it('should timeout if signing takes too long', async () => {
       const shortTimeoutConfig = { ...config, signingTimeoutMs: 200 };
-      const serviceWithShortTimeout = new SlashingProtectionService(db, shortTimeoutConfig);
+      const serviceWithShortTimeout = new SlashingProtectionService(
+        db,
+        shortTimeoutConfig,
+        new HASignerMetrics(telemetryClient, shortTimeoutConfig.nodeId),
+      );
 
       try {
         const params: CheckAndRecordParams = {
@@ -555,7 +563,11 @@ describe('SlashingProtectionService', () => {
 
       // Create a new service with a very short maxStuckDutiesAgeMs
       const shortAgeConfig = { ...config, maxStuckDutiesAgeMs: 1 };
-      const newService = new SlashingProtectionService(db, shortAgeConfig);
+      const newService = new SlashingProtectionService(
+        db,
+        shortAgeConfig,
+        new HASignerMetrics(telemetryClient, shortAgeConfig.nodeId),
+      );
 
       // Wait a bit for the duty to become "old"
       await sleep(10);
@@ -579,14 +591,22 @@ describe('SlashingProtectionService', () => {
       const rollupAddress1 = EthAddress.random();
       const rollupAddress2 = EthAddress.random();
 
-      const service1 = new SlashingProtectionService(db, {
-        ...config,
-        l1Contracts: { rollupAddress: rollupAddress1 },
-      });
-      const service2 = new SlashingProtectionService(db, {
-        ...config,
-        l1Contracts: { rollupAddress: rollupAddress2 },
-      });
+      const service1 = new SlashingProtectionService(
+        db,
+        {
+          ...config,
+          l1Contracts: { rollupAddress: rollupAddress1 },
+        },
+        new HASignerMetrics(telemetryClient, config.nodeId),
+      );
+      const service2 = new SlashingProtectionService(
+        db,
+        {
+          ...config,
+          l1Contracts: { rollupAddress: rollupAddress2 },
+        },
+        new HASignerMetrics(telemetryClient, config.nodeId),
+      );
 
       // Sign same slots for both rollups (e.g. rollup upgrade: slots reset, same slot numbers reused)
       for (let slotNum = 1; slotNum <= 5; slotNum++) {
@@ -658,14 +678,22 @@ describe('SlashingProtectionService', () => {
       const validator3 = EthAddress.random();
       const validators = [validator1, validator2, validator3];
 
-      const oldService = new SlashingProtectionService(db, {
-        ...config,
-        l1Contracts: { rollupAddress: oldRollupAddress },
-      });
-      const newService = new SlashingProtectionService(db, {
-        ...config,
-        l1Contracts: { rollupAddress: newRollupAddress },
-      });
+      const oldService = new SlashingProtectionService(
+        db,
+        {
+          ...config,
+          l1Contracts: { rollupAddress: oldRollupAddress },
+        },
+        new HASignerMetrics(telemetryClient, config.nodeId),
+      );
+      const newService = new SlashingProtectionService(
+        db,
+        {
+          ...config,
+          l1Contracts: { rollupAddress: newRollupAddress },
+        },
+        new HASignerMetrics(telemetryClient, config.nodeId),
+      );
 
       // Old rollup: all validators sign slot 100
       for (const validator of validators) {
@@ -728,10 +756,14 @@ describe('SlashingProtectionService', () => {
       const rollupAddress1 = EthAddress.random();
       const rollupAddress2 = EthAddress.random();
 
-      const service1 = new SlashingProtectionService(db, {
-        ...config,
-        l1Contracts: { rollupAddress: rollupAddress1 },
-      });
+      const service1 = new SlashingProtectionService(
+        db,
+        {
+          ...config,
+          l1Contracts: { rollupAddress: rollupAddress1 },
+        },
+        new HASignerMetrics(telemetryClient, config.nodeId),
+      );
 
       const params: CheckAndRecordParams = {
         rollupAddress: rollupAddress1,
@@ -844,10 +876,14 @@ describe('SlashingProtectionService', () => {
         // Create a new service with the new rollup address.
         // Use default maxStuckDutiesAgeMs so background cleanup does not remove the new rollup duties
         // (they are in 'signing' and would be treated as stuck if maxStuckDutiesAgeMs were 1ms).
-        const newService = new SlashingProtectionService(db, {
-          ...config,
-          l1Contracts: { rollupAddress: newRollupAddress },
-        });
+        const newService = new SlashingProtectionService(
+          db,
+          {
+            ...config,
+            l1Contracts: { rollupAddress: newRollupAddress },
+          },
+          new HASignerMetrics(telemetryClient, config.nodeId),
+        );
 
         // Start the service - this should trigger cleanup at startup
         await newService.start();
@@ -962,10 +998,14 @@ describe('SlashingProtectionService', () => {
         await service.checkAndRecord(signingParams);
 
         // Run cleanup via the service (old signed duties should be deleted)
-        const cleanupService = new SlashingProtectionService(db, {
-          ...config,
-          cleanupOldDutiesAfterHours: 0.5, // 30 minutes
-        });
+        const cleanupService = new SlashingProtectionService(
+          db,
+          {
+            ...config,
+            cleanupOldDutiesAfterHours: 0.5, // 30 minutes
+          },
+          new HASignerMetrics(telemetryClient, config.nodeId),
+        );
         await cleanupService.start();
         await sleep(50);
         await cleanupService.stop();
@@ -1024,11 +1064,15 @@ describe('SlashingProtectionService', () => {
         await sleep(10);
 
         // Create a new service with cleanupOldDutiesAfterHours configured
-        const newService = new SlashingProtectionService(db, {
-          ...config,
-          maxStuckDutiesAgeMs: 1,
-          cleanupOldDutiesAfterHours: 0.000001, // ~3.6ms
-        });
+        const newService = new SlashingProtectionService(
+          db,
+          {
+            ...config,
+            maxStuckDutiesAgeMs: 1,
+            cleanupOldDutiesAfterHours: 0.000001, // ~3.6ms
+          },
+          new HASignerMetrics(telemetryClient, config.nodeId),
+        );
 
         // Start the service - this should trigger cleanup
         await newService.start();
@@ -1043,11 +1087,15 @@ describe('SlashingProtectionService', () => {
       it('should not run cleanupOldDuties more often than its max age', async () => {
         const cleanupSpy = jest.spyOn(db, 'cleanupOldDuties');
 
-        const newService = new SlashingProtectionService(db, {
-          ...config,
-          maxStuckDutiesAgeMs: 1,
-          cleanupOldDutiesAfterHours: 0.001, // ~3.6s
-        });
+        const newService = new SlashingProtectionService(
+          db,
+          {
+            ...config,
+            maxStuckDutiesAgeMs: 1,
+            cleanupOldDutiesAfterHours: 0.001, // ~3.6s
+          },
+          new HASignerMetrics(telemetryClient, config.nodeId),
+        );
 
         await newService.start();
         await sleep(50); // allow multiple cleanup cycles
@@ -1074,11 +1122,15 @@ describe('SlashingProtectionService', () => {
         await sleep(10);
 
         // Create a new service without cleanupOldDutiesAfterHours configured
-        const newService = new SlashingProtectionService(db, {
-          ...config,
-          maxStuckDutiesAgeMs: 1,
-          // cleanupOldDutiesAfterHours is undefined
-        });
+        const newService = new SlashingProtectionService(
+          db,
+          {
+            ...config,
+            maxStuckDutiesAgeMs: 1,
+            // cleanupOldDutiesAfterHours is undefined
+          },
+          new HASignerMetrics(telemetryClient, config.nodeId),
+        );
 
         // Start the service
         await newService.start();

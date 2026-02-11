@@ -5,6 +5,7 @@ import {
   type SlotNumber,
 } from '@aztec/foundation/branded-types';
 import type { EthAddress } from '@aztec/foundation/eth-address';
+import type { TelemetryClient } from '@aztec/telemetry-client';
 
 import type { Pool } from 'pg';
 
@@ -53,6 +54,10 @@ export interface CreateHASignerDeps {
    * If provided, databaseUrl and poolConfig are ignored
    */
   pool?: Pool;
+  /**
+   * Optional telemetry client for metrics
+   */
+  telemetryClient?: TelemetryClient;
 }
 
 /**

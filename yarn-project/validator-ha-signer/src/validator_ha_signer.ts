@@ -12,6 +12,7 @@ import { type Logger, createLogger } from '@aztec/foundation/log';
 
 import type { ValidatorHASignerConfig } from './config.js';
 import { type DutyIdentifier, DutyType } from './db/types.js';
+import type { HASignerMetrics } from './metrics.js';
 import { SlashingProtectionService } from './slashing_protection_service.js';
 import {
   type HAProtectedSigningContext,
@@ -46,6 +47,7 @@ export class ValidatorHASigner {
   constructor(
     db: SlashingProtectionDatabase,
     private readonly config: ValidatorHASignerConfig,
+    private readonly metrics: HASignerMetrics,
   ) {
     this.log = createLogger('validator-ha-signer');
 
@@ -58,7 +60,7 @@ export class ValidatorHASigner {
       throw new Error('NODE_ID is required for high-availability setups');
     }
     this.rollupAddress = config.l1Contracts.rollupAddress;
-    this.slashingProtection = new SlashingProtectionService(db, config);
+    this.slashingProtection = new SlashingProtectionService(db, config, metrics);
     this.log.info('Validator HA Signer initialized with slashing protection', {
       nodeId: config.nodeId,
       rollupAddress: this.rollupAddress.toString(),
@@ -88,6 +90,9 @@ export class ValidatorHASigner {
     context: HAProtectedSigningContext,
     signFn: (messageHash: Buffer32) => Promise<Signature>,
   ): Promise<Signature> {
+    const startTime = Date.now();
+    const dutyType = context.dutyType;
+
     let dutyIdentifier: DutyIdentifier;
     if (context.dutyType === DutyType.BLOCK_PROPOSAL) {
       dutyIdentifier = {
@@ -107,6 +112,7 @@ export class ValidatorHASigner {
     }
 
     // Acquire lock and get the token for ownership verification
+    // DutyAlreadySignedError and SlashingProtectionError may be thrown here and are recorded in the service
     const blockNumber = getBlockNumberFromSigningContext(context);
     const lockToken = await this.slashingProtection.checkAndRecord({
       ...dutyIdentifier,
@@ -122,6 +128,7 @@ export class ValidatorHASigner {
     } catch (error: any) {
       // Delete duty to allow retry (only succeeds if we own the lock)
       await this.slashingProtection.deleteDuty({ ...dutyIdentifier, lockToken });
+      this.metrics.recordSigningError(dutyType);
       throw error;
     }
 
@@ -132,6 +139,9 @@ export class ValidatorHASigner {
       nodeId: this.config.nodeId,
       lockToken,
     });
+
+    const duration = Date.now() - startTime;
+    this.metrics.recordSigningSuccess(dutyType, duration);
 
     return signature;
   }
