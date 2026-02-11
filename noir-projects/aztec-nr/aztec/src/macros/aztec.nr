@@ -401,24 +401,15 @@ comptime fn generate_process_message() -> Quoted {
 }
 
 /// Validates that a custom message handler specified via `AztecOptions::with_custom_message_handler` conforms to the
-/// `aztec::messages::discovery::ProcessCustomMessage` type signature. The function must be a
-/// `#[contract_library_method]`, `unconstrained`, with the following signature:
-///
-/// ```
-/// unconstrained fn handler(
-///     contract_address: AztecAddress,
-///     msg_type_id: u64,
-///     msg_metadata: u64,
-///     msg_content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
-///     message_context: MessageContext,
-/// )
+/// `aztec::messages::discovery::ProcessCustomMessage` type signature. The function must be unconstrained and marked as
+/// `#[contract_library_method]`.
 /// ```
 ///
 /// Returns the FunctionDefinition so we can get its properly quoted name.
 comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -> FunctionDefinition {
-    let expected_type_name = "aztec::messages::discovery::ProcessCustomMessage";
+    let expected_type: Type = quote { crate::messages::discovery::ProcessCustomMessage<()> }.as_type();
+    let expected_type_name = f"{expected_type}";
 
-    // Find the function by comparing name strings
     let matching_fns = m.functions().filter(|f: FunctionDefinition| {
         let fn_name_quoted = f.name();
         let fn_name = f"{fn_name_quoted}".as_ctstring();
@@ -442,13 +433,6 @@ comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -
     if !handler.is_unconstrained() {
         panic(
             f"Custom message handler '{handler_name}' must be unconstrained. See {expected_type_name} for the expected signature.",
-        );
-    }
-
-    let param_count = handler.parameters().len();
-    if param_count != 5 {
-        panic(
-            f"Custom message handler '{handler_name}' must have exactly 5 parameters matching {expected_type_name}: (contract_address: AztecAddress, msg_type_id: u64, msg_metadata: u64, msg_content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>, message_context: MessageContext), but has {param_count}",
         );
     }
 
