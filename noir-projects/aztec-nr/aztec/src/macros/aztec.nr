@@ -33,6 +33,7 @@ impl AztecOptions {
     }
 
     /// Sets the custom message handler function name.
+    ///
     /// The function must be a `#[contract_library_method]` that conforms to the
     /// `aztec::messages::discovery::ProcessCustomMessage` type signature.
     pub comptime fn with_custom_message_handler(_self: Self, handler_name: CtString) -> Self {
@@ -51,11 +52,8 @@ impl AztecOptions {
 /// #[aztec(AztecOptions::new().with_custom_message_handler("my_handler"))]  // With options
 /// contract MyOtherContract { ... }
 /// ```
-///
-/// Note: This is a module annotation, so the returned quote gets injected inside the module (contract) itself.
 #[varargs]
 pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
-    // Parse options from varargs (0 or 1 element)
     let num_args = args.len();
     let options = if num_args == 0 {
         AztecOptions::new()
@@ -89,8 +87,6 @@ pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
     } else {
         quote {}
     };
-    // Build the process_custom_message option for AztecContractOptions.
-    // When no handler is specified, we need an explicit type annotation for the Option::none().
     let process_custom_message_option = if options.custom_message_handler.is_some() {
         // User specified handler - validate and use it.
         let handler_name_str = options.custom_message_handler.unwrap();
@@ -103,7 +99,6 @@ pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
         quote { Option::<aztec::messages::discovery::ProcessCustomMessage<()>>::none() }
     };
 
-    // Generate the shared _get_aztec_contract_options function that creates the options once
     let get_aztec_contract_options_fn = generate_get_aztec_contract_options(process_custom_message_option);
 
     let sync_state_fn_and_abi_export = if !m.functions().any(|f| f.name() == quote { sync_state }) {
@@ -328,9 +323,7 @@ comptime fn generate_contract_library_method_compute_note_hash_and_nullifier() -
     }
 }
 
-/// Generates the `_get_aztec_contract_options` contract library method that creates and returns
-/// the `AztecContractOptions` struct with the appropriate function pointers for note hash/nullifier
-/// computation and custom message handling.
+/// Generates a `_get_aztec_contract_options` contract library method to access the contract's `AztecContractOptions`.
 comptime fn generate_get_aztec_contract_options(process_custom_message_option: Quoted) -> Quoted {
     quote {
         #[contract_library_method]
@@ -343,8 +336,7 @@ comptime fn generate_get_aztec_contract_options(process_custom_message_option: Q
     }
 }
 
-/// Generates the `sync_private_state` utility function that performs message discovery.
-/// Uses the shared `_get_aztec_contract_options` to get the contract options.
+/// Generates the `sync_state` utility function that performs message discovery.
 comptime fn generate_sync_state() -> Quoted {
     quote {
         pub struct sync_state_parameters {}
@@ -364,7 +356,6 @@ comptime fn generate_sync_state() -> Quoted {
 }
 
 /// Generates the `process_message` utility function that processes a single message ciphertext.
-/// Uses the shared `_get_aztec_contract_options` to get the contract options.
 comptime fn generate_process_message() -> Quoted {
     quote {
         pub struct process_message_parameters {

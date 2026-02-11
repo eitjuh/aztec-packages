@@ -66,9 +66,10 @@ pub type ComputeNoteHashAndNullifier<Env> = unconstrained fn[Env](/* packed_note
  owner */ AztecAddress, /* storage_slot */ Field, /* note_type_id */ Field, /* contract_address */ AztecAddress, /*
 randomness */ Field, /* note nonce */ Field) -> Option<NoteHashAndNullifier>;
 
-/// The type signature for custom message handlers. When `process_message_plaintext` encounters a `msg_type_id`
-/// that doesn't match any built-in type (private notes, partial notes, or events), it calls the custom handler
-/// instead of silently ignoring the message.
+/// The type signature for custom message handlers.
+///
+/// When `process_message_plaintext` encounters a `msg_type_id` that doesn't match any built-in type (private notes,
+/// partial notes, or events), it calls the custom handler instead of silently ignoring the message.
 ///
 /// Contracts specify a custom handler via `AztecOptions::with_custom_message_handler("handler_name")` in the
 /// `#[aztec(...)]` attribute. The named function must be a `#[contract_library_method]` conforming to this type.
@@ -94,8 +95,7 @@ pub type ProcessCustomMessage<Env> = unconstrained fn[Env](
 /* msg_content */ BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
 /* message_context */ MessageContext);
 
-/// Runtime options for Aztec contract operations like message discovery.
-/// This struct holds function references for customizable behavior.
+/// Runtime options for Aztec contract operations (like custom message processing).
 pub struct AztecContractOptions {
     /// Function to compute note hash and nullifier for different note types.
     pub compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
