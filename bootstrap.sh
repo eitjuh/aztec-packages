@@ -15,6 +15,15 @@ export NUM_TXES=8
 
 export MAKEFLAGS="-j${MAKE_JOBS:-$(get_num_cpus)}"
 
+# Expected toolchain versions.
+expected_min_clang_version=20.0.0
+expected_min_cmake_version=3.24
+expected_min_node_version=22.15.0
+expected_min_zig_version=0.14.1
+expected_abs_rust_version=1.85.0
+expected_abs_wasi_version=27.0
+expected_abs_foundry_version=1.4.1
+
 # Cleanup function. Called on script exit.
 function cleanup {
   set +e
@@ -39,124 +48,203 @@ function cleanup {
 }
 trap cleanup EXIT
 
-function encourage_dev_container {
-  echo -e "${bold}${red}ERROR: Toolchain incompatibility. We encourage use of our dev container. See build-images/README.md.${reset}"
+function check_minimum_version {
+  local min_version=$1
+  local installed_version=$2
+  if [[ "$(printf '%s\n' "$min_version" "$installed_version" | sort -V | head -n1)" != "$min_version" ]]; then
+    return 1
+  fi
+  return 0
+}
+
+function ensure {
+  command -v $1 &>/dev/null
+}
+
+function toolchain_incompatible {
+  if [ "$(os)" == "unknown" ] || [ "$(os)" == "linux" ] && ! ensure apt; then
+    echo -e "${bold}${red}ERROR: Toolchain incompatibility.${reset}"
+    echo "We encourage use of our dev container. See build-images/README.md."
+  else
+    echo -e "${bold}${red}ERROR: Toolchain incompatibility.${reset}"
+    echo "You can install requirements with: ./bootstrap.sh install_deps"
+  fi
+  exit 1
 }
 
 # Checks for required utilities, toolchains and their versions.
-# Developers should probably use the dev container in /build-images to ensure the smoothest experience.
+# DO NOT INSTALL THINGS IN HERE.
 function check_toolchains {
   # Check for various required utilities.
-  for util in jq parallel awk git curl zstd; do
-    if ! command -v $util > /dev/null; then
-      encourage_dev_container
-      echo "Utility $util not found."
-      echo "Installation: sudo apt install $util"
-      exit 1
+  for util in jq parallel awk git curl zstd corepack solhint; do
+    if ! ensure $util; then
+      echo "$util not found."
+      toolchain_incompatible
     fi
   done
-  if ! command -v ldid > /dev/null; then
-    encourage_dev_container
-    echo "Utility ldid not found."
-    echo "Install from https://github.com/ProcursusTeam/ldid."
-    exit 1
+  if [ "$(os)" == "linux" ] && ! ensure ldid; then
+    echo "ldid not found."
+    toolchain_incompatible
   fi
   if ! yq --version | grep "version v4" > /dev/null; then
-    encourage_dev_container
-    echo "yq v4 not installed."
-    echo "Installation: https://github.com/mikefarah/yq/#install"
-    exit 1
+    echo "yq not found."
+    toolchain_incompatible
   fi
   # Check cmake version.
-  local cmake_min_version="3.24"
   local cmake_installed_version=$(cmake --version | head -n1 | awk '{print $3}')
-  if [[ "$(printf '%s\n' "$cmake_min_version" "$cmake_installed_version" | sort -V | head -n1)" != "$cmake_min_version" ]]; then
-    encourage_dev_container
-    echo "Minimum cmake version 3.24 not found."
-    exit 1
+  if ! check_minimum_version $expected_min_cmake_version $cmake_installed_version; then
+    echo "Minimum cmake version $expected_min_cmake_version not found."
+    toolchain_incompatible
   fi
   # Check clang version.
-  if ! clang++-20 --version | grep "clang version 20." > /dev/null; then
-    encourage_dev_container
-    echo "clang 16 not installed."
-    echo "Installation: sudo apt install clang-20"
-    exit 1
+  local clang_installed_version=$(clang++-20 --version | head -n1 | awk '{print $4}')
+  if ! check_minimum_version $expected_min_clang_version $clang_installed_version; then
+    echo "Minimum clang version $expected_min_clang_version not found."
+    toolchain_incompatible
   fi
   # Check zig version.
-  if ! zig version | grep "0.15.1" > /dev/null; then
-    encourage_dev_container
-    echo "zig 0.15.1 not installed."
-    echo "Install in /opt/zig."
-    exit 1
+  local zig_installed_version=$(zig version)
+  if ! ensure zvm && ! check_minimum_version $expected_min_zig_version $zig_installed_version; then
+    echo "Minimum zig version $expected_min_zig_version not found."
+    toolchain_incompatible
   fi
   # Check rustup installed.
-  local rust_version=$(yq '.toolchain.channel' ./avm-transpiler/rust-toolchain.toml)
-  if ! command -v rustup > /dev/null; then
-    encourage_dev_container
+  if ! ensure rustup; then
     echo "Rustup not installed."
-    echo "Installation:"
-    echo "  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $rust_version"
-    exit 1
+    toolchain_incompatible
   fi
-  if ! rustup show | grep $rust_version > /dev/null; then
-    # Cargo will download necessary version of rust at runtime but warn to alert that an update to the build-image
-    # is desirable.
-    echo -e "${bold}${yellow}WARN: Rust ${rust_version} is not installed. Performance will be degraded.${reset}"
+  if ! rustup show | grep $expected_abs_rust_version > /dev/null; then
+    # Cargo will download necessary version of rust at runtime but warn to update the build-image.
+    echo -e "${bold}${yellow}WARN: Rust ${expected_abs_rust_version} is not installed. Performance will be degraded. Update build-image.${reset}"
   fi
   # Check wasi-sdk version.
-  if ! cat /opt/wasi-sdk/VERSION 2> /dev/null | grep 27.0 > /dev/null; then
-    encourage_dev_container
-    echo "wasi-sdk-27 not found at /opt/wasi-sdk."
-    echo "Use dev container, build from source, or you can install linux x86 version with:"
-    echo "  curl -s -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-27/wasi-sdk-27.0-x86_64-linux.tar.gz | tar zxf - && sudo mv wasi-sdk-27.0-x86_64-linux /opt/wasi-sdk"
-    exit 1
+  if ! cat /opt/wasi-sdk/VERSION 2> /dev/null | grep $expected_abs_wasi_version > /dev/null; then
+    toolchain_incompatible
   fi
   # Check foundry version.
-  local foundry_version="v1.4.1"
   for tool in forge anvil; do
-    if ! $tool --version 2> /dev/null | grep "${foundry_version#nightly-}" > /dev/null; then
-      echo "$tool not in PATH or incorrect version (requires $foundry_version)."
-      if [ "${CI:-0}" -eq 1 ]; then
-        echo "Attempting install of required foundry version $foundry_version"
-        curl -L https://foundry.paradigm.xyz | bash
-        ~/.foundry/bin/foundryup -i $foundry_version
-      else
-        encourage_dev_container
-        echo "Installation: https://book.getfoundry.sh/getting-started/installation"
-        echo "  curl -L https://foundry.paradigm.xyz | bash"
-        echo "  foundryup -i $foundry_version"
-        exit 1
-      fi
+    if ! $tool --version 2> /dev/null | grep "$expected_abs_foundry_version" > /dev/null; then
+      echo "$tool version $expected_abs_foundry_version not found."
+      toolchain_incompatible
     fi
   done
   # Check Node.js version.
-  local node_min_version="22.15.0"
   local node_installed_version=$(node --version | cut -d 'v' -f 2)
-  if [[ "$(printf '%s\n' "$node_min_version" "$node_installed_version" | sort -V | head -n1)" != "$node_min_version" ]]; then
-    encourage_dev_container
-    echo "Minimum Node.js version $node_min_version not found (got $node_installed_version)."
-    echo "Installation: nvm install $node_min_version"
-    exit 1
+  if ensure nvm || ! check_minimum_version $expected_min_node_version $node_installed_version; then
+    echo "Minimum node version $expected_min_node_version not found."
+    toolchain_incompatible
   fi
-  # Check for required npm globals.
-  for util in corepack solhint; do
-    if ! command -v $util > /dev/null; then
-      encourage_dev_container
-      echo "$util not found."
-      echo "Installation: npm install --global $util"
-      exit 1
-    fi
-  done
 }
 
-function install_mac_deps {
+function install_wasi_sdk {
+  local arch=$(arch)
+  local os=$(os)
+  local triple=$expected_abs_wasi_version-$arch-$os
+  curl -LOs https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${expected_abs_wasi_version%%.*}/wasi-sdk-$triple.tar.gz
+  tar xzf wasi-sdk-$triple.tar.gz
+  rm wasi-sdk-$triple.tar.gz
+  echo "Installing wasi sdk at /opt/wasi-sdk..."
+  sudo mv wasi-sdk-$triple /opt/wasi-sdk
+}
+
+function install_foundry {
+  curl -L https://foundry.paradigm.xyz | bash
+  ~/.foundry/bin/foundryup -i $expected_abs_foundry_version
+}
+
+function install_linux_deps {
+  if ! ensure apt; then
+    echo "Installation requires the apt package manager."
+    exit 1
+  fi
+  sudo apt install jq parallel awk git curl zstd redis-tools
+
+  wget https://apt.llvm.org/llvm.sh && \
+    chmod +x llvm.sh && \
+    ./llvm.sh 20 all && \
+    rm llvm.sh
+
+  sudo curl -sL https://github.com/mikefarah/yq/releases/download/v4.42.1/yq_linux_$(dpkg --print-architecture) \
+        -o /usr/local/bin/yq && chmod +x /usr/local/bin/yq
+
+  sudo curl -sL https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_linux_x86_64 \
+        -o /usr/local/bin/ldid && chmod +x /usr/local/bin/ldid
+
+  if ! ensure rustup; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $expected_abs_rust_version
+  fi
+
+  install_wasi_sdk
+  install_foundry
+}
+
+function install_macos_deps {
   # Check if brew is available.
-  if ! command -v brew &>/dev/null; then
+  if ! ensure brew; then
     echo "Installation requires Homebrew."
     echo "Install it from https://brew.sh"
     exit 1
   fi
-  brew install bash cmake ninja llvm@20 doxygen coreutils grep gnu-sed
+  brew install cmake ninja llvm@20 doxygen coreutils grep gnu-sed parallel yq zstd redis
+
+  # Make clang++-20 available.
+  if ! ensure clang++-20; then
+    local llvm_bin="/opt/homebrew/Cellar/llvm@20/20.1.8/bin"
+    local clang_bin="$HOME/.local/clang-20-wrap"
+    mkdir -p "$clang_bin"
+    ln -sf "$llvm_bin/clang++" "$clang_bin/clang++-20"
+  fi
+
+  install_wasi_sdk
+  install_foundry
+
+  if ! ensure rustup; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $expected_abs_rust_version
+  fi
+
+  if ! ensure zvm; then
+    curl -s https://www.zvm.app/install.sh | bash
+    export PATH="$PATH:$HOME/.zvm/bin"
+    export PATH="$PATH:$HOME/.zvm/self"
+    zvm i $expected_min_zig_version
+  fi
+
+  if ! ensure nvm; then
+    curl -s -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+    . "$HOME/.nvm/nvm.sh"
+    nvm i $expected_min_node_version
+  fi
+
+  npm i -g corepack solhint
+}
+
+function install_deps {
+  case "$(os)" in
+    linux) install_linux_deps ;;
+    macos) install_macos_deps ;;
+    *) toolchain_incompatible ;;
+  esac
+}
+
+function select_versions {
+  export RUSTUP_TOOLCHAIN=$expected_abs_rust_version
+
+  local node_installed_version=$(node --version | cut -d 'v' -f 2)
+  if ! check_minimum_version $expected_min_node_version $node_installed_version; then
+    . "$HOME/.nvm/nvm.sh"
+    nvm use $expected_min_node_version
+  fi
+
+  local zig_installed_version=$(zig version)
+  if ! check_minimum_version $expected_min_zig_version $zig_installed_version; then
+    export PATH="$PATH:$HOME/.zvm/bin"
+    export PATH="$PATH:$HOME/.zvm/self"
+    zvm use $expected_min_zig_version
+  fi
+
+  cargo --version
+  node --version
+  zig version
 }
 
 function versions {

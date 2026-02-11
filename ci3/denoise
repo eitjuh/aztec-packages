@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 NO_CD=1 source ${root:-$(git rev-parse --show-toplevel)}/ci3/source
-source $ci3/source_redis
-source $ci3/source_cache
 
 # Ensure a command is passed
 if [ "$#" != 1 ]; then
@@ -51,7 +49,7 @@ export FORCE_COLOR=${FORCE_COLOR:-1}
 [ -t 1 ] && realtime=1 || realtime=0
 
 key=$(uuid)
-url=http://ci.aztec-labs.com/$key
+url=$DASHBOARD_URL/$key
 outfile=/tmp/$key
 touch $outfile
 
