@@ -20,9 +20,9 @@ describe('createKeyStoreForProver', () => {
   ): ProverNodeConfig => {
     const mockValue = (val: string) => ({ getValue: () => val });
     return {
-      publisherPrivateKeys: publisherPrivateKeys.map(mockValue),
+      proverPublisherPrivateKeys: publisherPrivateKeys.map(mockValue),
       proverId,
-      publisherAddresses,
+      proverPublisherAddresses: publisherAddresses,
       web3SignerUrl,
     } as ProverNodeConfig;
   };
