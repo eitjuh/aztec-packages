@@ -18,7 +18,7 @@ export MAKEFLAGS="-j${MAKE_JOBS:-$(get_num_cpus)}"
 # Expected toolchain versions.
 expected_min_clang_version=20.0.0
 expected_min_cmake_version=3.24
-expected_min_node_version=22.15.0
+expected_min_node_version=24.12.0
 expected_min_zig_version=0.14.1
 expected_abs_rust_version=1.85.0
 expected_abs_wasi_version=27.0

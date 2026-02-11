@@ -523,6 +523,9 @@ BufferPolyfill.constants = {
   MAX_STRING_LENGTH: K_STRING_MAX_LENGTH,
 };
 
+// Also register as global for code that accesses Buffer without importing
+globalThis.Buffer = BufferPolyfill;
+
 // Export
 export const Buffer = BufferPolyfill;
 export const INSPECT_MAX_BYTES = BufferPolyfill.INSPECT_MAX_BYTES;

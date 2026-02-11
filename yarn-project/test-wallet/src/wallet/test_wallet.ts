@@ -232,7 +232,12 @@ export abstract class BaseTestWallet extends BaseWallet {
       const contractOverrides = {
         [opts.from.toString()]: { instance, artifact },
       };
-      return this.pxe.simulateTx(txRequest, true /* simulatePublic */, true, true, { contracts: contractOverrides });
+      return this.pxe.simulateTx(txRequest, {
+        simulatePublic: true,
+        skipTxValidation: true,
+        skipFeeEnforcement: true,
+        overrides: { contracts: contractOverrides },
+      });
     }
   }
 
@@ -284,7 +289,7 @@ export abstract class BaseTestWallet extends BaseWallet {
 
   /** Returns the block header up to which the wallet has synced. */
   getSyncedBlockHeader(): Promise<BlockHeader> {
-    return this.pxe.debug.getSyncedBlockHeader();
+    return this.pxe.getSyncedBlockHeader();
   }
 
   /**

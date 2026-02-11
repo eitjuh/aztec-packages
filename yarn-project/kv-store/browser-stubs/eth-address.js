@@ -1,5 +1,5 @@
 // Browser stub for @aztec/foundation/eth-address
-// Provides a simple EthAddress implementation without crypto dependencies
+// Only used during vitest browser tests to avoid loading Barretenberg WASM.
 import { z } from 'zod';
 
 export class EthAddress {
