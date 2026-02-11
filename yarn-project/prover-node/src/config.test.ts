@@ -115,4 +115,17 @@ describe('createKeyStoreForProver', () => {
       validators: undefined,
     });
   });
+
+  it('should fall through to publisher keys when web3SignerUrl is set but proverId is missing', () => {
+    const config = createMockConfig([mockKey1], undefined, [], mockSignerUrl);
+    const result = createKeyStoreForProver(config);
+
+    expect(result).toEqual({
+      schemaVersion: 1,
+      slasher: undefined,
+      prover: mockKey1,
+      remoteSigner: undefined,
+      validators: undefined,
+    });
+  });
 });

@@ -183,7 +183,10 @@ function createKeyStoreFromPublisherKeys(config: ProverNodeConfig): KeyStore | u
 
 export function createKeyStoreForProver(config: ProverNodeConfig): KeyStore | undefined {
   if (config.web3SignerUrl !== undefined && config.web3SignerUrl.length > 0) {
-    return createKeyStoreFromWeb3Signer(config);
+    const keyStore = createKeyStoreFromWeb3Signer(config);
+    if (keyStore) {
+      return keyStore;
+    }
   }
 
   return createKeyStoreFromPublisherKeys(config);
