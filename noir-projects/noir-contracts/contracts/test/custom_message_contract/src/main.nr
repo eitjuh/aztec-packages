@@ -3,7 +3,6 @@ use aztec::macros::aztec;
 #[aztec(aztec::AztecOptions::new().with_custom_message_handler("handle_multi_log_message"))]
 contract CustomMessage {
     use aztec::{
-        capsules::CapsuleArray,
         event::event_interface::{
             compute_private_event_commitment, compute_private_serialized_event_commitment,
             EventInterface,
@@ -15,10 +14,10 @@ contract CustomMessage {
             message_delivery::{do_private_message_delivery, MessageDelivery},
             processing::{enqueue_event_for_validation, MessageContext},
         },
-        oracle::random::random,
+        oracle::{capsules, random::random},
         protocol::{
             address::AztecAddress,
-            hash::sha256_to_field,
+            hash::{poseidon2_hash, poseidon2_hash_bytes},
             traits::{Deserialize, FromField, Serialize, ToField},
         },
     };
@@ -27,9 +26,12 @@ contract CustomMessage {
     /// Custom message type ID for multi-log messages.
     global MULTI_LOG_MSG_TYPE_ID: u64 = 42;
 
-    /// Capsule slot for accumulating multi-log parts between handler calls.
-    global PENDING_MULTI_LOG_PARTS_SLOT: Field =
-        sha256_to_field("CUSTOM_MSG::PENDING_MULTI_LOG_PARTS".as_bytes());
+    /// Domain separator for deriving the capsule slot of a pending multi-log event from its message_id.
+    global MULTI_LOG_PARTS_SEPARATOR: Field =
+        comptime { poseidon2_hash_bytes("CUSTOM_MSG::MULTI_LOG_PARTS".as_bytes()) };
+
+    /// Maximum number of parts a multi-log event can be split into.
+    global MAX_MULTI_LOG_PARTS: u32 = 4;
 
     /// An event with 4 fields, too large to demonstrate fitting in one message content.
     ///
@@ -42,14 +44,12 @@ contract CustomMessage {
         value3: Field,
     }
 
-    /// A stored multi-log part, kept in a CapsuleArray until all parts arrive.
+    /// Accumulates parts of a multi-log event in a single capsule. Each part is placed at its index in the `parts`
+    /// array. A part with `len() == 0` has not yet arrived.
     #[derive(Serialize, Deserialize)]
-    struct PendingMultiLogPart {
-        tx_hash: Field,
-        message_id: Field,
-        part_number: Field,
-        total_parts: Field,
-        content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
+    struct PendingMultiLog {
+        received: u32,
+        parts: [BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>; MAX_MULTI_LOG_PARTS],
     }
 
     /// Packs part_number and total_parts into a u64 for use as msg_metadata.
@@ -132,11 +132,11 @@ contract CustomMessage {
         );
     }
 
-    /// Reassembles multi-log messages. Each part is stored in a CapsuleArray. When all parts for a given (tx_hash,
-    /// message_id) arrive, the full event is reconstructed and stored via the standard event infrastructure.
+    /// Reassembles multi-log messages.
     ///
-    /// Parts are correlated by (tx_hash, message_id) where message_id is the first field of every part's content
-    /// (which is the event's randomness). This allows multiple multi-log events within the same transaction.
+    /// Parts of an event are accumulated in a single capsule keyed by `message_id`. Each part is placed directly at
+    /// its index in a fixed-size array; a part with `len() == 0` hasn't arrived yet. When all parts are present, the
+    /// full event is reconstructed and enqueued for validation.
     #[contract_library_method]
     unconstrained fn handle_multi_log_message(
         contract_address: AztecAddress,
@@ -147,80 +147,45 @@ contract CustomMessage {
     ) {
         if msg_type_id == MULTI_LOG_MSG_TYPE_ID {
             let (part_number, total_parts) = unpack_part_info(msg_metadata);
-            let parts = CapsuleArray::at(contract_address, PENDING_MULTI_LOG_PARTS_SLOT);
 
-            // First field of every part's content is the message_id (= randomness)
+            // First field of every part's content is the message_id (= randomness).
             let message_id = msg_content.get(0);
+            let slot = poseidon2_hash([MULTI_LOG_PARTS_SEPARATOR, message_id]);
 
-            // Store this part
-            parts.push(
-                PendingMultiLogPart {
-                    tx_hash: message_context.tx_hash,
-                    message_id,
-                    part_number: part_number as Field,
-                    total_parts: total_parts as Field,
-                    content: msg_content,
-                },
+            // Load (or initialize) the pending event and place this part at its index.
+            let mut pending: PendingMultiLog = capsules::load(contract_address, slot).unwrap_or(
+                PendingMultiLog { received: 0, parts: [BoundedVec::new(); MAX_MULTI_LOG_PARTS] },
             );
+            pending.parts[part_number] = msg_content;
+            pending.received += 1;
 
-            // Check if all parts for this (tx_hash, message_id) have arrived
-            let mut count: u32 = 0;
-            let parts_len = parts.len();
-            let mut i: u32 = 0;
-            while i < parts_len {
-                let p: PendingMultiLogPart = parts.get(i);
-                if (p.tx_hash == message_context.tx_hash) & (p.message_id == message_id) {
-                    count += 1;
-                }
-                i += 1;
-            }
-
-            if count == total_parts {
-                // All parts present - reassemble the event.
-                // Every part content[0] is message_id (= randomness).
-                // Part 0 content: [randomness, event_type_id, ...event_fields_chunk]
-                // Part N content: [randomness, ...event_fields_chunk]
-
+            if pending.received == total_parts {
+                // All parts present, reassemble the event in part order.
+                // Part 0 content: [randomness, event_type_id, ...event_fields]
+                // Part N content: [randomness, ...event_fields]
                 let randomness = message_id;
                 let mut event_type_id_field: Field = 0;
                 let mut serialized_event: BoundedVec<Field, MAX_EVENT_SERIALIZED_LEN> =
                     BoundedVec::new();
 
-                // Process parts in order
-                let mut part_idx: u32 = 0;
-                while part_idx < total_parts {
-                    // Find the part with this part_number
-                    let mut j: u32 = 0;
-                    while j < parts_len {
-                        let p: PendingMultiLogPart = parts.get(j);
-                        if (p.tx_hash == message_context.tx_hash)
-                            & (p.message_id == message_id)
-                            & (p.part_number == part_idx as Field) {
-                            if part_idx == 0 {
-                                // Part 0: content[0]=randomness, content[1]=event_type_id,
-                                // content[2..] are event fields
-                                event_type_id_field = p.content.get(1);
-                                let mut k: u32 = 2;
-                                while k < p.content.len() {
-                                    serialized_event.push(p.content.get(k));
-                                    k += 1;
-                                }
-                            } else {
-                                // Other parts: content[0]=randomness, content[1..] are event fields
-                                let mut k: u32 = 1;
-                                while k < p.content.len() {
-                                    serialized_event.push(p.content.get(k));
-                                    k += 1;
-                                }
-                            }
-                            j = parts_len; // break
-                        }
-                        j += 1;
+                for part_index in 0..total_parts {
+                    let content = pending.parts[part_index];
+                    let content_start = if part_index == 0 {
+                        // Part 0: content[1] is event_type_id, content[2..] are event fields
+                        event_type_id_field = content.get(1);
+                        2
+                    } else {
+                        // Other parts: content[1..] are event fields
+                        1
+                    };
+
+                    for content_index in content_start..content.len() {
+                        serialized_event.push(content.get(content_index));
                     }
-                    part_idx += 1;
                 }
 
-                // Compute commitment from full reassembled event
+                capsules::delete(contract_address, slot);
+
                 let event_type_id = EventSelector::from_field(event_type_id_field);
                 let event_commitment = compute_private_serialized_event_commitment(
                     serialized_event,
@@ -237,17 +202,8 @@ contract CustomMessage {
                     message_context.tx_hash,
                     message_context.recipient,
                 );
-
-                // Clean up: remove all parts for this (tx_hash, message_id) - iterate backwards
-                // to avoid index shifting
-                let mut remove_idx: u32 = parts.len();
-                while remove_idx > 0 {
-                    remove_idx -= 1;
-                    let p: PendingMultiLogPart = parts.get(remove_idx);
-                    if (p.tx_hash == message_context.tx_hash) & (p.message_id == message_id) {
-                        parts.remove(remove_idx);
-                    }
-                }
+            } else {
+                capsules::store(contract_address, slot, pending);
             }
         }
     }
