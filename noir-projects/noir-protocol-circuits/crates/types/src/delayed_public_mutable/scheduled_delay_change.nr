@@ -136,20 +136,20 @@ impl<let INITIAL_DELAY: u64> ScheduledDelayChange<INITIAL_DELAY> {
         // `delayed_mutable` _as at the very end_ of that block.
         // Therefore the `delayed_mutable` that you will read _as at the very start of the next
         // block_ will be _the very same_ `delayed_mutable` (nothing can possibly have changed).
-        // Therefore the first opportunity to schedule a value change (from the anchor timestamp)
+        // Therefore the first opportunity to schedule a value change (from the anchor block timestamp)
         // is the first tx of a subsequent block. Blocks within the same checkpoint can share
-        // timestamps, so the earliest scheduling timestamp can equal the anchor timestamp.
+        // timestamps, so the earliest scheduling timestamp can equal the anchor block timestamp.
         // So should you choose to go ahead and schedule a value change in a subsequent block,
         // it will only take effect after the "current" delay (as dictated by the
         // `delayed_mutable` of that tx, which is the same as the `delayed_mutable` as at the
-        // anchor timestamp).
+        // anchor block timestamp).
         // In all, the time between the anchor block's timestamp and the earliest-possible value
         // timestamp_of_change, is therefore: the "current" delay (as at the time of the anchor
         // timestamp).
         // Reads must only be valid until _just before_ the earliest-possible value change --
         // i.e. 1 second before the earliest-possible value change.
         // That is, reads are only valid for the "current" delay (as at the time of the anchor
-        // timestamp) _at most_.
+        // block timestamp) _at most_.
         //
         //  ____________                               ____________
         // |            |                             |            |
@@ -174,11 +174,7 @@ impl<let INITIAL_DELAY: u64> ScheduledDelayChange<INITIAL_DELAY> {
             // So in this `if` case, `self.post` is in effect at the time of the `anchor_block_timestamp`.
             //
             // If no delay changes are scheduled (as at the time of the anchor timestamp), then the "current delay" (as
-            // at the time of the anchor block timestamp) is `self.post` (or the INITIAL_DELAY if never set).
-            //
-            // Note: We subtract 1 because the earliest scheduling can happen in the block following the anchor block
-            // and that block can share the same timestamp as the anchor block (blocks within the same checkpoint can
-            // share timestamps).
+            // at the time of the anchor block timestamp) is `self.post - 1` (or the `INITIAL_DELAY - 1` if never set).
             self.post.unwrap_or(INITIAL_DELAY) - 1
         } else {
             //
