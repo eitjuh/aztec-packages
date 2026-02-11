@@ -32,13 +32,10 @@ describe('CustomMessage - Multi-Log Pattern', () => {
   afterAll(() => teardown());
 
   it('reassembles a multi-log event from multiple private logs', async () => {
-    const value0 = Fr.random();
-    const value1 = Fr.random();
-    const value2 = Fr.random();
-    const value3 = Fr.random();
+    const values = [Fr.random(), Fr.random(), Fr.random(), Fr.random()];
 
     const tx = await contract.methods
-      .emit_multi_log_event(value0, value1, value2, value3, account)
+      .emit_multi_log_event(values[0], values[1], values[2], values[3], account)
       .send({ from: account });
 
     const events = await wallet.getPrivateEvents<MultiLogEvent>(CustomMessageContract.events.MultiLogEvent, {
@@ -49,10 +46,10 @@ describe('CustomMessage - Multi-Log Pattern', () => {
     });
 
     expect(events.length).toBe(1);
-    expect(events[0].event.value0).toBe(value0.toBigInt());
-    expect(events[0].event.value1).toBe(value1.toBigInt());
-    expect(events[0].event.value2).toBe(value2.toBigInt());
-    expect(events[0].event.value3).toBe(value3.toBigInt());
+    expect(events[0].event.value0).toBe(values[0].toBigInt());
+    expect(events[0].event.value1).toBe(values[1].toBigInt());
+    expect(events[0].event.value2).toBe(values[2].toBigInt());
+    expect(events[0].event.value3).toBe(values[3].toBigInt());
   });
 
   it('reassembles multiple multi-log events from the same transaction', async () => {
