@@ -144,7 +144,7 @@ impl<let INITIAL_DELAY: u64> ScheduledDelayChange<INITIAL_DELAY> {
         // `delayed_mutable` of that tx, which is the same as the `delayed_mutable` as at the
         // anchor timestamp).
         // In all, the time between the anchor block's timestamp and the earliest-possible value
-        // timestamp_of_change, is therefore: 0 + the "current" delay (as at the time of the anchor
+        // timestamp_of_change, is therefore: the "current" delay (as at the time of the anchor
         // timestamp).
         // Reads must only be valid until _just before_ the earliest-possible value change --
         // i.e. 1 second before the earliest-possible value change.
