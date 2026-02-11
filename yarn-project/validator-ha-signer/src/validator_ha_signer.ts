@@ -9,16 +9,17 @@ import type { Buffer32 } from '@aztec/foundation/buffer';
 import { EthAddress } from '@aztec/foundation/eth-address';
 import type { Signature } from '@aztec/foundation/eth-signature';
 import { type Logger, createLogger } from '@aztec/foundation/log';
+import {
+  DutyType,
+  type HAProtectedSigningContext,
+  type ValidatorHASignerConfig,
+  getBlockNumberFromSigningContext,
+} from '@aztec/stdlib/ha-signing';
 
-import type { ValidatorHASignerConfig } from './config.js';
-import { type DutyIdentifier, DutyType } from './db/types.js';
+import { type DutyIdentifier } from './db/types.js';
 import type { HASignerMetrics } from './metrics.js';
 import { SlashingProtectionService } from './slashing_protection_service.js';
-import {
-  type HAProtectedSigningContext,
-  type SlashingProtectionDatabase,
-  getBlockNumberFromSigningContext,
-} from './types.js';
+import type { SlashingProtectionDatabase } from './types.js';
 
 /**
  * Validator High Availability Signer

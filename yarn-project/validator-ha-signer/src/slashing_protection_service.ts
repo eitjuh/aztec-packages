@@ -7,6 +7,7 @@
 import { type Logger, createLogger } from '@aztec/foundation/log';
 import { RunningPromise } from '@aztec/foundation/promise';
 import { sleep } from '@aztec/foundation/sleep';
+import type { ValidatorHASignerConfig } from '@aztec/stdlib/ha-signing';
 
 import {
   type CheckAndRecordParams,
@@ -17,7 +18,7 @@ import {
 } from './db/types.js';
 import { DutyAlreadySignedError, SlashingProtectionError } from './errors.js';
 import type { HASignerMetrics } from './metrics.js';
-import type { SlashingProtectionDatabase, ValidatorHASignerConfig } from './types.js';
+import type { SlashingProtectionDatabase } from './types.js';
 
 /**
  * Slashing Protection Service

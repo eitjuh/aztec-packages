@@ -1,11 +1,11 @@
 /**
  * Factory functions for creating validator HA signers
  */
-import { getTelemetryClient } from '@aztec/telemetry-client';
+import { type ValidatorHASignerConfig } from '@aztec/stdlib/ha-signing';
+import { type TelemetryClient, getTelemetryClient } from '@aztec/telemetry-client';
 
 import { Pool } from 'pg';
 
-import type { ValidatorHASignerConfig } from './config.js';
 import { PostgresSlashingProtectionDatabase } from './db/postgres.js';
 import { HASignerMetrics } from './metrics.js';
 import type { CreateHASignerDeps, SlashingProtectionDatabase } from './types.js';
@@ -59,7 +59,7 @@ export async function createHASigner(
     throw new Error('databaseUrl is required for createHASigner');
   }
 
-  const telemetryClient = deps?.telemetryClient ?? getTelemetryClient();
+  const telemetryClient = (deps?.telemetryClient ?? getTelemetryClient()) as TelemetryClient;
 
   // Create connection pool (or use provided pool)
   let pool: Pool;

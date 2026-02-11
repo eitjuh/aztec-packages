@@ -2,6 +2,7 @@ import { BlockNumber, IndexWithinCheckpoint, SlotNumber } from '@aztec/foundatio
 import { Buffer32 } from '@aztec/foundation/buffer';
 import { EthAddress } from '@aztec/foundation/eth-address';
 import { sleep } from '@aztec/foundation/sleep';
+import { DutyType, type ValidatorHASignerConfig } from '@aztec/stdlib/ha-signing';
 import { getTelemetryClient } from '@aztec/telemetry-client';
 
 import { PGlite } from '@electric-sql/pglite';
@@ -9,11 +10,12 @@ import { jest } from '@jest/globals';
 
 import { PostgresSlashingProtectionDatabase } from './db/postgres.js';
 import { setupTestSchema } from './db/test_helper.js';
+import { DutyStatus } from './db/types.js';
 import { DutyAlreadySignedError, SlashingProtectionError } from './errors.js';
 import { HASignerMetrics } from './metrics.js';
 import { SlashingProtectionService } from './slashing_protection_service.js';
 import { Pool } from './test/pglite_pool.js';
-import { type CheckAndRecordParams, DutyStatus, DutyType, type ValidatorHASignerConfig } from './types.js';
+import type { CheckAndRecordParams } from './types.js';
 
 // Test data constants
 const ROLLUP_ADDRESS = EthAddress.random();

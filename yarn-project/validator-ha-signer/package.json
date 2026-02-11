@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    "./config": "./dest/config.js",
     "./db": "./dest/db/index.js",
     "./errors": "./dest/errors.js",
     "./factory": "./dest/factory.js",
@@ -16,7 +15,6 @@
   },
   "typedocOptions": {
     "entryPoints": [
-      "./src/config.ts",
       "./src/db/index.ts",
       "./src/errors.ts",
       "./src/factory.ts",
@@ -78,6 +76,7 @@
   "dependencies": {
     "@aztec/ethereum": "workspace:^",
     "@aztec/foundation": "workspace:^",
+    "@aztec/stdlib": "workspace:^",
     "@aztec/telemetry-client": "workspace:^",
     "node-pg-migrate": "^8.0.4",
     "pg": "^8.11.3",

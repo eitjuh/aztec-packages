@@ -3,12 +3,12 @@ import { Buffer32 } from '@aztec/foundation/buffer';
 import { EthAddress } from '@aztec/foundation/eth-address';
 import type { Signature } from '@aztec/foundation/eth-signature';
 import { sleep } from '@aztec/foundation/sleep';
+import { type ValidatorHASignerConfig, defaultValidatorHASignerConfig } from '@aztec/stdlib/ha-signing';
 import { getTelemetryClient } from '@aztec/telemetry-client';
 
 import { PGlite } from '@electric-sql/pglite';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { type ValidatorHASignerConfig, defaultValidatorHASignerConfig } from './config.js';
 import { PostgresSlashingProtectionDatabase } from './db/postgres.js';
 import { setupTestSchema } from './db/test_helper.js';
 import { DutyStatus, DutyType } from './db/types.js';
