@@ -150,8 +150,6 @@ impl<let INITIAL_DELAY: u64> ScheduledDelayChange<INITIAL_DELAY> {
         // i.e. 1 second before the earliest-possible value change.
         // That is, reads are only valid for the "current" delay (as at the time of the anchor
         // timestamp) _at most_.
-        // (I.e. the read remains valid for 0 + "current delay" - 1 = "current delay", from the
-        // anchor timestamp).
         //
         //  ____________                               ____________
         // |            |                             |            |
