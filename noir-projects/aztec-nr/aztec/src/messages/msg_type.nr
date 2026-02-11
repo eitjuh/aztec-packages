@@ -1,3 +1,10 @@
+/// The minimum message type ID that custom message handlers may use.
+///
+/// IDs below this value are reserved for current and future aztec.nr built-in message types (notes, partial notes,
+/// events, etc). If a message is received with a type ID below this threshold that aztec.nr doesn't recognize as its
+/// own, processing will fail with an error instructing the developer to either update aztec.nr or use a higher ID.
+pub global MIN_CUSTOM_MSG_TYPE_ID: u64 = 65536;
+
 /// A message containing the information about a private note, i.e. one that has been created fully privately with no
 /// public fields.
 ///

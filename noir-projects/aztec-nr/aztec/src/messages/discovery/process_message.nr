@@ -5,7 +5,9 @@ use crate::messages::{
     },
     encoding::{decode_message, MESSAGE_CIPHERTEXT_LEN, MESSAGE_PLAINTEXT_LEN},
     encryption::{aes128::AES128, message_encryption::MessageEncryption},
-    msg_type::{PARTIAL_NOTE_PRIVATE_MSG_TYPE_ID, PRIVATE_EVENT_MSG_TYPE_ID, PRIVATE_NOTE_MSG_TYPE_ID},
+    msg_type::{
+        MIN_CUSTOM_MSG_TYPE_ID, PARTIAL_NOTE_PRIVATE_MSG_TYPE_ID, PRIVATE_EVENT_MSG_TYPE_ID, PRIVATE_NOTE_MSG_TYPE_ID,
+    },
     processing::MessageContext,
 };
 
@@ -92,6 +94,14 @@ pub unconstrained fn process_message_plaintext(
             msg_metadata,
             msg_content,
             message_context.tx_hash,
+        );
+    } else if msg_type_id < MIN_CUSTOM_MSG_TYPE_ID {
+        // The message type ID falls in the range reserved for aztec.nr built-in types but wasn't matched above. This
+        // means either the developer mistakenly used a reserved ID for a custom message, or this version of aztec.nr
+        // is too old to handle a newer built-in type.
+        assert(
+            false,
+            f"Message type ID {msg_type_id} is reserved for aztec.nr built-in types. Custom message types must use IDs >= MIN_CUSTOM_MSG_TYPE_ID (65536). If this is a built-in type, update aztec.nr.",
         );
     } else if process_custom_message.is_some() {
         process_custom_message.unwrap()(
