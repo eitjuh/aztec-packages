@@ -105,12 +105,17 @@ pub(crate) unconstrained fn enqueue_note_for_validation(
     )
 }
 
-/// Enqueues an event for validation by PXE, so that it can be efficiently validated and then inserted into the event
-/// store.
+/// Enqueues an event for validation by PXE, so it can be efficiently validated and then inserted into the event store.
+///
+/// This is the primary way for custom message handlers (registered via `with_custom_message_handler`) to deliver
+/// reassembled events back to PXE after processing application-specific message formats.
 ///
 /// In order for the event validation and insertion to occur, `validate_and_store_enqueued_notes_and_events` must be
 /// later called. For optimal performance, accumulate as many event validation requests as possible and then validate
 /// them all at the end (which results in PXE minimizing the number of network round-trips).
+///
+/// Note that `validate_and_store_enqueued_notes_and_events` is called by Aztec.nr after processing messages, so custom
+/// message processors do not need to be concerned with this.
 pub unconstrained fn enqueue_event_for_validation(
     contract_address: AztecAddress,
     event_type_id: EventSelector,
