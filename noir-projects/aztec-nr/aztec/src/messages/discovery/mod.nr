@@ -71,12 +71,12 @@ randomness */ Field, /* note nonce */ Field) -> Option<NoteHashAndNullifier>;
 /// When `process_message_plaintext` encounters a `msg_type_id` that doesn't match any built-in type (private notes,
 /// partial notes, or events), it calls the custom handler instead of silently ignoring the message.
 ///
-/// Contracts specify a custom handler via `AztecOptions::with_custom_message_handler("handler_name")` in the
+/// Contracts specify a custom handler via `AztecConfig::with_custom_message_handler("handler_name")` in the
 /// `#[aztec(...)]` attribute. The named function must be a `#[contract_library_method]` conforming to this type.
 ///
 /// Example:
 /// ```
-/// #[aztec(aztec::AztecOptions::new().with_custom_message_handler("my_handler"))]
+/// #[aztec(aztec::AztecConfig::new().with_custom_message_handler("my_handler"))]
 /// contract MyContract {
 ///     #[contract_library_method]
 ///     unconstrained fn my_handler(
@@ -95,8 +95,8 @@ pub type ProcessCustomMessage<Env> = unconstrained fn[Env](
 /* msg_content */ BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
 /* message_context */ MessageContext);
 
-/// Runtime options for Aztec contract operations (like custom message processing).
-pub struct AztecContractOptions {
+/// Runtime configuration for Aztec contract operations (like custom message processing).
+pub struct AztecContractConfig {
     /// Function to compute note hash and nullifier for different note types.
     pub compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
     /// Optional custom handler for unknown message types.
@@ -113,7 +113,7 @@ pub struct AztecContractOptions {
 ///
 /// Receives the address of the contract on which discovery is performed along with its
 /// `compute_note_hash_and_nullifier` function.
-pub unconstrained fn do_sync_state(contract_address: AztecAddress, options: AztecContractOptions) {
+pub unconstrained fn do_sync_state(contract_address: AztecAddress, config: AztecContractConfig) {
     debug_log("Performing state synchronization");
 
     // First we process all private logs, which can contain different kinds of messages e.g. private notes, partial
@@ -130,8 +130,8 @@ pub unconstrained fn do_sync_state(contract_address: AztecAddress, options: Azte
 
         process_message_ciphertext(
             contract_address,
-            options.compute_note_hash_and_nullifier,
-            options.process_custom_message,
+            config.compute_note_hash_and_nullifier,
+            config.process_custom_message,
             message_ciphertext,
             pending_tagged_log.context,
         );
@@ -142,7 +142,7 @@ pub unconstrained fn do_sync_state(contract_address: AztecAddress, options: Azte
     // executions.
     partial_notes::fetch_and_process_partial_note_completion_logs(
         contract_address,
-        options.compute_note_hash_and_nullifier,
+        config.compute_note_hash_and_nullifier,
     );
 
     // Finally we validate all notes and events that were found as part of the previous processes, resulting in them

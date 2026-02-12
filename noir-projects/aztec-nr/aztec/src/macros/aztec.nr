@@ -15,19 +15,19 @@ use crate::macros::{
     },
 };
 
-/// Builder for configuring Aztec contract options.
+/// Builder for configuring Aztec contract settings.
 ///
 /// Usage:
 /// ```noir
-/// #[aztec(AztecOptions::new().with_custom_message_handler("handle_multi_log_message"))]
+/// #[aztec(AztecConfig::new().with_custom_message_handler("handle_multi_log_message"))]
 /// contract MyContract { ... }
 /// ```
-pub struct AztecOptions {
+pub struct AztecConfig {
     custom_message_handler: Option<CtString>,
 }
 
-impl AztecOptions {
-    /// Creates a new `AztecOptions` with default values.
+impl AztecConfig {
+    /// Creates a new `AztecConfig` with default values.
     pub comptime fn new() -> Self {
         Self { custom_message_handler: Option::none() }
     }
@@ -49,14 +49,14 @@ impl AztecOptions {
 /// #[aztec]  // Simple case with defaults
 /// contract MyContract { ... }
 ///
-/// #[aztec(AztecOptions::new().with_custom_message_handler("my_handler"))]  // With options
+/// #[aztec(AztecConfig::new().with_custom_message_handler("my_handler"))]  // With config
 /// contract MyOtherContract { ... }
 /// ```
 #[varargs]
-pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
+pub comptime fn aztec(m: Module, args: [AztecConfig]) -> Quoted {
     let num_args = args.len();
-    let options = if num_args == 0 {
-        AztecOptions::new()
+    let config = if num_args == 0 {
+        AztecConfig::new()
     } else if num_args == 1 {
         args[0]
     } else {
@@ -87,9 +87,9 @@ pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
     } else {
         quote {}
     };
-    let process_custom_message_option = if options.custom_message_handler.is_some() {
+    let process_custom_message_option = if config.custom_message_handler.is_some() {
         // User specified handler - validate and use it.
-        let handler_name_str = options.custom_message_handler.unwrap();
+        let handler_name_str = config.custom_message_handler.unwrap();
         let handler_fn = validate_custom_message_handler(m, handler_name_str);
         // Suppress "unused function" warning since the handler is used via function pointer
         handler_fn.add_attribute("allow(dead_code)");
@@ -99,7 +99,7 @@ pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
         quote { Option::<aztec::messages::discovery::ProcessCustomMessage<()>>::none() }
     };
 
-    let get_aztec_contract_options_fn = generate_get_aztec_contract_options(process_custom_message_option);
+    let get_aztec_contract_config_fn = generate_get_aztec_contract_config(process_custom_message_option);
 
     let sync_state_fn_and_abi_export = if !m.functions().any(|f| f.name() == quote { sync_state }) {
         generate_sync_state()
@@ -121,7 +121,7 @@ pub comptime fn aztec(m: Module, args: [AztecOptions]) -> Quoted {
         $functions
         $fn_abi_exports
         $contract_library_method_compute_note_hash_and_nullifier
-        $get_aztec_contract_options_fn
+        $get_aztec_contract_config_fn
         $public_dispatch
         $sync_state_fn_and_abi_export
         $process_message_fn_and_abi_export
@@ -323,12 +323,12 @@ comptime fn generate_contract_library_method_compute_note_hash_and_nullifier() -
     }
 }
 
-/// Generates a `_get_aztec_contract_options` contract library method to access the contract's `AztecContractOptions`.
-comptime fn generate_get_aztec_contract_options(process_custom_message_option: Quoted) -> Quoted {
+/// Generates a `_get_aztec_contract_config` contract library method to access the contract's `AztecContractConfig`.
+comptime fn generate_get_aztec_contract_config(process_custom_message_option: Quoted) -> Quoted {
     quote {
         #[contract_library_method]
-        unconstrained fn _get_aztec_contract_options() -> aztec::messages::discovery::AztecContractOptions {
-            aztec::messages::discovery::AztecContractOptions {
+        unconstrained fn _get_aztec_contract_config() -> aztec::messages::discovery::AztecContractConfig {
+            aztec::messages::discovery::AztecContractConfig {
                 compute_note_hash_and_nullifier: _compute_note_hash_and_nullifier,
                 process_custom_message: $process_custom_message_option,
             }
@@ -349,8 +349,8 @@ comptime fn generate_sync_state() -> Quoted {
         #[aztec::macros::internals_functions_generation::abi_attributes::abi_utility]
         unconstrained fn sync_state() {
             let address = aztec::context::UtilityContext::new().this_address();
-            let options = _get_aztec_contract_options();            
-            aztec::messages::discovery::do_sync_state(address, options);
+            let config = _get_aztec_contract_config();
+            aztec::messages::discovery::do_sync_state(address, config);
         }
     }
 }
@@ -374,12 +374,12 @@ comptime fn generate_process_message() -> Quoted {
             message_context: aztec::messages::processing::MessageContext,
         ) {
             let address = aztec::context::UtilityContext::new().this_address();
-            let options = _get_aztec_contract_options();
+            let config = _get_aztec_contract_config();
 
             aztec::messages::discovery::process_message::process_message_ciphertext(
                 address,
-                options.compute_note_hash_and_nullifier,
-                options.process_custom_message,
+                config.compute_note_hash_and_nullifier,
+                config.process_custom_message,
                 message_ciphertext,
                 message_context,
             );
@@ -393,7 +393,7 @@ comptime fn generate_process_message() -> Quoted {
 
 /// Validates a custom message handler.
 ///
-/// Custom message handlers are specified by name via `AztecOptions::with_custom_message_handler`. A custom message
+/// Custom message handlers are specified by name via `AztecConfig::with_custom_message_handler`. A custom message
 /// handler must be a function that conform to the `aztec::messages::discovery::ProcessCustomMessage` type signature.
 /// The function must be unconstrained and marked as `#[contract_library_method]`.
 ///

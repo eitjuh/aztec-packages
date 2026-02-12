@@ -46,6 +46,6 @@ pub use protocol_types as protocol;
 pub mod utils;
 pub mod authwit;
 pub mod macros;
-pub use macros::AztecOptions;
+pub use macros::AztecConfig;
 
 pub mod test;

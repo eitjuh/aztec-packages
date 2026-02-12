@@ -12,4 +12,4 @@ pub mod events;
 pub mod authorization;
 
 pub use aztec::aztec;
-pub use aztec::AztecOptions;
+pub use aztec::AztecConfig;
