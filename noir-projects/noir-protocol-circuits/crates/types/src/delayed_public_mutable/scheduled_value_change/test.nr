@@ -40,12 +40,12 @@ unconstrained fn assert_time_horizon_invariants(
 
     // The earliest a new change could be scheduled is in the beginning of the next block following the anchor block
     // and since blocks within the same checkpoint can share timestamps, the smallest timestamp of a block following
-    // the anchor block is "anchor_block_timestamp + 0". This should result in the new timestamp of change landing
+    // the anchor block is "anchor_block_timestamp". This should result in the new timestamp of change landing
     // *after* the time horizon, and the current value still not changing at the previously determined time_horizon.
     let new = value_change.pre + value_change.post; // Make sure it's different to both pre and post
     value_change.schedule_change(
         new,
-        anchor_block_timestamp + 0,
+        anchor_block_timestamp,
         TEST_DELAY + 1,
         anchor_block_timestamp + TEST_DELAY + 1,
     );

@@ -212,7 +212,7 @@ impl FixtureBuilder {
             .global_variables
             .timestamp
             + MAX_INCLUDE_BY_TIMESTAMP_DURATION
-            - 1; // - 1 to account for the smallest timestamp of a block following the anchor block (blocks within the same checkpoint can share timestamps)
+            - 1;
         builder.include_by_timestamp = max_allowed_include_by_timestamp;
 
         builder.vk_tree_root = vk_tree_root;

@@ -167,7 +167,7 @@ unconstrained fn assert_effective_minimum_delay_invariants<let INITIAL_DELAY: u6
     effective_minimum_delay: u64,
 ) {
     // The effective minimum delay guarantees the earliest timestamp in which a scheduled value change could be made
-    // effective. No action, even if executed as in the block following anchor block, should result in a scheduled
+    // effective. No action, even if executed in the block following the anchor block, should result in a scheduled
     // value change having a timestamp of change lower than this.
     //
     // Note that blocks within the same checkpoint can share timestamps, so the earliest scheduling can happen at the
