@@ -210,6 +210,8 @@ contract CustomMessage {
             } else {
                 capsules::store(contract_address, slot, pending);
             }
+        } else {
+            panic(f"Unknown message type id: {msg_type_id}");
         }
     }
 }
