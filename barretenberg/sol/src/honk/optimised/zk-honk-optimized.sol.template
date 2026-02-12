@@ -3604,61 +3604,67 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
             mstore(BATCH_SCALAR_0_LOC, 1)
             let rho := mload(RHO_CHALLENGE)
 
-            // Unrolled for the loop below - where NUMBER_UNSHIFTED = 36
+            // Unrolled for the loop below - where NUMBER_UNSHIFTED = 37 (ZK: includes gemini_masking_poly)
+            // For ZK: evaluations array is [gemini_masking_poly, qm, qc, ql, qr, ...]
             // for (uint256 i = 1; i <= NUMBER_UNSHIFTED; ++i) {
             //     scalars[i] = mem.unshiftedScalar.neg() * mem.batchingChallenge;
-            //     mem.batchedEvaluation = mem.batchedEvaluation + (proof.sumcheckEvaluations[i - 1] * mem.batchingChallenge);
+            //     mem.batchedEvaluation = mem.batchedEvaluation + (proof.sumcheckEvaluations[i - NUM_MASKING_POLYNOMIALS] * mem.batchingChallenge);
             //     mem.batchingChallenge = mem.batchingChallenge * tp.rho;
             // }
 
             // Calculate the scalars and batching challenge for the unshifted entities
-            // 0: QM_EVAL_LOC
+            // 0: GEMINI_MASKING_EVAL_LOC (ZK entity index 0)
             mstore(BATCH_SCALAR_1_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            batched_evaluation := addmod(batched_evaluation, mulmod(mload(GEMINI_MASKING_EVAL_LOC), batching_challenge, p), p)
+            batching_challenge := mulmod(batching_challenge, rho, p)
+
+            // 1: QM_EVAL_LOC
+            mstore(BATCH_SCALAR_2_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QM_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 1: QC_EVAL_LOC
-            mstore(BATCH_SCALAR_2_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 2: QC_EVAL_LOC
+            mstore(BATCH_SCALAR_3_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QC_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 2: QL_EVAL_LOC
-            mstore(BATCH_SCALAR_3_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 3: QL_EVAL_LOC
+            mstore(BATCH_SCALAR_4_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QL_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 3: QR_EVAL_LOC
-            mstore(BATCH_SCALAR_4_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 4: QR_EVAL_LOC
+            mstore(BATCH_SCALAR_5_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QR_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 4: QO_EVAL_LOC
-            mstore(BATCH_SCALAR_5_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 5: QO_EVAL_LOC
+            mstore(BATCH_SCALAR_6_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QO_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 5: Q4_EVAL_LOC
-            mstore(BATCH_SCALAR_6_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 6: Q4_EVAL_LOC
+            mstore(BATCH_SCALAR_7_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(Q4_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 6: QLOOKUP_EVAL_LOC
-            mstore(BATCH_SCALAR_7_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 7: QLOOKUP_EVAL_LOC
+            mstore(BATCH_SCALAR_8_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QLOOKUP_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 7: QARITH_EVAL_LOC
-            mstore(BATCH_SCALAR_8_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 8: QARITH_EVAL_LOC
+            mstore(BATCH_SCALAR_9_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QARITH_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 8: QRANGE_EVAL_LOC
-            mstore(BATCH_SCALAR_9_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 9: QRANGE_EVAL_LOC
+            mstore(BATCH_SCALAR_10_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QRANGE_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 9: QELLIPTIC_EVAL_LOC
-            mstore(BATCH_SCALAR_10_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 10: QELLIPTIC_EVAL_LOC
+            mstore(BATCH_SCALAR_11_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(
                 batched_evaluation,
                 mulmod(mload(QELLIPTIC_EVAL_LOC), batching_challenge, p),
@@ -3666,18 +3672,18 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
             )
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 10: QMEMORY_EVAL_LOC
-            mstore(BATCH_SCALAR_11_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 11: QMEMORY_EVAL_LOC
+            mstore(BATCH_SCALAR_12_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QMEMORY_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 11: QNNF_EVAL_LOC
-            mstore(BATCH_SCALAR_12_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 12: QNNF_EVAL_LOC
+            mstore(BATCH_SCALAR_13_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(QNNF_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 12: QPOSEIDON2_EXTERNAL_EVAL_LOC
-            mstore(BATCH_SCALAR_13_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 13: QPOSEIDON2_EXTERNAL_EVAL_LOC
+            mstore(BATCH_SCALAR_14_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(
                 batched_evaluation,
                 mulmod(mload(QPOSEIDON2_EXTERNAL_EVAL_LOC), batching_challenge, p),
@@ -3685,8 +3691,8 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
             )
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 13: QPOSEIDON2_INTERNAL_EVAL_LOC
-            mstore(BATCH_SCALAR_14_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 14: QPOSEIDON2_INTERNAL_EVAL_LOC
+            mstore(BATCH_SCALAR_15_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(
                 batched_evaluation,
                 mulmod(mload(QPOSEIDON2_INTERNAL_EVAL_LOC), batching_challenge, p),
@@ -3694,68 +3700,68 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
             )
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 14: SIGMA1_EVAL_LOC
-            mstore(BATCH_SCALAR_15_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 15: SIGMA1_EVAL_LOC
+            mstore(BATCH_SCALAR_16_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(SIGMA1_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 15: SIGMA2_EVAL_LOC
-            mstore(BATCH_SCALAR_16_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 16: SIGMA2_EVAL_LOC
+            mstore(BATCH_SCALAR_17_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(SIGMA2_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 16: SIGMA3_EVAL_LOC
-            mstore(BATCH_SCALAR_17_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 17: SIGMA3_EVAL_LOC
+            mstore(BATCH_SCALAR_18_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(SIGMA3_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 17: SIGMA4_EVAL_LOC
-            mstore(BATCH_SCALAR_18_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 18: SIGMA4_EVAL_LOC
+            mstore(BATCH_SCALAR_19_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(SIGMA4_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 18: ID1_EVAL_LOC
-            mstore(BATCH_SCALAR_19_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 19: ID1_EVAL_LOC
+            mstore(BATCH_SCALAR_20_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(ID1_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 19: ID2_EVAL_LOC
-            mstore(BATCH_SCALAR_20_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 20: ID2_EVAL_LOC
+            mstore(BATCH_SCALAR_21_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(ID2_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 20: ID3_EVAL_LOC
-            mstore(BATCH_SCALAR_21_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 21: ID3_EVAL_LOC
+            mstore(BATCH_SCALAR_22_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(ID3_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 21: ID4_EVAL_LOC
-            mstore(BATCH_SCALAR_22_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 22: ID4_EVAL_LOC
+            mstore(BATCH_SCALAR_23_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(ID4_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 22: TABLE1_EVAL_LOC
-            mstore(BATCH_SCALAR_23_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 23: TABLE1_EVAL_LOC
+            mstore(BATCH_SCALAR_24_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(TABLE1_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 23: TABLE2_EVAL_LOC
-            mstore(BATCH_SCALAR_24_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 24: TABLE2_EVAL_LOC
+            mstore(BATCH_SCALAR_25_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(TABLE2_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 24: TABLE3_EVAL_LOC
-            mstore(BATCH_SCALAR_25_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 25: TABLE3_EVAL_LOC
+            mstore(BATCH_SCALAR_26_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(TABLE3_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 25: TABLE4_EVAL_LOC
-            mstore(BATCH_SCALAR_26_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 26: TABLE4_EVAL_LOC
+            mstore(BATCH_SCALAR_27_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(TABLE4_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 26: LAGRANGE_FIRST_EVAL_LOC
-            mstore(BATCH_SCALAR_27_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 27: LAGRANGE_FIRST_EVAL_LOC
+            mstore(BATCH_SCALAR_28_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(
                 batched_evaluation,
                 mulmod(mload(LAGRANGE_FIRST_EVAL_LOC), batching_challenge, p),
@@ -3763,8 +3769,8 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
             )
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 27: LAGRANGE_LAST_EVAL_LOC
-            mstore(BATCH_SCALAR_28_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 28: LAGRANGE_LAST_EVAL_LOC
+            mstore(BATCH_SCALAR_29_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(
                 batched_evaluation,
                 mulmod(mload(LAGRANGE_LAST_EVAL_LOC), batching_challenge, p),
@@ -3772,33 +3778,33 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
             )
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 28: W1_EVAL_LOC
-            mstore(BATCH_SCALAR_29_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 29: W1_EVAL_LOC
+            mstore(BATCH_SCALAR_30_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(W1_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 29: W2_EVAL_LOC
-            mstore(BATCH_SCALAR_30_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 30: W2_EVAL_LOC
+            mstore(BATCH_SCALAR_31_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(W2_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 30: W3_EVAL_LOC
-            mstore(BATCH_SCALAR_31_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 31: W3_EVAL_LOC
+            mstore(BATCH_SCALAR_32_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(W3_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 31: W4_EVAL_LOC
-            mstore(BATCH_SCALAR_32_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 32: W4_EVAL_LOC
+            mstore(BATCH_SCALAR_33_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(W4_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 32: Z_PERM_EVAL_LOC
-            mstore(BATCH_SCALAR_33_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 33: Z_PERM_EVAL_LOC
+            mstore(BATCH_SCALAR_34_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(batched_evaluation, mulmod(mload(Z_PERM_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 33: LOOKUP_INVERSES_EVAL_LOC
-            mstore(BATCH_SCALAR_34_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 34: LOOKUP_INVERSES_EVAL_LOC
+            mstore(BATCH_SCALAR_35_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(
                 batched_evaluation,
                 mulmod(mload(LOOKUP_INVERSES_EVAL_LOC), batching_challenge, p),
@@ -3806,8 +3812,8 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
             )
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 34: LOOKUP_READ_COUNTS_EVAL_LOC
-            mstore(BATCH_SCALAR_35_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 35: LOOKUP_READ_COUNTS_EVAL_LOC
+            mstore(BATCH_SCALAR_36_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(
                 batched_evaluation,
                 mulmod(mload(LOOKUP_READ_COUNTS_EVAL_LOC), batching_challenge, p),
@@ -3815,8 +3821,8 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
             )
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 35: LOOKUP_READ_TAGS_EVAL_LOC
-            mstore(BATCH_SCALAR_36_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
+            // 36: LOOKUP_READ_TAGS_EVAL_LOC
+            mstore(BATCH_SCALAR_37_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
             batched_evaluation := addmod(
                 batched_evaluation,
                 mulmod(mload(LOOKUP_READ_TAGS_EVAL_LOC), batching_challenge, p),
@@ -3831,42 +3837,44 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
             //     mem.batchingChallenge = mem.batchingChallenge * tp.rho;
             // }
 
-            // 28: W1_EVAL_LOC
-            mstore(
-                BATCH_SCALAR_29_LOC,
-                addmod(mload(BATCH_SCALAR_29_LOC), mulmod(neg_shifted_scalar, batching_challenge, p), p)
-            )
-            batched_evaluation := addmod(batched_evaluation, mulmod(mload(W1_SHIFT_EVAL_LOC), batching_challenge, p), p)
-            batching_challenge := mulmod(batching_challenge, rho, p)
-
-            // 29: W2_EVAL_LOC
+            // Shifted entities: SHIFTED_COMMITMENTS_START = 30
+            // scalars[scalarOff] += mem.shiftedScalar.neg() * mem.batchingChallenge
+            // 30: W1 (shifted)
             mstore(
                 BATCH_SCALAR_30_LOC,
                 addmod(mload(BATCH_SCALAR_30_LOC), mulmod(neg_shifted_scalar, batching_challenge, p), p)
             )
-            batched_evaluation := addmod(batched_evaluation, mulmod(mload(W2_SHIFT_EVAL_LOC), batching_challenge, p), p)
+            batched_evaluation := addmod(batched_evaluation, mulmod(mload(W1_SHIFT_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 30: W3_EVAL_LOC
+            // 31: W2 (shifted)
             mstore(
                 BATCH_SCALAR_31_LOC,
                 addmod(mload(BATCH_SCALAR_31_LOC), mulmod(neg_shifted_scalar, batching_challenge, p), p)
             )
-            batched_evaluation := addmod(batched_evaluation, mulmod(mload(W3_SHIFT_EVAL_LOC), batching_challenge, p), p)
+            batched_evaluation := addmod(batched_evaluation, mulmod(mload(W2_SHIFT_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 31: W4_EVAL_LOC
+            // 32: W3 (shifted)
             mstore(
                 BATCH_SCALAR_32_LOC,
                 addmod(mload(BATCH_SCALAR_32_LOC), mulmod(neg_shifted_scalar, batching_challenge, p), p)
             )
-            batched_evaluation := addmod(batched_evaluation, mulmod(mload(W4_SHIFT_EVAL_LOC), batching_challenge, p), p)
+            batched_evaluation := addmod(batched_evaluation, mulmod(mload(W3_SHIFT_EVAL_LOC), batching_challenge, p), p)
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            // 32: Z_PERM_EVAL_LOC
+            // 33: W4 (shifted)
             mstore(
                 BATCH_SCALAR_33_LOC,
                 addmod(mload(BATCH_SCALAR_33_LOC), mulmod(neg_shifted_scalar, batching_challenge, p), p)
+            )
+            batched_evaluation := addmod(batched_evaluation, mulmod(mload(W4_SHIFT_EVAL_LOC), batching_challenge, p), p)
+            batching_challenge := mulmod(batching_challenge, rho, p)
+
+            // 34: Z_PERM (shifted)
+            mstore(
+                BATCH_SCALAR_34_LOC,
+                addmod(mload(BATCH_SCALAR_34_LOC), mulmod(neg_shifted_scalar, batching_challenge, p), p)
             )
             batched_evaluation := addmod(
                 batched_evaluation,
@@ -3943,7 +3951,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
                 mstore(SS_GEMINI_EVALS_LOC, GEMINI_A_EVAL_1)
                 let fold_pos_evals_loc := FOLD_POS_EVALUATIONS_1_LOC
 
-                let scalars_loc := BATCH_SCALAR_37_LOC
+                let scalars_loc := BATCH_SCALAR_38_LOC
 
                 for { let i := 0 } lt(i, sub(LOG_N, 1)) { i := add(i, 1) } {
                     let scaling_factor_pos := mulmod(batching_challenge, mload(mload(SS_POS_INV_DENOM_LOC)), p)
@@ -3971,6 +3979,70 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
                 }
             }
 
+            // Libra polynomial batching (ZK addition)
+            // denominators[0] = 1/(shplonkZ - geminiR) = POS_INVERTED_DENOM_0 (already computed)
+            // denominators[1] = 1/(shplonkZ - SUBGROUP_GENERATOR * geminiR) (new, compute inline)
+            // denominators[2] = denominators[0]
+            // denominators[3] = denominators[0]
+            {
+                let shplonk_nu := mload(SHPLONK_NU_CHALLENGE)
+                let shplonk_nu_sqr := mulmod(shplonk_nu, shplonk_nu, p)
+
+                let libra_denom_0 := mload(POS_INVERTED_DENOM_0_LOC)
+
+                // Compute 1/(shplonkZ - SUBGROUP_GENERATOR * geminiR) via modexp precompile
+                let subgroup_denom_val := addmod(
+                    mload(SHPLONK_Z_CHALLENGE),
+                    sub(p, mulmod(SUBGROUP_GENERATOR, mload(GEMINI_R_CHALLENGE), p)),
+                    p
+                )
+                mstore(0x00, 0x20) // base length
+                mstore(0x20, 0x20) // exp length
+                mstore(0x40, 0x20) // mod length
+                mstore(0x60, subgroup_denom_val) // base
+                mstore(0x80, sub(p, 2)) // exp = p-2
+                mstore(0xa0, p) // mod
+                if iszero(staticcall(gas(), 5, 0x00, 0xc0, 0x00, 0x20)) {
+                    mstore(0x00, SHPLEMINI_FAILED_SELECTOR)
+                    revert(0x00, 0x04)
+                }
+                let libra_denom_1 := mload(0x00)
+
+                // Interleaving artifact: skip 2 powers of shplonkNu
+                batching_challenge := mulmod(batching_challenge, shplonk_nu_sqr, p)
+
+                // i=0: denom[0], libraPolyEvals[0]
+                let scaling_factor := mulmod(libra_denom_0, batching_challenge, p)
+                let libra_scalar_0 := sub(p, scaling_factor)
+                constant_term_acc := addmod(constant_term_acc, mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_0_LOC), p), p)
+                batching_challenge := mulmod(batching_challenge, shplonk_nu, p)
+
+                // i=1: denom[1], libraPolyEvals[1]
+                scaling_factor := mulmod(libra_denom_1, batching_challenge, p)
+                let libra_scalar_1 := sub(p, scaling_factor)
+                constant_term_acc := addmod(constant_term_acc, mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_1_LOC), p), p)
+                batching_challenge := mulmod(batching_challenge, shplonk_nu, p)
+
+                // i=2: denom[0], libraPolyEvals[2]
+                scaling_factor := mulmod(libra_denom_0, batching_challenge, p)
+                let libra_scalar_2 := sub(p, scaling_factor)
+                constant_term_acc := addmod(constant_term_acc, mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_2_LOC), p), p)
+                batching_challenge := mulmod(batching_challenge, shplonk_nu, p)
+
+                // i=3: denom[0], libraPolyEvals[3]
+                scaling_factor := mulmod(libra_denom_0, batching_challenge, p)
+                let libra_scalar_3 := sub(p, scaling_factor)
+                constant_term_acc := addmod(constant_term_acc, mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_3_LOC), p), p)
+
+                // Store commitment scalars:
+                // scalars[52] = batchingScalars[0] (for libraCommitments[0] = libraConcat)
+                mstore(BATCH_SCALAR_52_LOC, libra_scalar_0)
+                // scalars[53] = batchingScalars[1] + batchingScalars[2] (for libraCommitments[1] = libraGrandProduct)
+                mstore(BATCH_SCALAR_53_LOC, addmod(libra_scalar_1, libra_scalar_2, p))
+                // scalars[54] = batchingScalars[3] (for libraCommitments[2] = libraQuotient)
+                mstore(BATCH_SCALAR_54_LOC, libra_scalar_3)
+            }
+
             let precomp_success_flag := 1
             let q := Q // EC group order
             {
@@ -3982,12 +4054,26 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
                 precomp_success_flag := staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR, 0x40)
             }
 
+            // Accumulate geminiMaskingPoly (ZK commitment[1])
+            {
+                mcopy(G1_LOCATION, GEMINI_MASKING_POLY_X_LOC, 0x40)
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_1_LOC))
+                precomp_success_flag := and(
+                    precomp_success_flag,
+                    staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
+                )
+                precomp_success_flag := and(
+                    precomp_success_flag,
+                    staticcall(gas(), 6, ACCUMULATOR, 0x80, ACCUMULATOR, 0x40)
+                )
+            }
+
             // Accumulate vk points
             loadVk()
             {
-                // Acumulator = acumulator + scalar[1] * vk[0]
+                // Accumulator = accumulator + scalar[2] * vk[0] (Q_M)
                 mcopy(G1_LOCATION, Q_M_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_1_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_2_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -3999,7 +4085,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[2] * vk[1]
                 mcopy(G1_LOCATION, Q_C_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_2_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_3_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4011,7 +4097,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[3] * vk[2]
                 mcopy(G1_LOCATION, Q_L_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_3_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_4_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4023,7 +4109,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[4] * vk[3]
                 mcopy(G1_LOCATION, Q_R_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_4_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_5_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4035,7 +4121,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[5] * vk[4]
                 mcopy(G1_LOCATION, Q_O_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_5_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_6_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4047,7 +4133,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[6] * vk[5]
                 mcopy(G1_LOCATION, Q_4_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_6_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_7_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4059,7 +4145,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[7] * vk[6]
                 mcopy(G1_LOCATION, Q_LOOKUP_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_7_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_8_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4071,7 +4157,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[8] * vk[7]
                 mcopy(G1_LOCATION, Q_ARITH_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_8_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_9_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4083,7 +4169,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[9] * vk[8]
                 mcopy(G1_LOCATION, Q_DELTA_RANGE_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_9_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_10_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4095,7 +4181,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[10] * vk[9]
                 mcopy(G1_LOCATION, Q_ELLIPTIC_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_10_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_11_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4107,7 +4193,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[11] * vk[10]
                 mcopy(G1_LOCATION, Q_MEMORY_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_11_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_12_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4119,7 +4205,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[12] * vk[11]
                 mcopy(G1_LOCATION, Q_NNF_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_12_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_13_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4131,7 +4217,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[13] * vk[12]
                 mcopy(G1_LOCATION, Q_POSEIDON_2_EXTERNAL_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_13_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_14_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4143,7 +4229,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[14] * vk[13]
                 mcopy(G1_LOCATION, Q_POSEIDON_2_INTERNAL_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_14_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_15_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4155,7 +4241,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[15] * vk[14]
                 mcopy(G1_LOCATION, SIGMA_1_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_15_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_16_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4167,7 +4253,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[16] * vk[15]
                 mcopy(G1_LOCATION, SIGMA_2_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_16_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_17_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4179,7 +4265,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[17] * vk[16]
                 mcopy(G1_LOCATION, SIGMA_3_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_17_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_18_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4191,7 +4277,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[18] * vk[17]
                 mcopy(G1_LOCATION, SIGMA_4_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_18_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_19_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4203,7 +4289,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[19] * vk[18]
                 mcopy(G1_LOCATION, ID_1_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_19_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_20_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4215,7 +4301,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[20] * vk[19]
                 mcopy(G1_LOCATION, ID_2_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_20_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_21_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4227,7 +4313,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[21] * vk[20]
                 mcopy(G1_LOCATION, ID_3_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_21_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_22_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4239,7 +4325,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[22] * vk[21]
                 mcopy(G1_LOCATION, ID_4_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_22_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_23_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4251,7 +4337,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[23] * vk[22]
                 mcopy(G1_LOCATION, TABLE_1_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_23_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_24_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4263,7 +4349,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[24] * vk[23]
                 mcopy(G1_LOCATION, TABLE_2_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_24_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_25_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4275,7 +4361,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[25] * vk[24]
                 mcopy(G1_LOCATION, TABLE_3_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_25_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_26_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4287,7 +4373,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[26] * vk[25]
                 mcopy(G1_LOCATION, TABLE_4_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_26_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_27_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4299,7 +4385,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[27] * vk[26]
                 mcopy(G1_LOCATION, LAGRANGE_FIRST_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_27_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_28_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4311,7 +4397,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[28] * vk[27]
                 mcopy(G1_LOCATION, LAGRANGE_LAST_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_28_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_29_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4324,7 +4410,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
                 // Accumulate proof points
                 // Accumulator = accumulator + scalar[29] * w_l
                 mcopy(G1_LOCATION, W_L_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_29_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_30_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4336,7 +4422,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[30] * w_r
                 mcopy(G1_LOCATION, W_R_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_30_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_31_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4348,7 +4434,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[31] * w_o
                 mcopy(G1_LOCATION, W_O_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_31_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_32_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4360,7 +4446,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[32] * w_4
                 mcopy(G1_LOCATION, W_4_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_32_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_33_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4372,7 +4458,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[33] * z_perm
                 mcopy(G1_LOCATION, Z_PERM_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_33_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_34_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4384,7 +4470,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[34] * lookup_inverses
                 mcopy(G1_LOCATION, LOOKUP_INVERSES_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_34_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_35_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4396,7 +4482,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[35] * lookup_read_counts
                 mcopy(G1_LOCATION, LOOKUP_READ_COUNTS_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_35_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_36_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4408,7 +4494,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                 // Accumulator = accumulator + scalar[36] * lookup_read_tags
                 mcopy(G1_LOCATION, LOOKUP_READ_TAGS_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_36_LOC))
+                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_37_LOC))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4424,7 +4510,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
                         /// {{ UNROLL_SECTION_START ACCUMULATE_GEMINI_FOLD_UNIVARIATE }}
                         // accumulator = accumulator + scalar[37] * gemini_fold_univariates[0]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_0_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_37_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_38_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4436,7 +4522,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[38] * gemini_fold_univariates[1]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_1_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_38_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_39_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4448,7 +4534,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[39] * gemini_fold_univariates[2]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_2_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_39_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_40_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4460,7 +4546,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[40] * gemini_fold_univariates[3]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_3_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_40_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_41_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4472,7 +4558,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[41] * gemini_fold_univariates[4]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_4_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_41_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_42_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4486,7 +4572,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
                     {
                         // accumulator = accumulator + scalar[42] * gemini_fold_univariates[5]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_5_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_42_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_43_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4498,7 +4584,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[43] * gemini_fold_univariates[6]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_6_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_43_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_44_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4510,7 +4596,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[44] * gemini_fold_univariates[7]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_7_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_44_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_45_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4522,7 +4608,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[45] * gemini_fold_univariates[8]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_8_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_45_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_46_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4534,7 +4620,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[46] * gemini_fold_univariates[9]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_9_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_46_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_47_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4546,7 +4632,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[47] * gemini_fold_univariates[10]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_10_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_47_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_48_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4560,7 +4646,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
                     {
                         // accumulator = accumulator + scalar[48] * gemini_fold_univariates[11]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_11_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_48_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_49_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4572,7 +4658,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[49] * gemini_fold_univariates[12]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_12_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_49_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_50_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4584,7 +4670,7 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
 
                         // accumulator = accumulator + scalar[50] * gemini_fold_univariates[13]
                         mcopy(G1_LOCATION, GEMINI_FOLD_UNIVARIATE_13_X_LOC, 0x40)
-                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_50_LOC))
+                        mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_51_LOC))
                         precomp_success_flag := and(
                             precomp_success_flag,
                             staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4598,9 +4684,48 @@ uint256 internal constant EC_Q_SIGN = QL_EVAL_LOC;
                     }
                 }
 
+                // Accumulate libra commitments (ZK)
+                {
+                    // scalar[52] * libraConcat (libraCommitments[0])
+                    mcopy(G1_LOCATION, LIBRA_CONCAT_X_LOC, 0x40)
+                    mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_52_LOC))
+                    precomp_success_flag := and(
+                        precomp_success_flag,
+                        staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
+                    )
+                    precomp_success_flag := and(
+                        precomp_success_flag,
+                        staticcall(gas(), 6, ACCUMULATOR, 0x80, ACCUMULATOR, 0x40)
+                    )
+
+                    // scalar[53] * libraGrandProduct (libraCommitments[1])
+                    mcopy(G1_LOCATION, LIBRA_GRAND_PRODUCT_X_LOC, 0x40)
+                    mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_53_LOC))
+                    precomp_success_flag := and(
+                        precomp_success_flag,
+                        staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
+                    )
+                    precomp_success_flag := and(
+                        precomp_success_flag,
+                        staticcall(gas(), 6, ACCUMULATOR, 0x80, ACCUMULATOR, 0x40)
+                    )
+
+                    // scalar[54] * libraQuotient (libraCommitments[2])
+                    mcopy(G1_LOCATION, LIBRA_QUOTIENT_X_LOC, 0x40)
+                    mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_54_LOC))
+                    precomp_success_flag := and(
+                        precomp_success_flag,
+                        staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
+                    )
+                    precomp_success_flag := and(
+                        precomp_success_flag,
+                        staticcall(gas(), 6, ACCUMULATOR, 0x80, ACCUMULATOR, 0x40)
+                    )
+                }
+
                 {
                     // Accumulate the constant term accumulator
-                    // Accumulator = accumulator + 1 * costant term accumulator
+                    // Accumulator = accumulator + 1 * constant term accumulator
                     mstore(G1_LOCATION, 0x01)
                     mstore(G1_Y_LOCATION, 0x02)
                     mstore(SCALAR_LOCATION, constant_term_acc)
