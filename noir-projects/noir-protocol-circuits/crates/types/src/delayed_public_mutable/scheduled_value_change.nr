@@ -115,8 +115,8 @@ impl<T> ScheduledValueChange<T> {
             // Because anchor_block_timestamp < self.timestamp_of_change, then timestamp_of_change > 0 and we can safely
             // subtract 1.
             min(
-                self.timestamp_of_change - 1,
                 anchor_block_timestamp + minimum_delay,
+                self.timestamp_of_change - 1,
             )
         }
     }

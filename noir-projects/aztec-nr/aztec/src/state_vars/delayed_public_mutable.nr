@@ -179,10 +179,11 @@ where
         // We use the effective minimum delay as opposed to the current delay at the anchor block's timestamp as this
         // one also takes into consideration any scheduled delay changes. For example, consider a scenario in which at
         // timestamp `x` the current delay was 86400 seconds (1 day). We may naively think that the earliest we could
-        // change the value would be at timestamp `x + 86400` by scheduling immediately after the anchor block's
-        // timestamp, i.e. at timestamp `x + 1`. But if there was a delay change scheduled for timestamp `y` to reduce
-        // the delay to 43200 seconds (12 hours), then if a value change was scheduled at timestamp `y` it would go
-        // into effect at timestamp `y + 43200`, which is earlier than what we'd expect if we only considered the
+        // change the value would be at timestamp `x + 86400` by scheduling immediately in the block following the
+        // anchor block - since blocks within the same checkpoint can share timestamps, the earliest scheduling can
+        // happen at the anchor block's timestamp `x`.  But if there was a delay change scheduled for timestamp `y` to
+        // reduce the delay to 43200 seconds (12 hours), then if a value change was scheduled at timestamp `y` it would
+        // go into effect at timestamp `y + 43200`, which is earlier than what we'd expect if we only considered the
         // current delay.
         let effective_minimum_delay = delay_change.get_effective_minimum_delay_at(anchor_block_timestamp);
         let time_horizon = value_change.get_time_horizon(anchor_block_timestamp, effective_minimum_delay);
