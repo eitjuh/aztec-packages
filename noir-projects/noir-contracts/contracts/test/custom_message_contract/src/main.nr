@@ -1,11 +1,14 @@
+mod multi_log;
+
 use aztec::macros::aztec;
 
 /// Tests the custom message handler feature by implementing a multi-log event pattern: a single event is split across
-/// multiple private logs (each carrying a part), and the custom message handler reassembles the parts into the full
+/// multiple private messages (each carrying a part), and the custom message handler reassembles the parts into the full
 /// event before enqueueing it for validation. This exercises custom message type IDs, the `AztecConfig` builder, and
 /// capsule-based accumulation of out-of-order message parts.
 #[aztec(aztec::AztecConfig::new().custom_message_handler("handle_multi_log_message"))]
 contract CustomMessage {
+    use crate::multi_log::{MULTI_LOG_PARTS_SEPARATOR, MultiLog};
     use aztec::{
         event::event_interface::{
             compute_private_event_commitment, compute_private_serialized_event_commitment,
@@ -19,11 +22,7 @@ contract CustomMessage {
             processing::{enqueue_event_for_validation, MessageContext},
         },
         oracle::{capsules, random::random},
-        protocol::{
-            address::AztecAddress,
-            hash::{poseidon2_hash, poseidon2_hash_bytes},
-            traits::{Deserialize, FromField, Serialize, ToField},
-        },
+        protocol::{address::AztecAddress, hash::poseidon2_hash, traits::{FromField, ToField}},
     };
     use aztec::event::EventSelector;
     use aztec::messages::msg_type::custom_msg_type_id;
@@ -31,12 +30,8 @@ contract CustomMessage {
     /// Custom message type ID for multi-log messages.
     global MULTI_LOG_MSG_TYPE_ID: u64 = custom_msg_type_id(0);
 
-    /// Domain separator for deriving the capsule slot of a pending multi-log event from its message_id.
-    global MULTI_LOG_PARTS_SEPARATOR: Field =
-        comptime { poseidon2_hash_bytes("CUSTOM_MSG::MULTI_LOG_PARTS".as_bytes()) };
-
-    /// Maximum number of parts a multi-log event can be split into.
-    global MAX_MULTI_LOG_PARTS: u32 = 4;
+    /// Number of parts this contract splits multi-log events into.
+    global NUM_MULTI_LOG_PARTS: u32 = 2;
 
     /// An event with 4 fields, too large to demonstrate fitting in one message content.
     ///
@@ -47,28 +42,6 @@ contract CustomMessage {
         value1: Field,
         value2: Field,
         value3: Field,
-    }
-
-    /// Accumulates parts of a multi-log event in a single capsule. Each part is placed at its index in the `parts`
-    /// array. A part with `len() == 0` has not yet arrived.
-    #[derive(Serialize, Deserialize)]
-    struct PendingMultiLog {
-        received: u32,
-        parts: [BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>; MAX_MULTI_LOG_PARTS],
-    }
-
-    /// Packs part_number and total_parts into a u64 for use as msg_metadata.
-    #[contract_library_method]
-    fn pack_part_info(part_number: u32, total_parts: u32) -> u64 {
-        (part_number as u64) * 0x100000000 + (total_parts as u64)
-    }
-
-    /// Unpacks part_number and total_parts from msg_metadata.
-    #[contract_library_method]
-    unconstrained fn unpack_part_info(packed: u64) -> (u32, u32) {
-        let total_parts = (packed % 0x100000000) as u32;
-        let part_number = (packed / 0x100000000) as u32;
-        (part_number, total_parts)
     }
 
     /// Emits a multi-log event split across 2 private messages.
@@ -111,7 +84,7 @@ contract CustomMessage {
         // Part 0: randomness (message_id), event_type_id, and first 2 event fields
         let msg0 = encode_message(
             MULTI_LOG_MSG_TYPE_ID,
-            pack_part_info(0, 2),
+            MultiLog::<NUM_MULTI_LOG_PARTS>::pack_part_metadata(0),
             [randomness, event_type_id, value0, value1],
         );
         do_private_message_delivery(
@@ -125,7 +98,7 @@ contract CustomMessage {
         // Part 1: randomness (message_id) and remaining event fields
         let msg1 = encode_message(
             MULTI_LOG_MSG_TYPE_ID,
-            pack_part_info(1, 2),
+            MultiLog::<NUM_MULTI_LOG_PARTS>::pack_part_metadata(1),
             [randomness, value2, value3],
         );
         do_private_message_delivery(
@@ -151,20 +124,21 @@ contract CustomMessage {
         message_context: MessageContext,
     ) {
         if msg_type_id == MULTI_LOG_MSG_TYPE_ID {
-            let (part_number, total_parts) = unpack_part_info(msg_metadata);
+            let part_number = MultiLog::<NUM_MULTI_LOG_PARTS>::unpack_part_number(msg_metadata);
 
             // First field of every part's content is the message_id (= randomness).
             let message_id = msg_content.get(0);
             let slot = poseidon2_hash([MULTI_LOG_PARTS_SEPARATOR, message_id]);
 
             // Load (or initialize) the pending event and place this part at its index.
-            let mut pending: PendingMultiLog = capsules::load(contract_address, slot).unwrap_or(
-                PendingMultiLog { received: 0, parts: [BoundedVec::new(); MAX_MULTI_LOG_PARTS] },
-            );
-            pending.parts[part_number] = msg_content;
-            pending.received += 1;
+            let mut multi_log: MultiLog<NUM_MULTI_LOG_PARTS> = capsules::load(
+                contract_address,
+                slot,
+            )
+                .unwrap_or(MultiLog { parts: [BoundedVec::new(); NUM_MULTI_LOG_PARTS] });
+            multi_log.parts[part_number] = msg_content;
 
-            if pending.received == total_parts {
+            if multi_log.is_complete() {
                 // All parts present, reassemble the event in part order.
                 // Part 0 content: [randomness, event_type_id, ...event_fields]
                 // Part N content: [randomness, ...event_fields]
@@ -173,8 +147,8 @@ contract CustomMessage {
                 let mut serialized_event: BoundedVec<Field, MAX_EVENT_SERIALIZED_LEN> =
                     BoundedVec::new();
 
-                for part_index in 0..total_parts {
-                    let content = pending.parts[part_index];
+                for part_index in 0..NUM_MULTI_LOG_PARTS {
+                    let content = multi_log.parts[part_index];
                     let content_start = if part_index == 0 {
                         // Part 0: content[1] is event_type_id, content[2..] are event fields
                         event_type_id_field = content.get(1);
@@ -208,7 +182,7 @@ contract CustomMessage {
                     message_context.recipient,
                 );
             } else {
-                capsules::store(contract_address, slot, pending);
+                capsules::store(contract_address, slot, multi_log);
             }
         } else {
             panic(f"Unknown message type id: {msg_type_id}");
