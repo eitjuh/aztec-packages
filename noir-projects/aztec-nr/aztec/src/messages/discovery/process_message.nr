@@ -111,6 +111,11 @@ pub unconstrained fn process_message_plaintext(
             message_context,
         );
     } else {
-        debug_log_format("Unknown msg type id {0}", [msg_type_id as Field]);
+        // A custom message was received but no handler is configured. This likely means the contract emits custom
+        // messages but forgot to register a handler via `AztecConfig::with_custom_message_handler`.
+        debug_log_format(
+            "Received custom message with type id {0} but no custom message handler is configured. Set one up via AztecConfig::with_custom_message_handler.",
+            [msg_type_id as Field],
+        );
     }
 }
