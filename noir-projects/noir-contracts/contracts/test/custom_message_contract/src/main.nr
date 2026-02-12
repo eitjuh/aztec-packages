@@ -71,20 +71,20 @@ contract CustomMessage {
         (part_number, total_parts)
     }
 
-    /// Emits a multi-log event split across 2 private logs.
+    /// Emits a multi-log event split across 2 private messages.
     ///
-    /// This demonstrates the multi-log message pattern: the event data is split into parts, each sent as a separate
-    /// log with a custom message type. The receiver's custom message handler reassembles them.
+    /// This demonstrates the multi-log event pattern: the event data is split into parts, each sent as a separate
+    /// message with a custom message type. The receiver's custom message handler reassembles them.
     ///
     /// Each part includes `randomness` as its first content field, which serves as a `message_id` for correlating
     /// parts belonging to the same multi-log event (allowing multiple multi-log events per transaction).
     ///
     /// # Privacy considerations
     ///
-    /// Each part is emitted as a separate onchain log. While the content is encrypted, the number of logs per
-    /// transaction is publicly observable. This means an observer can distinguish transactions using the multi-log
-    /// pattern (N logs) from those emitting standard single-log events, and can infer the number of parts from the log
-    /// count.
+    /// Each part is sent as a separate onchain message (using private logs as transport). While the content is
+    /// encrypted, the number of logs per transaction is publicly observable. This means an observer can distinguish
+    /// transactions using the multi-log pattern (N logs) from those emitting standard single-log messages, and can
+    /// infer the number of parts from the log count.
     ///
     /// Split layout:
     ///   Part 0 (metadata=pack(0,2)): content = [randomness, event_type_id, value0, value1]
