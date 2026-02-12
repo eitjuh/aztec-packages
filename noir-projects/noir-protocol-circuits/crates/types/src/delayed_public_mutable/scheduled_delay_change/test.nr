@@ -167,11 +167,12 @@ unconstrained fn assert_effective_minimum_delay_invariants<let INITIAL_DELAY: u6
     effective_minimum_delay: u64,
 ) {
     // The effective minimum delay guarantees the earliest timestamp in which a scheduled value change could be made
-    // effective. No action, even if executed as in the block following anchor block with the block having the same
-    // timestamp as the anchor block (blocks within the same checkpoint can share timestamps), should result in
-    // a scheduled value change having a timestamp of change lower than this.
-    let expected_earliest_value_change_timestamp =
-        anchor_block_timestamp + 0 + effective_minimum_delay; // + 0 to emphasize it's the smallest post anchor block's timestamp
+    // effective. No action, even if executed as in the block following anchor block, should result in a scheduled
+    // value change having a timestamp of change lower than this.
+    //
+    // Note that blocks within the same checkpoint can share timestamps, so the earliest scheduling can happen at the
+    // anchor block timestamp.
+    let expected_earliest_value_change_timestamp = anchor_block_timestamp + effective_minimum_delay;
 
     if delay_change.timestamp_of_change > anchor_block_timestamp {
         // If a delay change is already scheduled to happen in the future, we then must consider the scenario in
@@ -183,18 +184,16 @@ unconstrained fn assert_effective_minimum_delay_invariants<let INITIAL_DELAY: u6
         assert(expected_earliest_value_change_timestamp <= value_change_timestamp);
     }
 
-    // Another possibility would be to schedule a value change at the anchor block timestamp (blocks within the same
-    // checkpoint can share timestamps, so the earliest scheduling can happen at the anchor timestamp which is the
-    // smallest timestamp of a block following the anchor block).
-    let change_schedule_timestamp = anchor_block_timestamp + 0;
+    // Another possibility would be to schedule a value change at the earliest possible timestamp, which is the anchor
+    // block timestamp.
+    let change_schedule_timestamp = anchor_block_timestamp;
     let value_change_timestamp =
         change_schedule_timestamp + delay_change.get_current(change_schedule_timestamp);
     assert(expected_earliest_value_change_timestamp <= value_change_timestamp);
 
-    // Finally, a delay reduction could be scheduled at the anchor timestamp which is the smallest timestamp of a block
-    // following the anchor block (blocks within the same checkpoint can share timestamps). We reduce the delay to
-    // zero, which means that at the delay timestamp of change there'll be no delay and a value change could be
-    // performed immediately then.
+    // Finally, a delay reduction could be scheduled at the anchor block timestamp. We reduce the delay to zero, which
+    // means that at the delay timestamp of change there'll be no delay and a value change could be performed
+    // immediately then.
     delay_change.schedule_change(0, anchor_block_timestamp + 0);
     assert(expected_earliest_value_change_timestamp <= delay_change.timestamp_of_change);
 }
@@ -210,8 +209,7 @@ unconstrained fn test_get_effective_delay_at_before_change_in_far_future() {
     let mut delay_change = get_non_initial_delay_change(pre, post, timestamp_of_change);
 
     // The scheduled delay change is far into the future (further than the current delay is), so it doesn't affect
-    // the effective delay, which is simply the current one (pre) minus 1 (since the earliest scheduling can happen
-    // at the same timestamp as the anchor).
+    // the effective delay, which is simply the current one (pre - 1).
     let effective_minimum_delay =
         delay_change.get_effective_minimum_delay_at(anchor_block_timestamp);
     assert_eq(effective_minimum_delay, pre - 1);
