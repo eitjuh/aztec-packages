@@ -28,6 +28,9 @@ pub struct AztecConfig {
 
 impl AztecConfig {
     /// Creates a new `AztecConfig` with default values.
+    ///
+    /// Calling `new` is equivalent to invoking the [`#[aztec]`](aztec) macro with no parameters. The different methods
+    /// (e.g. [`custom_message_handler`](custom_message_handler)) can then be used to change the default behavior.
     pub comptime fn new() -> Self {
         Self { custom_message_handler: Option::none() }
     }

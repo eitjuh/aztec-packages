@@ -1,5 +1,9 @@
 # aztec-nr Development Guidelines
 
+## Formatting
+
+- Lines should not exceed 120 characters, especially in comments.
+
 ## Noir Idioms
 
 - Use `panic("message")` instead of `assert(false, "message")` for unconditional failures. `panic` returns the parent function's return type, making it usable in expression position (e.g. in if/else branches). Even when the return type doesn't matter, `panic` is the idiomatic choice.
