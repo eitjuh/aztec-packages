@@ -25,7 +25,8 @@ if [ -z "${CI_REDIS_AVAILABLE:-}" ]; then
     fi
   elif command -v docker &> /dev/null; then
     echo_stderr "Starting local redis container..."
-    docker run -d --rm --name ci-redis -p 6379:6379 redis:latest redis-server --save "" --appendonly no &>/dev/null && true
+    docker network create ci-network &>/dev/null || true
+    docker run -d --rm --name ci-redis -p 6379:6379 --network ci-network redis:latest redis-server --save "" --appendonly no &>/dev/null
     if nc -z $CI_REDIS 6379 &>/dev/null; then
       export CI_REDIS_AVAILABLE=1
     else
@@ -43,14 +44,16 @@ if [ -z "${DASHBOARD_URL:-}" ]; then
   export DASHBOARD_URL="http://ci.aztec-labs.com"
 
   if command -v docker &>/dev/null && docker ps | grep -q "ci-redis"; then
-    if ! docker ps | grep -q "ci-dashboard"; then
+    if [ -z "$(docker ps -q --filter "name=^/ci-dashboard$")" ]; then
       echo_stderr "Building local ci dashboard..."
       (cd $ci3/dashboard && docker build -t aztecprotocol/ci-dashboard:latest .) &>/dev/null
       echo_stderr "Starting local ci dashboard..."
-      docker run -d --rm --name ci-dashboard -p 4273:4273 \
+      docker network create ci-network &>/dev/null || true
+      docker run -d --rm --name ci-dashboard -p 4273:8080 \
         -e REDIS_HOST=ci-redis \
         -e REDIS_PORT=6379 \
         -e DASHBOARD_PORT=4273 \
+        --network ci-network \
         aztecprotocol/ci-dashboard:latest &>/dev/null
     fi
     export DASHBOARD_URL="http://localhost:4273"

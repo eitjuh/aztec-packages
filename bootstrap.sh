@@ -23,6 +23,7 @@ expected_min_zig_version=0.14.1
 expected_abs_rust_version=1.85.0
 expected_abs_wasi_version=27.0
 expected_abs_foundry_version=1.4.1
+expected_abs_yarn_version=4.5.2
 
 # Cleanup function. Called on script exit.
 function cleanup {
@@ -104,7 +105,7 @@ function check_toolchains {
   fi
   # Check zig version.
   local zig_installed_version=$(zig version)
-  if ! ensure zvm && ! check_minimum_version $expected_min_zig_version $zig_installed_version; then
+  if ! check_minimum_version $expected_min_zig_version $zig_installed_version; then
     echo "Minimum zig version $expected_min_zig_version not found."
     toolchain_incompatible
   fi
@@ -130,13 +131,21 @@ function check_toolchains {
   done
   # Check Node.js version.
   local node_installed_version=$(node --version | cut -d 'v' -f 2)
-  if ensure nvm || ! check_minimum_version $expected_min_node_version $node_installed_version; then
+  if ! check_minimum_version $expected_min_node_version $node_installed_version; then
     echo "Minimum node version $expected_min_node_version not found."
+    toolchain_incompatible
+  fi
+  # Check yarn version. This catches oddities like an overriding .yarnrc.yml outside the repo.
+  if [ "$expected_abs_yarn_version" != "$(corepack yarn@$expected_abs_yarn_version --version)" ]; then
+    echo "Yarn version $expected_abs_yarn_version not found. Check for a rogue .yarnrc.yml in e.g. home directory."
     toolchain_incompatible
   fi
 }
 
 function install_wasi_sdk {
+  if cat /opt/wasi-sdk/VERSION 2> /dev/null | grep $expected_abs_wasi_version > /dev/null; then
+    return
+  fi
   local arch=$(arch)
   local os=$(os)
   local triple=$expected_abs_wasi_version-$arch-$os
@@ -187,13 +196,12 @@ function install_macos_deps {
   fi
   brew install cmake ninja llvm@20 doxygen coreutils grep gnu-sed parallel yq zstd redis
 
-  # Make clang++-20 available.
-  if ! ensure clang++-20; then
-    local llvm_bin="/opt/homebrew/Cellar/llvm@20/20.1.8/bin"
-    local clang_bin="$HOME/.local/clang-20-wrap"
-    mkdir -p "$clang_bin"
-    ln -sf "$llvm_bin/clang++" "$clang_bin/clang++-20"
-  fi
+  # Make clang 20 available.
+  local llvm_bin="/opt/homebrew/Cellar/llvm@20/20.1.8/bin"
+  mkdir -p "$AZTEC_DEV_BIN"
+  ln -sf "$llvm_bin/clang" "$AZTEC_DEV_BIN/clang-20"
+  ln -sf "$llvm_bin/clang++" "$AZTEC_DEV_BIN/clang++-20"
+  ln -sf "$llvm_bin/clang-format" "$AZTEC_DEV_BIN/clang-format-20"
 
   install_wasi_sdk
   install_foundry
@@ -226,26 +234,26 @@ function install_deps {
   esac
 }
 
-function select_versions {
-  export RUSTUP_TOOLCHAIN=$expected_abs_rust_version
+# function select_versions {
+#   export RUSTUP_TOOLCHAIN=$expected_abs_rust_version
 
-  local node_installed_version=$(node --version | cut -d 'v' -f 2)
-  if ! check_minimum_version $expected_min_node_version $node_installed_version; then
-    . "$HOME/.nvm/nvm.sh"
-    nvm use $expected_min_node_version
-  fi
+#   local node_installed_version=$(node --version | cut -d 'v' -f 2)
+#   if ! check_minimum_version $expected_min_node_version $node_installed_version; then
+#     . "$HOME/.nvm/nvm.sh"
+#     nvm use $expected_min_node_version
+#   fi
 
-  local zig_installed_version=$(zig version)
-  if ! check_minimum_version $expected_min_zig_version $zig_installed_version; then
-    export PATH="$PATH:$HOME/.zvm/bin"
-    export PATH="$PATH:$HOME/.zvm/self"
-    zvm use $expected_min_zig_version
-  fi
+#   local zig_installed_version=$(zig version)
+#   if ! check_minimum_version $expected_min_zig_version $zig_installed_version; then
+#     export PATH="$PATH:$HOME/.zvm/bin"
+#     export PATH="$PATH:$HOME/.zvm/self"
+#     zvm use $expected_min_zig_version
+#   fi
 
-  cargo --version
-  node --version
-  zig version
-}
+#   # cargo --version
+#   # node --version
+#   # zig version
+# }
 
 function versions {
   local noir_version anvil_version node_version cmake_version clang_version zig_version rustc_version wasi_sdk_version
@@ -361,12 +369,8 @@ function test_engine_start {
 export -f test_engine_start
 
 function prep {
-  pull_submodules
   check_toolchains
-
-  # Ensure we have yarn set up.
-  corepack enable
-
+  pull_submodules
   rm -f $test_cmds_file
 }
 

@@ -58,6 +58,7 @@ function format_log_output {
     echo -e "Parent Log: $(ci_term_link $PARENT_LOG_ID)"
   fi
   echo "Command: ${DENOISE_DISPLAY_NAME:-$cmd}"
+  echo "Working Dir: ${PWD:-}"
   echo "Date: $(date)"
   echo "Status: $status"
   echo "Took: ${time}"

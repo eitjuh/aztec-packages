@@ -16,8 +16,8 @@ if [[ "$PATH" != *"$ci3:" ]]; then
 fi
 
 if [[ "$(os)" == "macos" ]]; then
-  clang_bin="$HOME/.local/clang-20-wrap"
-  export PATH=/opt/homebrew/opt/coreutils/libexec/gnubin:$clang_bin:$PATH
+  export AZTEC_DEV_BIN="$HOME/.local/aztec-dev-bin"
+  export PATH=/opt/homebrew/opt/coreutils/libexec/gnubin:/opt/homebrew/opt/util-linux/bin:$AZTEC_DEV_BIN:$PATH
 fi
 
 [ -z "${CI:-}" ] && export CI=0
@@ -25,6 +25,15 @@ fi
 
 # We are fine using foundry nightly.
 export FOUNDRY_DISABLE_NIGHTLY_WARNING=1
+
+# Corepack should download without prompting.
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
+# Fix for parallel setting XDG_CACHE_HOME to empty string, which breaks corepack.
+# If XDG_CACHE_HOME is set but empty, unset it to use the default.
+if [ -n "${XDG_CACHE_HOME+x}" ] && [ -z "$XDG_CACHE_HOME" ]; then
+  unset XDG_CACHE_HOME
+fi
 
 source $ci3/source_options
 source $ci3/source_color

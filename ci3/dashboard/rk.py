@@ -82,7 +82,7 @@ _github_status_lock = threading.Lock()
 
 def convert_to_ocs8(text):
     # Replace URLs not already part of an OCS8 link using negative lookbehind.
-    pattern = r'(?<!\x1b\]8;;)(https?://[\w_.\-/]+)'
+    pattern = r'(?<!\x1b\]8;;)(https?://[\w_.\-/:?=&%#+@~]+)'
     def replace_link(match):
         url = match.group(0)
         return hyperlink(url, url)

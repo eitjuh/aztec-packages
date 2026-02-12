@@ -269,7 +269,7 @@ function build {
     rm -rf build*
   fi
 
-  (cd src/barretenberg/nodejs_module && yarn --frozen-lockfile --prefer-offline)
+  (cd src/barretenberg/nodejs_module && yarn --immutable)
 
   if semver check "$REF_NAME" && [[ "$(arch)" == "amd64" ]]; then
     # Perform release builds of bb and napi module, for all architectures.
