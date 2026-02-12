@@ -72,7 +72,7 @@ pub comptime fn aztec(m: Module, args: [AztecConfig]) -> Quoted {
     } else if num_args == 1 {
         args[0]
     } else {
-        panic(f"#[aztec] expects 0 or 1 argument, got {num_args}")
+        panic(f"#[aztec] expects 0 or 1 arguments, got {num_args}")
     };
 
     // Functions that don't have #[external(...)], #[contract_library_method], or #[test] are not allowed in contracts.
