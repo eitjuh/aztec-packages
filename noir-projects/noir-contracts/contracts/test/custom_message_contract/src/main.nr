@@ -22,9 +22,10 @@ contract CustomMessage {
         },
     };
     use aztec::event::EventSelector;
+    use aztec::messages::msg_type::custom_msg_type_id;
 
-    /// Custom message type ID for multi-log messages. Must be >= MIN_CUSTOM_MSG_TYPE_ID.
-    global MULTI_LOG_MSG_TYPE_ID: u64 = 65536;
+    /// Custom message type ID for multi-log messages.
+    global MULTI_LOG_MSG_TYPE_ID: u64 = custom_msg_type_id(0);
 
     /// Domain separator for deriving the capsule slot of a pending multi-log event from its message_id.
     global MULTI_LOG_PARTS_SEPARATOR: Field =
