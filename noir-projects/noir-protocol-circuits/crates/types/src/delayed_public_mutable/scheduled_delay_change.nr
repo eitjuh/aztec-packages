@@ -297,10 +297,14 @@ impl<let INITIAL_DELAY: u64> ScheduledDelayChange<INITIAL_DELAY> {
             //      `get_time_horizon` function.
             let time_until_delay_change = self.timestamp_of_change - anchor_block_timestamp;
 
-            min(
-                self.pre.unwrap_or(INITIAL_DELAY) - 1, // in case the scheduled delay (`post`) gets cancelled before it takes effect.
-                time_until_delay_change + self.post.unwrap_or(INITIAL_DELAY) - 1,
-            )
+            let min_time_until_value_change = min(
+                self.pre.unwrap_or(INITIAL_DELAY), // in case the scheduled delay (`post`) gets cancelled before it takes effect.
+                time_until_delay_change + self.post.unwrap_or(INITIAL_DELAY),
+            );
+
+            // The effective minimum delay equals the minimum time until a value change, minus 1, since reads are
+            // valid only up to (but not including) the moment the value can change.
+            min_time_until_value_change - 1
         }
     }
 }
