@@ -19,7 +19,7 @@ use crate::macros::{
 ///
 /// Usage:
 /// ```noir
-/// #[aztec(AztecConfig::new().custom_message_handler("handle_multi_log_message"))]
+/// #[aztec(aztec::macros::AztecConfig::new().custom_message_handler("my_handler"))]
 /// contract MyContract { ... }
 /// ```
 pub struct AztecConfig {
@@ -64,7 +64,7 @@ impl AztecConfig {
 /// Advanced contracts can use [`AztecConfig`](AztecConfig) to customize parts of its behavior, such as message
 /// processing.
 /// ```noir
-/// #[aztec(AztecConfig::new().custom_message_handler("my_handler"))]
+/// #[aztec(aztec::macros::AztecConfig::new().custom_message_handler("my_handler"))]
 /// contract MyAdvancedContract { ... }
 /// ```
 #[varargs]
