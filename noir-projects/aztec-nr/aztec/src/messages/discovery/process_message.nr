@@ -25,10 +25,10 @@ use crate::protocol::{address::AztecAddress, debug_log::{debug_log, debug_log_fo
 ///
 /// Events are processed by computing an event commitment from the serialized event data and its randomness field, then
 /// enqueueing the event data and commitment for validation.
-pub unconstrained fn process_message_ciphertext(
+pub unconstrained fn process_message_ciphertext<ComputeNoteHashAndNullifierEnv, CustomMessageHandlerEnv>(
     contract_address: AztecAddress,
-    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
-    process_custom_message: Option<CustomMessageHandler<()>>,
+    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<ComputeNoteHashAndNullifierEnv>,
+    process_custom_message: Option<CustomMessageHandler<CustomMessageHandlerEnv>>,
     message_ciphertext: BoundedVec<Field, MESSAGE_CIPHERTEXT_LEN>,
     message_context: MessageContext,
 ) {
@@ -50,10 +50,10 @@ pub unconstrained fn process_message_ciphertext(
     }
 }
 
-pub unconstrained fn process_message_plaintext(
+pub unconstrained fn process_message_plaintext<ComputeNoteHashAndNullifierEnv, CustomMessageHandlerEnv>(
     contract_address: AztecAddress,
-    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
-    process_custom_message: Option<CustomMessageHandler<()>>,
+    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<ComputeNoteHashAndNullifierEnv>,
+    process_custom_message: Option<CustomMessageHandler<CustomMessageHandlerEnv>>,
     message_plaintext: BoundedVec<Field, MESSAGE_PLAINTEXT_LEN>,
     message_context: MessageContext,
 ) {

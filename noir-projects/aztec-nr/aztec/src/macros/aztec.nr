@@ -342,7 +342,7 @@ comptime fn generate_contract_library_method_compute_note_hash_and_nullifier() -
 comptime fn generate_get_aztec_contract_config(process_custom_message_option: Quoted) -> Quoted {
     quote {
         #[contract_library_method]
-        unconstrained fn _get_aztec_contract_config() -> aztec::messages::discovery::AztecContractConfig {
+        unconstrained fn _get_aztec_contract_config() -> aztec::messages::discovery::AztecContractConfig<(), ()> {
             aztec::messages::discovery::AztecContractConfig {
                 compute_note_hash_and_nullifier: _compute_note_hash_and_nullifier,
                 process_custom_message: $process_custom_message_option,
