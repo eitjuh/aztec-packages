@@ -78,14 +78,6 @@ pub type CustomMessageHandler<Env> = unconstrained fn[Env](
 /* msg_content */ BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
 /* message_context */ MessageContext);
 
-/// Runtime configuration for Aztec contract operations (like custom message processing).
-pub struct AztecContractConfig<ComputeNoteHashAndNullifierEnv, CustomMessageHandlerEnv> {
-    /// Function to compute note hash and nullifier for different note types.
-    pub compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<ComputeNoteHashAndNullifierEnv>,
-    /// Optional custom handler for unknown message types.
-    pub process_custom_message: Option<CustomMessageHandler<CustomMessageHandlerEnv>>,
-}
-
 /// Performs the state synchronization process, in which private logs are downloaded and inspected to find new private
 /// notes, partial notes and events, etc., and pending partial notes are processed to search for their completion logs.
 /// This is the mechanism via which a contract updates its knowledge of its private state.
@@ -98,7 +90,8 @@ pub struct AztecContractConfig<ComputeNoteHashAndNullifierEnv, CustomMessageHand
 /// `compute_note_hash_and_nullifier` function.
 pub unconstrained fn do_sync_state<ComputeNoteHashAndNullifierEnv, CustomMessageHandlerEnv>(
     contract_address: AztecAddress,
-    config: AztecContractConfig<ComputeNoteHashAndNullifierEnv, CustomMessageHandlerEnv>,
+    compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<ComputeNoteHashAndNullifierEnv>,
+    process_custom_message: Option<CustomMessageHandler<CustomMessageHandlerEnv>>,
 ) {
     debug_log("Performing state synchronization");
 
@@ -116,8 +109,8 @@ pub unconstrained fn do_sync_state<ComputeNoteHashAndNullifierEnv, CustomMessage
 
         process_message_ciphertext(
             contract_address,
-            config.compute_note_hash_and_nullifier,
-            config.process_custom_message,
+            compute_note_hash_and_nullifier,
+            process_custom_message,
             message_ciphertext,
             pending_tagged_log.context,
         );
@@ -126,10 +119,7 @@ pub unconstrained fn do_sync_state<ComputeNoteHashAndNullifierEnv, CustomMessage
 
     // Then we process all pending partial notes, regardless of whether they were found in the current or previous
     // executions.
-    partial_notes::fetch_and_process_partial_note_completion_logs(
-        contract_address,
-        config.compute_note_hash_and_nullifier,
-    );
+    partial_notes::fetch_and_process_partial_note_completion_logs(contract_address, compute_note_hash_and_nullifier);
 
     // Finally we validate all notes and events that were found as part of the previous processes, resulting in them
     // being added to PXE's database and retrievable via oracles (get_notes) and our TS API (PXE::getPrivateEvents).
