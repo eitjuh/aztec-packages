@@ -1,5 +1,9 @@
 use aztec::macros::aztec;
 
+/// Tests the custom message handler feature by implementing a multi-log event pattern: a single event is split across
+/// multiple private logs (each carrying a part), and the custom message handler reassembles the parts into the full
+/// event before enqueueing it for validation. This exercises custom message type IDs, the `AztecConfig` builder, and
+/// capsule-based accumulation of out-of-order message parts.
 #[aztec(aztec::AztecConfig::new().custom_message_handler("handle_multi_log_message"))]
 contract CustomMessage {
     use aztec::{
