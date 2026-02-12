@@ -1,6 +1,9 @@
 
 
-## A mini python script to help generate the locations in memory of the indicies requred to generate a proof
+### A mini python script to help generate the locations in memory of the indicies requred to generate a proof
+
+# Switch this flag if you want to generate zk verifier offsets
+is_zk = True
 
 vk_fr = [
     "VK_CIRCUIT_SIZE_LOC",
@@ -67,6 +70,22 @@ proof_g1 = [
     "Z_PERM",
 ]
 
+# Proof additions when running the zero knowledge protocol
+before_proof_g1_zk = [
+    "GEMINI_MASKING_POLY"
+]
+
+# Proof additions when running the zero knowledge protocol
+after_proof_g1_zk = [
+    "LIBRA_CONCAT",
+]
+
+libra_commitments = [
+    "LIBRA_GRAND_PRODUCT",
+    "LIBRA_QUOTIENT"
+]
+
+# All evaluations supplied as part of sumcheck relation checks
 entities = [
     "QM",
     "QC",
@@ -109,6 +128,14 @@ entities = [
     "W3_SHIFT",
     "W4_SHIFT",
     "Z_PERM_SHIFT"
+]
+
+# TODO: check what the names of these are in + where are they
+libra_entitiy_evals = [
+    "0",
+    "1",
+    "2",
+    "3"
 ]
 
 challenges = [
@@ -175,7 +202,7 @@ def print_vk(pointer: int):
 
     for item in vk_g1:
         print_small_g1(pointer, item)
-        pointer += (4*32)
+        pointer += GROUP_ELEMENT_BYTES
 
     return pointer
 
@@ -184,97 +211,135 @@ def print_proof(pointer: int):
         print_fr(pointer, item)
         pointer += 32
 
-    # for item in proof_fr:
-    #     print_fr(pointer, item)
-    #     pointer += 32
+    if is_zk:
+        print_small_g1(pointer, "GEMINI_MASKING_POLY")
+        pointer += GROUP_ELEMENT_BYTES
 
     for item in proof_g1:
-        print_g1(pointer, item)
-        pointer += (4*32)
+        print_small_g1(pointer, item)
+        pointer += GROUP_ELEMENT_BYTES
+
+    if is_zk:
+        for item in after_proof_g1_zk:
+            print_small_g1(pointer, item)
+            pointer += GROUP_ELEMENT_BYTES
+
+        # LIBRA_SUM is an Fr element after LIBRA_CONCAT
+        print_fr(pointer, "LIBRA_SUM_LOC")
+        pointer += FIELD_ELEMENT_BYTES
 
     return pointer
 
-BATCHED_RELATION_PARTIAL_LENGTH = 8
-PROOF_SIZE_LOG_N = 28
-NUMBER_OF_ENTITIES = 41
+BATCHED_RELATION_PARTIAL_LENGTH = 9 if is_zk else 8
+PROOF_SIZE_LOG_N = 15
+NUMBER_OF_ENTITIES = 42 if is_zk else 41
 NUMBER_OF_SUBRELATIONS = 28
 NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
+
+FIELD_ELEMENT_BYTES = 32
+GROUP_ELEMENT_BYTES = 64
+
 # For the meantime we will load the entire proof into memory here
 # however i predict that it will be more efficient to load in the sumcheck univars
 # for each round with their own slice of calldatacopy
 def print_sumcheck_univariates(pointer: int):
-    for relation_len in range(0, BATCHED_RELATION_PARTIAL_LENGTH):
-        for size in range(0, PROOF_SIZE_LOG_N):
-            name = "SUMCHECK_UNIVARIATE_" + str(relation_len) + "_" + str(size) + "_LOC"
+    for round in range(0, PROOF_SIZE_LOG_N):
+        for coeff in range(0, BATCHED_RELATION_PARTIAL_LENGTH):
+            name = "SUMCHECK_UNIVARIATE_" + str(round) + "_" + str(coeff) + "_LOC"
             print_fr(pointer, name)
-            pointer += 32
+            pointer += FIELD_ELEMENT_BYTES
 
     return pointer
 
 def print_entities(pointer: int):
+    if is_zk:
+        # GEMINI_MASKING_EVAL is entity index 0 in ZK mode
+        print_fr(pointer, "GEMINI_MASKING_EVAL_LOC")
+        pointer += FIELD_ELEMENT_BYTES
+
     for entity in entities:
         print_fr(pointer, entity + "_EVAL_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     return pointer
 
 
 def print_shplemini(pointer: int):
+    if is_zk:
+        # LIBRA_EVALUATION is an Fr after entity evals
+        print_fr(pointer, "LIBRA_EVALUATION_LOC")
+        pointer += FIELD_ELEMENT_BYTES
+
+        # LIBRA_GRAND_PRODUCT and LIBRA_QUOTIENT are G1 points
+        for item in libra_commitments:
+            print_small_g1(pointer, item)
+            pointer += GROUP_ELEMENT_BYTES
+
     print_header_centered("PROOF INDICIES - GEMINI FOLDING COMMS")
     for size in range(0, PROOF_SIZE_LOG_N - 1):
-        print_g1(pointer, "GEMINI_FOLD_UNIVARIATE_" + str(size))
-        pointer += (4*32)
+        print_small_g1(pointer, "GEMINI_FOLD_UNIVARIATE_" + str(size))
+        pointer += GROUP_ELEMENT_BYTES
 
     print_header_centered("PROOF INDICIES - GEMINI FOLDING EVALUATIONS")
     for size in range(0, PROOF_SIZE_LOG_N):
         print_fr(pointer, "GEMINI_A_EVAL_" + str(size))
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
-    print_g1(pointer, "SHPLONK_Q")
-    pointer += (4*32)
-    print_g1(pointer, "KZG_QUOTIENT")
-    pointer += (4*32)
+    if is_zk:
+        print_header_centered("PROOF INDICIES - LIBRA POLY EVALUATIONS")
+        for i in range(0, 4):
+            print_fr(pointer, "LIBRA_POLY_EVAL_" + str(i) + "_LOC")
+            pointer += FIELD_ELEMENT_BYTES
+
+    print_small_g1(pointer, "SHPLONK_Q")
+    pointer += GROUP_ELEMENT_BYTES
+    print_small_g1(pointer, "KZG_QUOTIENT")
+    pointer += GROUP_ELEMENT_BYTES
 
     return pointer
 
 def print_challenges(pointer: int):
     for chall in challenges:
         print_fr(pointer, chall + "_CHALLENGE")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     for alpha in range(0, NUMBER_OF_ALPHAS):
         print_fr(pointer, "ALPHA_CHALLENGE_" + str(alpha))
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     # TODO: this NOT THE PROOF SIZE LOG_N?????
     for gate in range(0, PROOF_SIZE_LOG_N):
         print_fr(pointer, "GATE_CHALLENGE_" + str(gate))
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
+
+    if is_zk:
+        print_fr(pointer, "LIBRA_CHALLENGE")
+        pointer += FIELD_ELEMENT_BYTES
 
     for sum_u in range(0, PROOF_SIZE_LOG_N):
         print_fr(pointer, "SUM_U_CHALLENGE_" + str(sum_u))
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     return pointer
 
-BARYCENTRIC_DOMAIN_SIZE = 8
+BARYCENTRIC_DOMAIN_SIZE = 9 if is_zk else 8
 def print_barycentric_domain():
     # use scratch space
     bary_pointer = SCRATCH_SPACE_POINTER
     for i in range(0, BARYCENTRIC_DOMAIN_SIZE):
         print_fr(bary_pointer, "BARYCENTRIC_LAGRANGE_DENOMINATOR_" + str(i) + "_LOC")
-        bary_pointer += 32
+        bary_pointer += FIELD_ELEMENT_BYTES
 
     for i in range(0, PROOF_SIZE_LOG_N):
         for j in range(0, BARYCENTRIC_DOMAIN_SIZE):
             print_fr(bary_pointer, "BARYCENTRIC_DENOMINATOR_INVERSES_" + str(i) + "_" + str(j) + "_LOC")
-            bary_pointer += 32
+            bary_pointer += FIELD_ELEMENT_BYTES
 
 
 def print_subrelation_eval(pointer: int):
     for i in range(0, NUMBER_OF_SUBRELATIONS):
         print_fr(pointer, "SUBRELATION_EVAL_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     return pointer
 
@@ -295,11 +360,11 @@ general_intermediates = [
 def print_subrelation_intermediates(pointer: int):
     for item in general_intermediates:
         print_fr(pointer, item)
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     for item in subrelation_intermediates:
         print_fr(pointer, item)
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     return pointer
 
@@ -307,20 +372,20 @@ def print_batch_scalars(pointer: int):
     BATCH_SIZE = 69
     for i in range(0, BATCH_SIZE):
         print_fr(pointer, "BATCH_SCALAR_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     return pointer
 
 def print_powers_of_evaluation_challenge(pointer: int):
     for i in range(0, PROOF_SIZE_LOG_N):
         print_fr(pointer, "POWERS_OF_EVALUATION_CHALLENGE_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_inverted_gemini_denominators(pointer: int):
     for i in range(0, PROOF_SIZE_LOG_N + 1):
         print_fr(pointer, "INVERTED_GEMINI_DENOMINATOR_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 # TODO: double check this value
@@ -328,17 +393,17 @@ def print_batched_evaluation_accumulator_inversions(pointer: int):
     BATCH_SIZE = 15
     for i in range(0, BATCH_SIZE):
         print_fr(pointer, "BATCH_EVALUATION_ACCUMULATOR_INVERSION_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_batched_evaluation_location(pointer: int):
     print_fr(pointer, "BATCHED_EVALUATION_LOC")
-    pointer += 32
+    pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_constant_term_accumulator_location(pointer: int):
     print_fr(pointer, "CONSTANT_TERM_ACCUMULATOR_LOC")
-    pointer += 32
+    pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_inversions():
@@ -372,44 +437,44 @@ def print_inversions():
 
 def print_pos_neg_inverted_denominators(pointer: int):
     print_fr(pointer, "POS_INVERTED_DENOMINATOR")
-    pointer += 32
+    pointer += FIELD_ELEMENT_BYTES
     print_fr(pointer, "NEG_INVERTED_DENOMINATOR")
-    pointer += 32
+    pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_inverted_challenge_pow_minus_u(pointer: int):
     for i in range(0, PROOF_SIZE_LOG_N):
         print_fr(pointer, "INVERTED_CHALLENEGE_POW_MINUS_U_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_pos_inverted_denom(pointer: int):
     for i in range(0, PROOF_SIZE_LOG_N):
         print_fr(pointer, "POS_INVERTED_DENOM_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_neg_inverted_denom(pointer: int):
     for i in range(0, PROOF_SIZE_LOG_N):
         print_fr(pointer, "NEG_INVERTED_DENOM_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_fold_pos_evaluations(pointer: int):
     for i in range(0, PROOF_SIZE_LOG_N):
         print_fr(pointer, "FOLD_POS_EVALUATIONS_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_later_scratch_space(pointer: int):
     print_fr(pointer, "LATER_SCRATCH_SPACE")
-    pointer += 32
+    pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_temp_space(pointer: int):
     for i in range(0, 3 * PROOF_SIZE_LOG_N):
         print_fr(pointer, "TEMP_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_scratch_space_aliases():
