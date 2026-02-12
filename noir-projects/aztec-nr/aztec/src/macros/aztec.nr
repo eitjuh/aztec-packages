@@ -19,7 +19,7 @@ use crate::macros::{
 ///
 /// Usage:
 /// ```noir
-/// #[aztec(AztecConfig::new().with_custom_message_handler("handle_multi_log_message"))]
+/// #[aztec(AztecConfig::new().custom_message_handler("handle_multi_log_message"))]
 /// contract MyContract { ... }
 /// ```
 pub struct AztecConfig {
@@ -39,7 +39,7 @@ impl AztecConfig {
     ///
     /// `handler_name` must be the name of a `#[contract_library_method]` function that conforms to the
     /// [`messages::discovery::CustomMessageHandler`](crate::messages::discovery::CustomMessageHandler) type signature.
-    pub comptime fn with_custom_message_handler(_self: Self, handler_name: CtString) -> Self {
+    pub comptime fn custom_message_handler(_self: Self, handler_name: CtString) -> Self {
         Self { custom_message_handler: Option::some(handler_name) }
     }
 }
@@ -61,7 +61,7 @@ impl AztecConfig {
 /// Advanced contracts can use [`AztecConfig`](AztecConfig) to customize parts of its behavior, such as message
 /// processing.
 /// ```noir
-/// #[aztec(AztecConfig::new().with_custom_message_handler("my_handler"))]
+/// #[aztec(AztecConfig::new().custom_message_handler("my_handler"))]
 /// contract MyAdvancedContract { ... }
 /// ```
 #[varargs]
@@ -405,7 +405,7 @@ comptime fn generate_process_message() -> Quoted {
 
 /// Validates a custom message handler.
 ///
-/// Custom message handlers are specified by name via `AztecConfig::with_custom_message_handler`. A custom message
+/// Custom message handlers are specified by name via `AztecConfig::custom_message_handler`. A custom message
 /// handler must be a function that conform to the `aztec::messages::discovery::CustomMessageHandler` type signature.
 /// The function must be unconstrained and marked as `#[contract_library_method]`.
 ///

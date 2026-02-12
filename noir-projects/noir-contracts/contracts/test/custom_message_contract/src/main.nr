@@ -1,6 +1,6 @@
 use aztec::macros::aztec;
 
-#[aztec(aztec::AztecConfig::new().with_custom_message_handler("handle_multi_log_message"))]
+#[aztec(aztec::AztecConfig::new().custom_message_handler("handle_multi_log_message"))]
 contract CustomMessage {
     use aztec::{
         event::event_interface::{

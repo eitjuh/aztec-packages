@@ -107,7 +107,7 @@ pub(crate) unconstrained fn enqueue_note_for_validation(
 
 /// Enqueues an event for validation by PXE, so it can be efficiently validated and then inserted into the event store.
 ///
-/// This is the primary way for custom message handlers (registered via `with_custom_message_handler`) to deliver
+/// This is the primary way for custom message handlers (registered via `custom_message_handler`) to deliver
 /// reassembled events back to PXE after processing application-specific message formats.
 ///
 /// In order for the event validation and insertion to occur, `validate_and_store_enqueued_notes_and_events` must be
