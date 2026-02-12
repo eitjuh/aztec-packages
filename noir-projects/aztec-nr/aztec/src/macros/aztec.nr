@@ -395,8 +395,9 @@ comptime fn generate_process_message(process_custom_message_option: Quoted) -> Q
 /// Validates a custom message handler.
 ///
 /// Custom message handlers are specified by name via `AztecConfig::custom_message_handler`. A custom message
-/// handler must be a function that conform to the `aztec::messages::discovery::CustomMessageHandler` type signature.
-/// The function must be unconstrained and marked as `#[contract_library_method]`.
+/// handler must be a function that conforms to the
+/// [`CustomMessageHandler`](crate::messages::discovery::CustomMessageHandler) type signature. The function must be
+/// unconstrained and marked as `#[contract_library_method]`.
 ///
 /// Returns a `FunctionDefinition` so we can get its properly quoted name.
 comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -> FunctionDefinition {
@@ -426,6 +427,45 @@ comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -
     if !handler.is_unconstrained() {
         panic(
             f"Custom message handler '{handler_name}' must be unconstrained. See {expected_type_name} for the expected signature.",
+        );
+    }
+
+    let expected_param_types: [Type; 5] = [
+        quote { crate::protocol::address::AztecAddress }.as_type(),
+        quote { u64 }.as_type(),
+        quote { u64 }.as_type(),
+        quote { BoundedVec<Field, crate::messages::encoding::MAX_MESSAGE_CONTENT_LEN> }.as_type(),
+        quote { crate::messages::processing::MessageContext }.as_type(),
+    ];
+
+    let params = handler.parameters();
+    let num_params = params.len();
+    let expected_num_params = expected_param_types.len();
+    if num_params != expected_num_params {
+        panic(
+            f"Custom message handler '{handler_name}' has {num_params} parameters but expected {expected_num_params}. See {expected_type_name} for the expected signature.",
+        );
+    }
+
+    for i in 0..expected_param_types.len() {
+        let (_param_name, param_type) = params[i];
+        let expected_param_type = expected_param_types[i];
+        if param_type != expected_param_type {
+            let actual = f"{param_type}";
+            let expected = f"{expected_param_type}";
+            panic(
+                f"Custom message handler '{handler_name}' parameter {i} has type {actual} but expected {expected}. See {expected_type_name} for the expected signature.",
+            );
+        }
+    }
+
+    let return_type = handler.return_type();
+    let expected_return_type: Type = quote { () }.as_type();
+    if return_type != expected_return_type {
+        let actual = f"{return_type}";
+        let expected = f"{expected_return_type}";
+        panic(
+            f"Custom message handler '{handler_name}' returns {actual} but expected {expected}. See {expected_type_name} for the expected signature.",
         );
     }
 
