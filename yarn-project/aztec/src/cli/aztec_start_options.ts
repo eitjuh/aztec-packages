@@ -143,6 +143,22 @@ export const aztecStartOptions: { [key: string]: AztecStartOption[] } = {
       parseVal: val => parseInt(val, 10),
     },
     {
+      flag: '--no-admin-api-key',
+      description:
+        'Disable API key authentication on the admin RPC endpoint. By default, a key is auto-generated, displayed once, and its hash is persisted.',
+      defaultValue: false,
+      env: 'AZTEC_NO_ADMIN_API_KEY',
+      parseVal: val => val === 'true' || val === '1',
+    },
+    {
+      flag: '--reset-admin-api-key',
+      description:
+        'Force-generate a new admin API key, replacing any previously persisted key hash. The new key is displayed once at startup.',
+      defaultValue: false,
+      env: 'AZTEC_RESET_ADMIN_API_KEY',
+      parseVal: val => val === 'true' || val === '1',
+    },
+    {
       flag: '--api-prefix <value>',
       description: 'Prefix for API routes on any service that is started',
       defaultValue: '',

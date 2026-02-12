@@ -95,6 +95,10 @@ node:
     envEnabled: false
     filesEnabled: false
 
+  # -- Disable admin API key authentication.
+  # Set to false in production to enable API key auth.
+  noAdminApiKey: true
+
   # the address that will receive block or proof rewards
   coinbase:
 
