@@ -1,7 +1,7 @@
 use crate::messages::{
     discovery::{
-        ComputeNoteHashAndNullifier, partial_notes::process_partial_note_private_msg,
-        private_events::process_private_event_msg, private_notes::process_private_note_msg, ProcessCustomMessage,
+        ComputeNoteHashAndNullifier, CustomMessageHandler, partial_notes::process_partial_note_private_msg,
+        private_events::process_private_event_msg, private_notes::process_private_note_msg,
     },
     encoding::{decode_message, MESSAGE_CIPHERTEXT_LEN, MESSAGE_PLAINTEXT_LEN},
     encryption::{aes128::AES128, message_encryption::MessageEncryption},
@@ -28,7 +28,7 @@ use crate::protocol::{address::AztecAddress, debug_log::{debug_log, debug_log_fo
 pub unconstrained fn process_message_ciphertext(
     contract_address: AztecAddress,
     compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
-    process_custom_message: Option<ProcessCustomMessage<()>>,
+    process_custom_message: Option<CustomMessageHandler<()>>,
     message_ciphertext: BoundedVec<Field, MESSAGE_CIPHERTEXT_LEN>,
     message_context: MessageContext,
 ) {
@@ -53,7 +53,7 @@ pub unconstrained fn process_message_ciphertext(
 pub unconstrained fn process_message_plaintext(
     contract_address: AztecAddress,
     compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
-    process_custom_message: Option<ProcessCustomMessage<()>>,
+    process_custom_message: Option<CustomMessageHandler<()>>,
     message_plaintext: BoundedVec<Field, MESSAGE_PLAINTEXT_LEN>,
     message_context: MessageContext,
 ) {
@@ -99,8 +99,7 @@ pub unconstrained fn process_message_plaintext(
         // The message type ID falls in the range reserved for aztec.nr built-in types but wasn't matched above. This
         // means either the developer mistakenly used a reserved ID for a custom message, or this version of aztec.nr
         // is too old to handle a newer built-in type.
-        assert(
-            false,
+        panic(
             f"Message type ID {msg_type_id} is reserved for aztec.nr built-in types. Custom message types must use IDs >= MIN_CUSTOM_MSG_TYPE_ID (65536). If this is a built-in type, update aztec.nr.",
         );
     } else if process_custom_message.is_some() {

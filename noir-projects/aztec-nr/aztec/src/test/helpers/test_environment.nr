@@ -13,8 +13,8 @@ use crate::{
     hash::hash_args,
     messages::{
         discovery::{
-            ComputeNoteHashAndNullifier, NoteHashAndNullifier, process_message::process_message_plaintext,
-            ProcessCustomMessage,
+            ComputeNoteHashAndNullifier, CustomMessageHandler, NoteHashAndNullifier,
+            process_message::process_message_plaintext,
         },
         encoding::MESSAGE_PLAINTEXT_LEN,
         logs::{event::encode_private_event_message, note::encode_private_note_message},
@@ -761,7 +761,7 @@ impl TestEnvironment {
             Option::some(NoteHashAndNullifier { note_hash, inner_nullifier })
         };
 
-        let process_custom_message: Option<ProcessCustomMessage<()>> = Option::none();
+        let process_custom_message: Option<CustomMessageHandler<()>> = Option::none();
         self.discover_data_in_message_plaintext(
             message_plaintext,
             opts.contract_address,
@@ -868,7 +868,7 @@ impl TestEnvironment {
             )
         };
 
-        let process_custom_message: Option<ProcessCustomMessage<()>> = Option::none();
+        let process_custom_message: Option<CustomMessageHandler<()>> = Option::none();
         self.discover_data_in_message_plaintext(
             message_plaintext,
             opts.contract_address,
@@ -884,7 +884,7 @@ impl TestEnvironment {
         contract_address: Option<AztecAddress>,
         recipient: Option<AztecAddress>,
         compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
-        process_custom_message: Option<ProcessCustomMessage<()>>,
+        process_custom_message: Option<CustomMessageHandler<()>>,
     ) {
         // This function will emulate the message discovery and processing that would happen in a real contract, based
         // on a message plaintext.

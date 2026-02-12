@@ -32,25 +32,37 @@ impl AztecConfig {
         Self { custom_message_handler: Option::none() }
     }
 
-    /// Sets the custom message handler function name.
+    /// Sets a handler for custom messages.
     ///
-    /// The function must be a `#[contract_library_method]` that conforms to the
-    /// `aztec::messages::discovery::ProcessCustomMessage` type signature.
+    /// This enables contracts to process non-standard messages (i.e. any with a message type that is not in
+    /// [`messages::msg_type`]).
+    ///
+    /// `handler_name` must be the name of a `#[contract_library_method]` function that conforms to the
+    /// [`messages::discovery::CustomMessageHandler`](crate::messages::discovery::CustomMessageHandler) type signature.
     pub comptime fn with_custom_message_handler(_self: Self, handler_name: CtString) -> Self {
         Self { custom_message_handler: Option::some(handler_name) }
     }
 }
 
-/// Marks a contract as an Aztec contract, generating the interfaces for its functions and notes, as well as injecting
-/// the `sync_state` utility function.
+/// Enables aztec-nr features on a `contract`.
 ///
-/// Usage:
+/// All aztec-nr contracts should have this macro invoked on them, as it is the one that processes all contract
+/// functions, notes, storage, generates interfaces for external calls, and creates the message processing
+/// boilerplate.
+///
+/// ## Examples
+///
+/// Most contracts can simply invoke the macro with no parameters, resulting in default aztec-nr behavior:
 /// ```noir
-/// #[aztec]  // Simple case with defaults
+/// #[aztec]
 /// contract MyContract { ... }
+/// ```
 ///
-/// #[aztec(AztecConfig::new().with_custom_message_handler("my_handler"))]  // With config
-/// contract MyOtherContract { ... }
+/// Advanced contracts can use [`AztecConfig`](AztecConfig) to customize parts of its behavior, such as message
+/// processing.
+/// ```noir
+/// #[aztec(AztecConfig::new().with_custom_message_handler("my_handler"))]
+/// contract MyAdvancedContract { ... }
 /// ```
 #[varargs]
 pub comptime fn aztec(m: Module, args: [AztecConfig]) -> Quoted {
@@ -96,7 +108,7 @@ pub comptime fn aztec(m: Module, args: [AztecConfig]) -> Quoted {
         let handler_name = handler_fn.name();
         quote { Option::some($handler_name) }
     } else {
-        quote { Option::<aztec::messages::discovery::ProcessCustomMessage<()>>::none() }
+        quote { Option::<aztec::messages::discovery::CustomMessageHandler<()>>::none() }
     };
 
     let get_aztec_contract_config_fn = generate_get_aztec_contract_config(process_custom_message_option);
@@ -394,12 +406,12 @@ comptime fn generate_process_message() -> Quoted {
 /// Validates a custom message handler.
 ///
 /// Custom message handlers are specified by name via `AztecConfig::with_custom_message_handler`. A custom message
-/// handler must be a function that conform to the `aztec::messages::discovery::ProcessCustomMessage` type signature.
+/// handler must be a function that conform to the `aztec::messages::discovery::CustomMessageHandler` type signature.
 /// The function must be unconstrained and marked as `#[contract_library_method]`.
 ///
 /// Returns a `FunctionDefinition` so we can get its properly quoted name.
 comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -> FunctionDefinition {
-    let expected_type: Type = quote { crate::messages::discovery::ProcessCustomMessage<()> }.as_type();
+    let expected_type: Type = quote { crate::messages::discovery::CustomMessageHandler<()> }.as_type();
     let expected_type_name = f"{expected_type}";
 
     let matching_fns = m.functions().filter(|f: FunctionDefinition| {

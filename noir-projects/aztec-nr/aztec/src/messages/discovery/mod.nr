@@ -66,29 +66,12 @@ pub type ComputeNoteHashAndNullifier<Env> = unconstrained fn[Env](/* packed_note
  owner */ AztecAddress, /* storage_slot */ Field, /* note_type_id */ Field, /* contract_address */ AztecAddress, /*
 randomness */ Field, /* note nonce */ Field) -> Option<NoteHashAndNullifier>;
 
-/// The type signature for custom message handlers.
+/// A handler for custom messages.
 ///
-/// When `process_message_plaintext` encounters a `msg_type_id` that doesn't match any built-in type (private notes,
-/// partial notes, or events), it calls the custom handler instead of silently ignoring the message.
-///
-/// Contracts specify a custom handler via `AztecConfig::with_custom_message_handler("handler_name")` in the
-/// `#[aztec(...)]` attribute. The named function must be a `#[contract_library_method]` conforming to this type.
-///
-/// Example:
-/// ```
-/// #[aztec(aztec::AztecConfig::new().with_custom_message_handler("my_handler"))]
-/// contract MyContract {
-///     #[contract_library_method]
-///     unconstrained fn my_handler(
-///         contract_address: AztecAddress,
-///         msg_type_id: u64,
-///         msg_metadata: u64,
-///         msg_content: BoundedVec<Field, MAX_MESSAGE_CONTENT_LEN>,
-///         message_context: MessageContext,
-///     ) { ... }
-/// }
-/// ```
-pub type ProcessCustomMessage<Env> = unconstrained fn[Env](
+/// Contracts that emit custom messages (i.e. any with a message type that is not in [`crate::messages::msg_type`])
+/// need to use [`crate::macros::AztecConfig::with_custom_message_handler`] with a function of this type in order to
+/// process them. They will otherwise be **silently ignored**.
+pub type CustomMessageHandler<Env> = unconstrained fn[Env](
 /* contract_address */AztecAddress,
 /* msg_type_id */ u64,
 /* msg_metadata */ u64,
@@ -100,7 +83,7 @@ pub struct AztecContractConfig {
     /// Function to compute note hash and nullifier for different note types.
     pub compute_note_hash_and_nullifier: ComputeNoteHashAndNullifier<()>,
     /// Optional custom handler for unknown message types.
-    pub process_custom_message: Option<ProcessCustomMessage<()>>,
+    pub process_custom_message: Option<CustomMessageHandler<()>>,
 }
 
 /// Performs the state synchronization process, in which private logs are downloaded and inspected to find new private
