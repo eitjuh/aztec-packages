@@ -920,8 +920,8 @@ contract BlakeOptZKHonkVerifier is IVerifier {
     uint256 internal constant CONSISTENCY_DENOMINATORS_BASE = 0x8000;
     // batch inversion products[256]: 0xA000 - 0xBFFF
     uint256 internal constant CONSISTENCY_PRODUCTS_BASE = 0xA000;
-    // LIBRA_UNIVARIATES_LENGTH = (SUBGROUP_SIZE - 1) / LOG_N = 17
-    uint256 internal constant LIBRA_UNIVARIATES_LENGTH = 17;
+    // LIBRA_UNIVARIATES_LENGTH = BATCHED_RELATION_PARTIAL_LENGTH = 9
+    uint256 internal constant LIBRA_UNIVARIATES_LENGTH = 9;
     // 1/SUBGROUP_SIZE mod p (precomputed constant)
     uint256 internal constant INV_SUBGROUP_SIZE = 0x3033ea246e506e898e97f570caffd704cb0bb460313fb720b29e139e5c100001;
     // Aliases for scratch space
@@ -4794,6 +4794,9 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                     // Step 2: Build challengePolyLagrange[0..255]
                     // Memory layout: CHALLENGE_POLY_LAGRANGE_BASE + idx * 0x20
+                    // Zero-initialize all 256 entries (only 1 + 9*LOG_N = 136 will be non-zero)
+                    calldatacopy(CHALLENGE_POLY_LAGRANGE_BASE, calldatasize(), 0x2000)
+
                     mstore(CHALLENGE_POLY_LAGRANGE_BASE, 1) // [0] = 1
 
                     {
@@ -4805,7 +4808,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                             // [currIdx] = 1
                             mstore(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(curr_idx, 0x20)), 1)
 
-                            // [currIdx+1..currIdx+16] = u^1, u^2, ..., u^16
+                            // [currIdx+1..currIdx+8] = u^1, u^2, ..., u^8
                             let prev_val := 1
                             for { let j := 1 } lt(j, LIBRA_UNIVARIATES_LENGTH) { j := add(j, 1) } {
                                 prev_val := mulmod(prev_val, u_round, p)
