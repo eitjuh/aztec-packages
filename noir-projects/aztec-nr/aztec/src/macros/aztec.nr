@@ -31,7 +31,8 @@ impl AztecConfig {
     /// Creates a new `AztecConfig` with default values.
     ///
     /// Calling `new` is equivalent to invoking the [`#[aztec]`](aztec) macro with no parameters. The different methods
-    /// (e.g. [`custom_message_handler`](custom_message_handler)) can then be used to change the default behavior.
+    /// (e.g. [`custom_message_handler`](AztecConfig::custom_message_handler)) can then be used to change the default
+    /// behavior.
     pub comptime fn new() -> Self {
         Self { custom_message_handler: Option::none() }
     }
@@ -39,7 +40,7 @@ impl AztecConfig {
     /// Sets a handler for custom messages.
     ///
     /// This enables contracts to process non-standard messages (i.e. any with a message type that is not in
-    /// [`messages::msg_type`]).
+    /// [`messages::msg_type`](crate::messages::msg_type)).
     ///
     /// `handler` must be a `#[contract_library_method]` function that conforms to the
     /// [`messages::discovery::CustomMessageHandler`](crate::messages::discovery::CustomMessageHandler) type signature.
