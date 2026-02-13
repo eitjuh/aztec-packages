@@ -4379,8 +4379,11 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 )
 
                 // Accumulator = accumulator + scalar[27] * vk[26]
+                // optimization - Lagrange first is always G - (1,2)
+                //                later on we are expected to multiply constant_term_accumulator by G - (1,2)
+                //                here we can add scalars together and skip a ecMul + ecAdd for each
                 mcopy(G1_LOCATION, LAGRANGE_FIRST_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_28_LOC))
+                mstore(SCALAR_LOCATION, addmod(constant_term_acc, mload(BATCH_SCALAR_27_LOC), p))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
