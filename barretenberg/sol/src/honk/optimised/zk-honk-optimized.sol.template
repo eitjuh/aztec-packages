@@ -4055,20 +4055,16 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 let gemini_r := mload(GEMINI_R_CHALLENGE)
 
                 // Step 1: Compute vanishingPolyEval = geminiR^SUBGROUP_SIZE - 1
-                // claude: this should be a mulchain rather than being a call to the precompile
-                // claude: there is only 256 multiplications here - which is 8 mulmod calls
-                // claude: this is 3000 gas vs 64
-                mstore(0x00, 0x20) // base length
-                mstore(0x20, 0x20) // exp length
-                mstore(0x40, 0x20) // mod length
-                mstore(0x60, gemini_r) // base
-                mstore(0x80, SUBGROUP_SIZE) // exp = 256
-                mstore(0xa0, p) // mod
-                if iszero(staticcall(gas(), 5, 0x00, 0xc0, 0x00, 0x20)) {
-                    mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
-                    revert(0x00, 0x04)
-                }
-                let vanishing_poly_eval := addmod(mload(0x00), sub(p, 1), p)
+                // SUBGROUP_SIZE = 256 = 2^8, so 8 squarings instead of modexp precompile
+                let v := mulmod(gemini_r, gemini_r, p) // r^2
+                v := mulmod(v, v, p)                   // r^4
+                v := mulmod(v, v, p)                   // r^8
+                v := mulmod(v, v, p)                   // r^16
+                v := mulmod(v, v, p)                   // r^32
+                v := mulmod(v, v, p)                   // r^64
+                v := mulmod(v, v, p)                   // r^128
+                v := mulmod(v, v, p)                   // r^256
+                let vanishing_poly_eval := addmod(v, sub(p, 1), p)
 
                 // Require vanishingPolyEval != 0 (geminiR not in subgroup)
                 if iszero(vanishing_poly_eval) {
