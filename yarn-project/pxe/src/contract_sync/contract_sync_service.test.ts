@@ -9,7 +9,6 @@ import { makeBlockHeader } from '@aztec/stdlib/testing';
 import { jest } from '@jest/globals';
 import { mock } from 'jest-mock-extended';
 
-import type { AccessScopes } from '../access_scopes.js';
 import type { ContractStore } from '../storage/contract_store/contract_store.js';
 import type { NoteStore } from '../storage/note_store/note_store.js';
 import { ContractSyncService } from './contract_sync_service.js';
@@ -19,7 +18,7 @@ describe('ContractSyncService', () => {
   let contractStore: ReturnType<typeof mock<ContractStore>>;
   let noteStore: ReturnType<typeof mock<NoteStore>>;
   let service: ContractSyncService;
-  let utilityExecutor: jest.Mock<(call: FunctionCall, scopes: AccessScopes) => Promise<void>>;
+  let utilityExecutor: jest.Mock<(call: FunctionCall, scopes: undefined | AztecAddress[]) => Promise<void>>;
 
   const contractAddress = AztecAddress.fromBigInt(100n);
   const scopeA = AztecAddress.fromBigInt(200n);
@@ -29,11 +28,11 @@ describe('ContractSyncService', () => {
   const classId = Fr.fromHexString('0xdeadbeef');
 
   /** Sentinel for undefined scopes (sync all accounts). */
-  const ALL_SCOPES = 'ALL_SCOPES' as const;
+  const ALL_SCOPES = undefined;
 
   beforeEach(() => {
     utilityExecutor = jest
-      .fn<(call: FunctionCall, scopes: AccessScopes) => Promise<void>>()
+      .fn<(call: FunctionCall, scopes: undefined | AztecAddress[]) => Promise<void>>()
       .mockResolvedValue(undefined);
 
     contractStore = mock<ContractStore>();
@@ -79,15 +78,8 @@ describe('ContractSyncService', () => {
       expectSyncedScopes([scopeA], [scopeA]);
     });
 
-    it('skips scope-specific syncs after syncing with all scopes', async () => {
-      await service.ensureContractSynced(
-        contractAddress,
-        null,
-        utilityExecutor,
-        anchorBlockHeader,
-        jobId,
-        'ALL_SCOPES',
-      );
+    it('skips scope-specific syncs after syncing with undefined scopes', async () => {
+      await service.ensureContractSynced(contractAddress, null, utilityExecutor, anchorBlockHeader, jobId, undefined);
       expectSyncedScopes(ALL_SCOPES);
 
       // After syncing all scopes, scope-specific calls should be skipped
@@ -96,16 +88,9 @@ describe('ContractSyncService', () => {
       expectSyncedScopes(ALL_SCOPES);
     });
 
-    it('still syncs all scopes even after scope-specific sync', async () => {
+    it('still syncs undefined scopes even after scope-specific sync', async () => {
       await service.ensureContractSynced(contractAddress, null, utilityExecutor, anchorBlockHeader, jobId, [scopeA]);
-      await service.ensureContractSynced(
-        contractAddress,
-        null,
-        utilityExecutor,
-        anchorBlockHeader,
-        jobId,
-        'ALL_SCOPES',
-      );
+      await service.ensureContractSynced(contractAddress, null, utilityExecutor, anchorBlockHeader, jobId, undefined);
       expectSyncedScopes([scopeA], ALL_SCOPES);
     });
 
@@ -234,7 +219,7 @@ describe('ContractSyncService', () => {
   });
 
   /** Asserts the utility executor was called exactly with the given sequence of scope arrays. */
-  const expectSyncedScopes = (...expectedScopes: AccessScopes[]) => {
+  const expectSyncedScopes = (...expectedScopes: (undefined | AztecAddress[])[]) => {
     expect(utilityExecutor).toHaveBeenCalledTimes(expectedScopes.length);
     for (let i = 0; i < expectedScopes.length; i++) {
       const [, actualScopes] = utilityExecutor.mock.calls[i];

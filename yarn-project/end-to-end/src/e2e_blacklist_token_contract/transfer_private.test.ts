@@ -1,7 +1,6 @@
 import { computeAuthWitMessageHash } from '@aztec/aztec.js/authorization';
 import { Fr } from '@aztec/aztec.js/fields';
 
-import { sendThroughAuthwitProxy, simulateThroughAuthwitProxy } from '../fixtures/authwit_proxy.js';
 import { DUPLICATE_NULLIFIER_ERROR } from '../fixtures/fixtures.js';
 import { BlacklistTokenContractTest } from './blacklist_token_contract_test.js';
 
@@ -50,16 +49,19 @@ describe('e2e_blacklist_token_contract transfer private', () => {
     expect(amount).toBeGreaterThan(0n);
 
     const action = asset.methods.transfer(adminAddress, otherAddress, amount, authwitNonce);
-    const witness = await wallet.createAuthWit(adminAddress, { caller: t.authwitProxy.address, action });
+    const call = await action.getFunctionCall();
+    const witness = await wallet.createAuthWit(adminAddress, { caller: t.proxy.address, action });
 
-    // Admin sends through proxy so their keys are in scope, while proxy becomes msg_sender to trigger authwit.
-    await sendThroughAuthwitProxy(t.authwitProxy, action, { from: adminAddress, authWitnesses: [witness] });
+    await t.proxy.methods
+      .forward_private_4(call.to, call.selector, call.args)
+      .send({ from: adminAddress, authWitnesses: [witness] });
     tokenSim.transferPrivate(adminAddress, otherAddress, amount);
 
     // Perform the transfer again, should fail
-    await expect(
-      sendThroughAuthwitProxy(t.authwitProxy, action, { from: adminAddress, authWitnesses: [witness] }),
-    ).rejects.toThrow(DUPLICATE_NULLIFIER_ERROR);
+    const txReplay = t.proxy.methods
+      .forward_private_4(call.to, call.selector, call.args)
+      .send({ from: adminAddress, authWitnesses: [witness] });
+    await expect(txReplay).rejects.toThrow(DUPLICATE_NULLIFIER_ERROR);
   });
 
   describe('failure cases', () => {
@@ -92,13 +94,17 @@ describe('e2e_blacklist_token_contract transfer private', () => {
       const authwitNonce = Fr.random();
       expect(amount).toBeGreaterThan(0n);
 
+      // We need to compute the message we want to sign and add it to the wallet as approved
       const action = asset.methods.transfer(adminAddress, otherAddress, amount, authwitNonce);
-      const witness = await wallet.createAuthWit(adminAddress, { caller: t.authwitProxy.address, action });
 
-      // Admin sends through proxy so their keys are in scope, while proxy becomes msg_sender to trigger authwit.
-      await expect(
-        simulateThroughAuthwitProxy(t.authwitProxy, action, { from: adminAddress, authWitnesses: [witness] }),
-      ).rejects.toThrow('Assertion failed: Balance too low');
+      // Both wallets are connected to same node and PXE so we could just insert directly
+      // But doing it in two actions to show the flow.
+      const witness = await wallet.createAuthWit(adminAddress, { caller: otherAddress, action });
+
+      // Perform the transfer
+      await expect(action.simulate({ from: otherAddress, authWitnesses: [witness] })).rejects.toThrow(
+        'Assertion failed: Balance too low',
+      );
       expect(await asset.methods.balance_of_private(adminAddress).simulate({ from: adminAddress })).toEqual(balance0);
       expect(await asset.methods.balance_of_private(otherAddress).simulate({ from: otherAddress })).toEqual(balance1);
     });
@@ -116,15 +122,14 @@ describe('e2e_blacklist_token_contract transfer private', () => {
       const authwitNonce = Fr.random();
       expect(amount).toBeGreaterThan(0n);
 
+      // We need to compute the message we want to sign and add it to the wallet as approved
       const action = asset.methods.transfer(adminAddress, otherAddress, amount, authwitNonce);
-      const call = await action.getFunctionCall();
       const messageHash = await computeAuthWitMessageHash(
-        { caller: t.authwitProxy.address, call },
+        { caller: otherAddress, call: await action.getFunctionCall() },
         await wallet.getChainInfo(),
       );
 
-      // Admin sends through proxy so their keys are in scope, while proxy becomes msg_sender to trigger authwit.
-      await expect(simulateThroughAuthwitProxy(t.authwitProxy, action, { from: adminAddress })).rejects.toThrow(
+      await expect(action.simulate({ from: otherAddress })).rejects.toThrow(
         `Unknown auth witness for message hash ${messageHash.toString()}`,
       );
     });
@@ -135,19 +140,18 @@ describe('e2e_blacklist_token_contract transfer private', () => {
       const authwitNonce = Fr.random();
       expect(amount).toBeGreaterThan(0n);
 
+      // We need to compute the message we want to sign and add it to the wallet as approved
       const action = asset.methods.transfer(adminAddress, otherAddress, amount, authwitNonce);
-      const call = await action.getFunctionCall();
       const expectedMessageHash = await computeAuthWitMessageHash(
-        { caller: t.authwitProxy.address, call },
+        { caller: blacklistedAddress, call: await action.getFunctionCall() },
         await wallet.getChainInfo(),
       );
 
       const witness = await wallet.createAuthWit(adminAddress, { caller: otherAddress, action });
 
-      // Admin sends through proxy so their keys are in scope, while proxy becomes msg_sender to trigger authwit.
-      await expect(
-        simulateThroughAuthwitProxy(t.authwitProxy, action, { from: adminAddress, authWitnesses: [witness] }),
-      ).rejects.toThrow(`Unknown auth witness for message hash ${expectedMessageHash.toString()}`);
+      await expect(action.simulate({ from: blacklistedAddress, authWitnesses: [witness] })).rejects.toThrow(
+        `Unknown auth witness for message hash ${expectedMessageHash.toString()}`,
+      );
       expect(await asset.methods.balance_of_private(adminAddress).simulate({ from: adminAddress })).toEqual(balance0);
     });
 

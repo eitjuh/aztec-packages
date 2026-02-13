@@ -25,7 +25,6 @@ import {
   type TxContext,
 } from '@aztec/stdlib/tx';
 
-import type { AccessScopes } from '../../access_scopes.js';
 import type { ContractSyncService } from '../../contract_sync/contract_sync_service.js';
 import { NoteService } from '../../notes/note_service.js';
 import type { SenderTaggingStore } from '../../storage/tagging_store/sender_tagging_store.js';
@@ -44,7 +43,7 @@ export type PrivateExecutionOracleArgs = Omit<UtilityExecutionOracleArgs, 'contr
   txContext: TxContext;
   callContext: CallContext;
   /** Needed to trigger contract synchronization before nested calls */
-  utilityExecutor: (call: FunctionCall, scopes: AccessScopes) => Promise<void>;
+  utilityExecutor: (call: FunctionCall, scopes: undefined | AztecAddress[]) => Promise<void>;
   executionCache: HashedValuesCache;
   noteCache: ExecutionNoteCache;
   taggingIndexCache: ExecutionTaggingIndexCache;
@@ -79,7 +78,7 @@ export class PrivateExecutionOracle extends UtilityExecutionOracle implements IP
   private readonly argsHash: Fr;
   private readonly txContext: TxContext;
   private readonly callContext: CallContext;
-  private readonly utilityExecutor: (call: FunctionCall, scopes: AccessScopes) => Promise<void>;
+  private readonly utilityExecutor: (call: FunctionCall, scopes: undefined | AztecAddress[]) => Promise<void>;
   private readonly executionCache: HashedValuesCache;
   private readonly noteCache: ExecutionNoteCache;
   private readonly taggingIndexCache: ExecutionTaggingIndexCache;
@@ -532,7 +531,7 @@ export class PrivateExecutionOracle extends UtilityExecutionOracle implements IP
     // We only expand for registered accounts because the log service needs the recipient's keys to derive
     // tagging secrets, which are only available for registered accounts.
     const expandedScopes =
-      this.scopes !== 'ALL_SCOPES' && (await this.keyStore.hasAccount(targetContractAddress))
+      this.scopes && (await this.keyStore.hasAccount(targetContractAddress))
         ? [...this.scopes, targetContractAddress]
         : this.scopes;
 

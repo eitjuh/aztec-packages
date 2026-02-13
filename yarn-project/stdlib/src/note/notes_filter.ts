@@ -24,8 +24,11 @@ export type NotesFilter = {
   status?: NoteStatus;
   /** The siloed nullifier for the note. */
   siloedNullifier?: Fr;
-  /** The scopes in which to get notes from */
-  scopes: 'ALL_SCOPES' | AztecAddress[];
+  /**
+   * The scopes in which to get notes from
+   * Undefined scopes means all scopes, while empty list of scopes means no scope at all
+   */
+  scopes?: AztecAddress[];
 };
 
 export const NotesFilterSchema: ZodFor<NotesFilter> = z.object({
@@ -34,5 +37,5 @@ export const NotesFilterSchema: ZodFor<NotesFilter> = z.object({
   storageSlot: schemas.Fr.optional(),
   status: z.nativeEnum(NoteStatus).optional(),
   siloedNullifier: schemas.Fr.optional(),
-  scopes: z.union([z.literal('ALL_SCOPES'), z.array(schemas.AztecAddress)]),
+  scopes: z.array(schemas.AztecAddress).optional(),
 });
