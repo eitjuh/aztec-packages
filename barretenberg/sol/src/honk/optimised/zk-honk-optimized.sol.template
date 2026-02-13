@@ -3075,15 +3075,15 @@ contract BlakeOptZKHonkVerifier is IVerifier {
             let eval_challenge := mload(SHPLONK_Z_CHALLENGE)
 
             // TO be inverted in the batch invert below
-            // TODO: maybe not needed to go in memory
+            let inverted_gemini_denominator = addmod(eval_challenge, sub(p, mload(POWERS_OF_EVALUATION_CHALLENGE_0_LOC)), p)
             mstore(
                 INVERTED_GEMINI_DENOMINATOR_0_LOC,
-                addmod(eval_challenge, sub(p, mload(POWERS_OF_EVALUATION_CHALLENGE_0_LOC)), p)
+                inverted_gemini_denominator
             )
 
             mstore(
                 POS_INVERTED_DENOM_0_LOC,
-                addmod(eval_challenge, sub(p, mload(POWERS_OF_EVALUATION_CHALLENGE_0_LOC)), p)
+                inverted_gemini_denominator
             )
             mstore(NEG_INVERTED_DENOM_0_LOC, addmod(eval_challenge, mload(POWERS_OF_EVALUATION_CHALLENGE_0_LOC), p))
 
