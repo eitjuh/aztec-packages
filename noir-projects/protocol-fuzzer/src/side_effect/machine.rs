@@ -54,20 +54,36 @@ pub enum SideEffectCommand {
         owner: AccountId,
         storage_slot: u8,
         from: AccountId,
+        via_parent: bool,
     },
     TestNoteInclusion {
         owner: AccountId,
         storage_slot: u8,
         from: AccountId,
+        via_parent: bool,
     },
     EmitNullifier {
         nullifier: u128,
         from: AccountId,
+        via_parent: bool,
     },
     TestNullifierInclusion {
         nullifier: u128,
         from: AccountId,
+        via_parent: bool,
     },
+}
+
+impl SideEffectCommand {
+    pub(crate) fn via_parent(&self) -> bool {
+        match self {
+            Self::DestroyNote { via_parent, .. }
+            | Self::TestNoteInclusion { via_parent, .. }
+            | Self::EmitNullifier { via_parent, .. }
+            | Self::TestNullifierInclusion { via_parent, .. } => *via_parent,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -97,12 +113,14 @@ fn gen_nullifier_value(u: &mut Unstructured) -> arbitrary::Result<u128> {
 
 /// Returns (slot, owner) pairs that have at least one active note.
 fn populated_slots(state: &SideEffectState) -> Vec<(u8, AccountId)> {
-    state
+    let mut slots: Vec<_> = state
         .active_notes
         .iter()
         .filter(|(_, notes)| !notes.is_empty())
         .map(|(key, _)| *key)
-        .collect()
+        .collect();
+    slots.sort();
+    slots
 }
 
 /// Builds the list of expected note values for a (slot, owner) pair.
@@ -255,6 +273,7 @@ impl smt::StateMachine for SideEffectMachine {
                     owner,
                     storage_slot,
                     from: owner,
+                    via_parent: bool::arbitrary(u)?,
                 }
             }
             "test_note_inclusion" => {
@@ -265,18 +284,22 @@ impl smt::StateMachine for SideEffectMachine {
                     owner,
                     storage_slot,
                     from: owner,
+                    via_parent: bool::arbitrary(u)?,
                 }
             }
             "emit_nullifier" => SideEffectCommand::EmitNullifier {
                 nullifier: gen_nullifier_value(u)?,
                 from: choose_account(u, state)?,
+                via_parent: bool::arbitrary(u)?,
             },
             "test_nullifier_inclusion" => {
-                let nullifiers: Vec<u128> = state.emitted_nullifiers.iter().copied().collect();
+                let mut nullifiers: Vec<u128> = state.emitted_nullifiers.iter().copied().collect();
+                nullifiers.sort();
                 let nullifier = *u.choose(&nullifiers)?;
                 SideEffectCommand::TestNullifierInclusion {
                     nullifier,
                     from: choose_account(u, state)?,
+                    via_parent: bool::arbitrary(u)?,
                 }
             }
             _ => unreachable!(),
@@ -290,7 +313,10 @@ impl smt::StateMachine for SideEffectMachine {
             SideEffectSystem::new().expect("test system couldn't be prepared correctly");
         system
             .deploy_side_effect_contract(0)
-            .expect("test contract could not be deployed");
+            .expect("side-effect contract could not be deployed");
+        system
+            .deploy_parent_contract(0)
+            .expect("parent contract could not be deployed");
         system
     }
 
@@ -301,18 +327,19 @@ impl smt::StateMachine for SideEffectMachine {
         match cmd {
             CreateNote { value, owner, storage_slot, .. }
             | CreateAndCompletePartialNote { owner, storage_slot, value, .. } => {
-                state
+                let notes = state
                     .active_notes
                     .entry((*storage_slot, *owner))
-                    .or_default()
-                    .push(*value);
+                    .or_default();
+                let pos = notes.partition_point(|v| *v < *value);
+                notes.insert(pos, *value);
             }
             DestroyNote { owner, storage_slot, .. } => {
                 let key = (*storage_slot, *owner);
                 if let Some(notes) = state.active_notes.get_mut(&key) {
                     if !notes.is_empty() {
-                        // The contract destroys retrieved_notes.get(0), which is the
-                        // first note returned by the PXE (oldest/insertion order).
+                        // The contract sorts by value ASC and destroys retrieved_notes.get(0),
+                        // which is the note with the smallest value.
                         let value = notes.remove(0);
                         state.destroyed_notes.entry(key).or_default().push(value);
                     }
@@ -473,6 +500,7 @@ mod tests {
             owner: 0,
             storage_slot: 5,
             from: 0,
+            via_parent: false,
         };
         let state = m.next_state(&cmd, state);
 
@@ -489,6 +517,7 @@ mod tests {
             owner: 0,
             storage_slot: 5,
             from: 0,
+            via_parent: false,
         };
         let state = m.next_state(&cmd, state);
         assert!(state.active_notes.is_empty());
@@ -502,6 +531,7 @@ mod tests {
         let cmd = SideEffectCommand::EmitNullifier {
             nullifier: 999,
             from: 0,
+            via_parent: false,
         };
         let state = m.next_state(&cmd, state);
         assert!(state.emitted_nullifiers.contains(&999));
@@ -522,10 +552,10 @@ mod tests {
                 owner: 0, storage_slot: 5, active_or_nullified: true, from: 0,
             },
             SideEffectCommand::TestNoteInclusion {
-                owner: 0, storage_slot: 5, from: 0,
+                owner: 0, storage_slot: 5, from: 0, via_parent: false,
             },
             SideEffectCommand::TestNullifierInclusion {
-                nullifier: 99, from: 0,
+                nullifier: 99, from: 0, via_parent: false,
             },
         ];
 
@@ -603,25 +633,25 @@ mod tests {
     // -- contract correspondence tests --
     // These verify the model's state transitions match contract semantics.
 
-    /// The contract's `call_destroy_note` does `get_notes` then `retrieved_notes.get(0)`,
-    /// always destroying the first note returned by the PXE (insertion order).
-    /// Two sequential destroys must remove notes in FIFO order.
+    /// The contract sorts notes by value ASC and destroys `retrieved_notes.get(0)`,
+    /// always destroying the note with the smallest value.
+    /// Sequential destroys remove notes in ascending value order.
     #[test]
-    fn sequential_destroys_remove_in_fifo_order() {
+    fn sequential_destroys_remove_in_ascending_order() {
         let m = machine();
         let mut state = make_state();
         state.active_notes.insert((5, 0), vec![10, 20, 30]);
 
         let destroy = SideEffectCommand::DestroyNote {
-            owner: 0, storage_slot: 5, from: 0,
+            owner: 0, storage_slot: 5, from: 0, via_parent: false,
         };
 
-        // First destroy: removes 10 (oldest)
+        // First destroy: removes 10 (smallest)
         let state = m.next_state(&destroy, state);
         assert_eq!(state.active_notes[&(5, 0)], vec![20, 30]);
         assert_eq!(state.destroyed_notes[&(5, 0)], vec![10]);
 
-        // Second destroy: removes 20 (now oldest)
+        // Second destroy: removes 20 (now smallest)
         let state = m.next_state(&destroy, state);
         assert_eq!(state.active_notes[&(5, 0)], vec![30]);
         assert_eq!(state.destroyed_notes[&(5, 0)], vec![10, 20]);
@@ -630,6 +660,48 @@ mod tests {
         let state = m.next_state(&destroy, state);
         assert!(state.active_notes[&(5, 0)].is_empty());
         assert_eq!(state.destroyed_notes[&(5, 0)], vec![10, 20, 30]);
+    }
+
+    /// Notes are sorted by value ASC. Destroy removes the note with the
+    /// smallest value, regardless of insertion order. Here we insert 200
+    /// first and 100 second to prove it's value-based, not insertion-order.
+    #[test]
+    fn destroy_removes_smallest_value() {
+        let m = machine();
+        let state = make_state();
+
+        // Create 200 first, then 100 — insertion order ≠ value order
+        let state = m.next_state(
+            &SideEffectCommand::CreateNote {
+                value: 200, owner: 2, storage_slot: 14, make_tx_hybrid: false, from: 0,
+            },
+            state,
+        );
+        let state = m.next_state(
+            &SideEffectCommand::CreateNote {
+                value: 100, owner: 2, storage_slot: 14, make_tx_hybrid: false, from: 0,
+            },
+            state,
+        );
+
+        // Sorted order is [100, 200]; destroy removes 100 (smallest)
+        let state = m.next_state(
+            &SideEffectCommand::DestroyNote {
+                owner: 2, storage_slot: 14, from: 2, via_parent: false,
+            },
+            state,
+        );
+
+        assert_eq!(state.active_notes[&(14, 2)], vec![200]);
+        assert_eq!(state.destroyed_notes[&(14, 2)], vec![100]);
+
+        // active-only query sees only the surviving note
+        let active = expected_notes(&state, 14, 2, false);
+        assert_eq!(active, vec![200]);
+
+        // active_or_nullified query sees both
+        let all = expected_notes(&state, 14, 2, true);
+        assert_eq!(all, vec![200, 100]);
     }
 
     /// After destroying a note, `expected_notes` with `active_or_nullified=true`
@@ -642,7 +714,7 @@ mod tests {
         state.active_notes.insert((5, 0), vec![10, 20, 30]);
 
         let state = m.next_state(
-            &SideEffectCommand::DestroyNote { owner: 0, storage_slot: 5, from: 0 },
+            &SideEffectCommand::DestroyNote { owner: 0, storage_slot: 5, from: 0, via_parent: false },
             state,
         );
 
@@ -665,14 +737,14 @@ mod tests {
         let state = make_state();
 
         let state = m.next_state(
-            &SideEffectCommand::EmitNullifier { nullifier: 42, from: 0 },
+            &SideEffectCommand::EmitNullifier { nullifier: 42, from: 0, via_parent: false },
             state,
         );
         assert!(state.emitted_nullifiers.contains(&42));
 
         // Same value again — still in the set (HashSet insert is idempotent)
         let state = m.next_state(
-            &SideEffectCommand::EmitNullifier { nullifier: 42, from: 1 },
+            &SideEffectCommand::EmitNullifier { nullifier: 42, from: 1, via_parent: false },
             state,
         );
         assert!(state.emitted_nullifiers.contains(&42));

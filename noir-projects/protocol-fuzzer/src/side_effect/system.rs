@@ -4,6 +4,9 @@ use crate::wallet::{self, AccountId, WalletCommand};
 #[derive(Default)]
 pub struct SideEffectSystem;
 
+const CHILD_CONTRACT: &str = "contracts:test0";
+const PARENT_CONTRACT: &str = "contracts:parent0";
+
 impl TryFrom<&SideEffectCommand> for WalletCommand {
     type Error = anyhow::Error;
 
@@ -76,6 +79,7 @@ impl TryFrom<&SideEffectCommand> for WalletCommand {
                 owner,
                 storage_slot,
                 from,
+                ..
             } => (
                 "send",
                 "call_destroy_note",
@@ -89,6 +93,7 @@ impl TryFrom<&SideEffectCommand> for WalletCommand {
                 owner,
                 storage_slot,
                 from,
+                ..
             } => (
                 "send",
                 "test_note_inclusion",
@@ -98,13 +103,13 @@ impl TryFrom<&SideEffectCommand> for WalletCommand {
                     format!("{storage_slot}"),
                 ],
             ),
-            EmitNullifier { nullifier, from } => (
+            EmitNullifier { nullifier, from, .. } => (
                 "send",
                 "emit_nullifier",
                 format!("accounts:test{from}"),
                 vec![format!("{nullifier}")],
             ),
-            TestNullifierInclusion { nullifier, from } => (
+            TestNullifierInclusion { nullifier, from, .. } => (
                 "send",
                 "test_nullifier_inclusion",
                 format!("accounts:test{from}"),
@@ -112,10 +117,20 @@ impl TryFrom<&SideEffectCommand> for WalletCommand {
             ),
         };
 
+        let (contract, method, args) = if cmd.via_parent() {
+            (
+                PARENT_CONTRACT,
+                format!("forward_{method}"),
+                [vec![CHILD_CONTRACT.to_string()], args].concat(),
+            )
+        } else {
+            (CHILD_CONTRACT, method.to_string(), args)
+        };
+
         Ok(WalletCommand {
             verb: verb.to_string(),
-            method: method.to_string(),
-            contract: "contracts:test0".to_string(),
+            method,
+            contract: contract.to_string(),
             from,
             args,
         })
@@ -139,6 +154,22 @@ impl SideEffectSystem {
             &artifact,
             &format!("accounts:test{account}"),
             "test0",
+            Some("initialize"),
+            None,
+        )
+    }
+
+    pub(crate) fn deploy_parent_contract(&self, account: AccountId) -> anyhow::Result<String> {
+        let default_artifact = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/contracts/target/parent_contract-Parent.json"
+        );
+        let artifact =
+            std::env::var("PARENT_ARTIFACT_PATH").unwrap_or_else(|_| default_artifact.to_string());
+        wallet::deploy(
+            &artifact,
+            &format!("accounts:test{account}"),
+            "parent0",
             Some("initialize"),
             None,
         )

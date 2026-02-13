@@ -28,6 +28,17 @@ struct Args {
     max_steps: usize,
     #[arg(long, default_value_t = 500_000_000)]
     randomness_size: u32,
+    /// Replay a specific seed (e.g. 0x5a7211231dcd6500) to reproduce a failure.
+    #[arg(long, value_parser = parse_hex_u64)]
+    seed: Option<u64>,
+}
+
+fn parse_hex_u64(s: &str) -> Result<u64, String> {
+    if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
+        u64::from_str_radix(hex, 16).map_err(|e| e.to_string())
+    } else {
+        s.parse::<u64>().map_err(|e| e.to_string())
+    }
 }
 
 impl From<&Args> for token::TokenMachine {
@@ -53,12 +64,19 @@ fn main() {
 
     let args = Args::parse();
 
+    let builder = match args.seed {
+        Some(seed) => {
+            log::info!("Replaying seed 0x{seed:016x}");
+            smt::seeded_builder(seed)
+        }
+        None => smt::fixed_size_builder(args.randomness_size),
+    };
+
     match args.machine {
         MachineType::Token => {
             let mut machine = token::TokenMachine::from(&args);
             log::debug!("Starting token machine with parameters: {:?}", &machine);
-            smt::fixed_size_builder(args.randomness_size)
-                .run(|u| smt::run(u, &mut machine, args.max_steps))
+            builder.run(|u| smt::run(u, &mut machine, args.max_steps))
         }
         MachineType::SideEffect => {
             let mut machine = side_effect::SideEffectMachine::from(&args);
@@ -66,8 +84,7 @@ fn main() {
                 "Starting side-effect machine with parameters: {:?}",
                 &machine
             );
-            smt::fixed_size_builder(args.randomness_size)
-                .run(|u| smt::run(u, &mut machine, args.max_steps))
+            builder.run(|u| smt::run(u, &mut machine, args.max_steps))
         }
     }
 }
@@ -75,6 +92,7 @@ fn main() {
 #[cfg(test)]
 mod integration_tests {
     use super::*;
+    use smt::StateMachine;
 
     /// Smoke test: deploys 1 token, runs 5 random operations (mints, transfers, balance checks).
     /// Requires a running Aztec sandbox (`aztec start --sandbox`).
@@ -110,5 +128,58 @@ mod integration_tests {
         };
         smt::fixed_size_builder(1024)
             .run(|u| smt::run(u, &mut machine, 5))
+    }
+
+    /// The same random byte buffer produces the same command sequence every time.
+    /// We skip `new_system` (which deploys contracts) and only exercise
+    /// state/command generation to verify determinism.
+    #[test]
+    fn seeded_run_is_deterministic() {
+        use arbitrary::Unstructured;
+
+        // Fixed buffer — any deterministic bytes will do.
+        let buf: Vec<u8> = (0u8..=255).cycle().take(4096).collect();
+        let steps = 20;
+
+        let collect_commands = |data: &[u8]| {
+            let mut u = Unstructured::new(data);
+            let mut machine = side_effect::SideEffectMachine {
+                min_storage_slots: 2,
+                max_storage_slots: 3,
+            };
+            let mut state = machine.gen_state(&mut u).unwrap();
+            let mut commands = Vec::new();
+            for _ in 0..steps {
+                let cmd = machine.gen_command(&mut u, &state).unwrap();
+                commands.push(format!("{:?}", cmd));
+                state = machine.next_state(&cmd, state);
+            }
+            commands
+        };
+
+        let run1 = collect_commands(&buf);
+        let run2 = collect_commands(&buf);
+        assert!(!run1.is_empty(), "should generate at least one command");
+        assert_eq!(run1, run2, "same input must produce identical command sequences");
+    }
+
+    #[test]
+    fn parse_hex_u64_lowercase() {
+        assert_eq!(parse_hex_u64("0x5a7211231dcd6500").unwrap(), 0x5a7211231dcd6500);
+    }
+
+    #[test]
+    fn parse_hex_u64_uppercase_prefix() {
+        assert_eq!(parse_hex_u64("0Xdeadbeef").unwrap(), 0xdeadbeef);
+    }
+
+    #[test]
+    fn parse_hex_u64_decimal() {
+        assert_eq!(parse_hex_u64("42").unwrap(), 42);
+    }
+
+    #[test]
+    fn parse_hex_u64_invalid() {
+        assert!(parse_hex_u64("0xZZZZ").is_err());
     }
 }

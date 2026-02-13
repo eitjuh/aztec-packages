@@ -18,7 +18,7 @@ pub contract SideEffect {
             constants::MAX_NOTES_PER_PAGE,
             lifecycle::{create_note, destroy_note_unsafe},
             note_getter::{get_notes, view_notes},
-            note_getter_options::{NoteGetterOptions, NoteStatus},
+            note_getter_options::{NoteGetterOptions, NoteStatus, PropertySelector, SortOrder},
             note_viewer_options::NoteViewerOptions,
             retrieved_note::RetrievedNote,
         },
@@ -68,7 +68,9 @@ pub contract SideEffect {
 
     #[external("private")]
     fn call_destroy_note(owner: AztecAddress, storage_slot: Field) {
-        let options = NoteGetterOptions::new().set_owner(owner);
+        let options = NoteGetterOptions::new()
+            .set_owner(owner)
+            .sort(PropertySelector { index: 0, offset: 0, length: 32 }, SortOrder.ASC);
         let (retrieved_notes, note_hashes): (BoundedVec<RetrievedNote<UintNote>, MAX_NOTE_HASH_READ_REQUESTS_PER_CALL>, BoundedVec<NoteHashRead, MAX_NOTE_HASH_READ_REQUESTS_PER_CALL>) =
             get_notes(self.context, storage_slot, options);
 
@@ -80,7 +82,10 @@ pub contract SideEffect {
 
     #[external("private")]
     fn test_note_inclusion(owner: AztecAddress, storage_slot: Field) {
-        let options = NoteGetterOptions::new().set_owner(owner).set_limit(1);
+        let options = NoteGetterOptions::new()
+            .set_owner(owner)
+            .set_limit(1)
+            .sort(PropertySelector { index: 0, offset: 0, length: 32 }, SortOrder.ASC);
 
         let (retrieved_notes, _): (BoundedVec<RetrievedNote<UintNote>, MAX_NOTE_HASH_READ_REQUESTS_PER_CALL>, BoundedVec<NoteHashRead, MAX_NOTE_HASH_READ_REQUESTS_PER_CALL>) =
             get_notes(self.context, storage_slot, options);
@@ -96,7 +101,9 @@ pub contract SideEffect {
         storage_slot: Field,
         active_or_nullified: bool,
     ) -> [u128; 2] {
-        let mut options = NoteViewerOptions::new().set_owner(owner);
+        let mut options = NoteViewerOptions::new()
+            .set_owner(owner)
+            .sort(PropertySelector { index: 0, offset: 0, length: 32 }, SortOrder.ASC);
         if (active_or_nullified) {
             options = options.set_status(NoteStatus.ACTIVE_OR_NULLIFIED);
         }
@@ -114,7 +121,9 @@ pub contract SideEffect {
         storage_slot: Field,
         active_or_nullified: bool,
     ) -> [u128; 2] {
-        let mut options = NoteGetterOptions::new().set_owner(owner);
+        let mut options = NoteGetterOptions::new()
+            .set_owner(owner)
+            .sort(PropertySelector { index: 0, offset: 0, length: 32 }, SortOrder.ASC);
         if (active_or_nullified) {
             options = options.set_status(NoteStatus.ACTIVE_OR_NULLIFIED);
         }
