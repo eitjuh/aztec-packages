@@ -1027,7 +1027,8 @@ contract BlakeOptZKHonkVerifier is IVerifier {
     // ZK-specific constants
     uint256 internal constant SUBGROUP_SIZE = 256;
     uint256 internal constant SUBGROUP_GENERATOR = 0x07b0c561a6148404f086204a9f36ffb0617942546750f230c893619174a57a76;
-    uint256 internal constant SUBGROUP_GENERATOR_INVERSE = 0x204bd3277422fad364751ad938e2b5e6a54cf8c68712848a692c553d0329f5d6;
+    uint256 internal constant SUBGROUP_GENERATOR_INVERSE =
+        0x204bd3277422fad364751ad938e2b5e6a54cf8c68712848a692c553d0329f5d6;
     uint256 internal constant LIBRA_COMMITMENTS = 3;
     uint256 internal constant LIBRA_EVALUATIONS = 4;
     uint256 internal constant SHIFTED_COMMITMENTS_START = 30;
@@ -1147,16 +1148,17 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 //   + 2 (libraSum,libraEval) + LOG_N gemini evals + 4 libra poly evals
                 //   + (LOG_N-1)*2 gemini fold G1 + 2*2 (shplonkQ,kzg) + 8 pairing = (82 + 12*LOG_N) * 32
                 {
-                    let expected_proof_size := mul(
-                        add(
+                    let expected_proof_size :=
+                        mul(
                             add(
-                                add(24, mul(LOG_N, BATCHED_RELATION_PARTIAL_LENGTH)),
-                                add(add(NUMBER_OF_ENTITIES, 2), mul(sub(LOG_N, 1), 2))
+                                add(
+                                    add(24, mul(LOG_N, BATCHED_RELATION_PARTIAL_LENGTH)),
+                                    add(add(NUMBER_OF_ENTITIES, 2), mul(sub(LOG_N, 1), 2))
+                                ),
+                                add(add(LOG_N, LIBRA_EVALUATIONS), add(4, PAIRING_POINTS_SIZE))
                             ),
-                            add(add(LOG_N, LIBRA_EVALUATIONS), add(4, PAIRING_POINTS_SIZE))
-                        ),
-                        32
-                    )
+                            32
+                        )
                     let proof_length := calldataload(add(calldataload(0x04), 0x04))
                     if iszero(eq(proof_length, expected_proof_size)) {
                         mstore(0x00, PROOF_LENGTH_WRONG_WITH_LOG_N_SELECTOR)
@@ -1617,7 +1619,10 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
                 // Pairing points contribution to public inputs delta
                 let pairing_points_ptr := PAIRING_POINT_0_X_0_LOC
-                for {} lt(pairing_points_ptr, GEMINI_MASKING_POLY_X_LOC) { pairing_points_ptr := add(pairing_points_ptr, 0x20) } {
+                for {} lt(pairing_points_ptr, GEMINI_MASKING_POLY_X_LOC) { pairing_points_ptr := add(
+                    pairing_points_ptr,
+                    0x20
+                ) } {
                     let input := mload(pairing_points_ptr)
 
                     numerator_value := mulmod(numerator_value, addmod(numerator_acc, input, p_clone), p_clone)
@@ -2156,7 +2161,8 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                         p
                     )
 
-                    let accumulator_none := mulmod(mulmod(lookup_term, table_term, p), mload(LOOKUP_INVERSES_EVAL_LOC), p)
+                    let accumulator_none :=
+                        mulmod(mulmod(lookup_term, table_term, p), mload(LOOKUP_INVERSES_EVAL_LOC), p)
                     accumulator_none := addmod(accumulator_none, sub(p, inverse_exists_xor), p)
                     accumulator_none := mulmod(accumulator_none, mload(POW_PARTIAL_EVALUATION_LOC), p)
 
@@ -3030,11 +3036,12 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                     // adjustedSum = accumulator * (1 - evaluation) + libraEvaluation * libraChallenge
                     let one_minus_eval := addmod(1, sub(p, evaluation), p)
-                    let adjusted_sum := addmod(
-                        mulmod(accumulator, one_minus_eval, p),
-                        mulmod(mload(LIBRA_EVALUATION_LOC), mload(LIBRA_CHALLENGE), p),
-                        p
-                    )
+                    let adjusted_sum :=
+                        addmod(
+                            mulmod(accumulator, one_minus_eval, p),
+                            mulmod(mload(LIBRA_EVALUATION_LOC), mload(LIBRA_CHALLENGE), p),
+                            p
+                        )
 
                     let sumcheck_valid := eq(adjusted_sum, mload(FINAL_ROUND_TARGET_LOC))
 
@@ -3614,7 +3621,11 @@ contract BlakeOptZKHonkVerifier is IVerifier {
             // Calculate the scalars and batching challenge for the unshifted entities
             // 0: GEMINI_MASKING_EVAL_LOC (ZK entity index 0)
             mstore(BATCH_SCALAR_1_LOC, mulmod(neg_unshifted_scalar, batching_challenge, p))
-            batched_evaluation := addmod(batched_evaluation, mulmod(mload(GEMINI_MASKING_EVAL_LOC), batching_challenge, p), p)
+            batched_evaluation := addmod(
+                batched_evaluation,
+                mulmod(mload(GEMINI_MASKING_EVAL_LOC), batching_challenge, p),
+                p
+            )
             batching_challenge := mulmod(batching_challenge, rho, p)
 
             // 1: QM_EVAL_LOC
@@ -3990,11 +4001,12 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 let libra_denom_0 := mload(POS_INVERTED_DENOM_0_LOC)
 
                 // Compute 1/(shplonkZ - SUBGROUP_GENERATOR * geminiR) via modexp precompile
-                let subgroup_denom_val := addmod(
-                    mload(SHPLONK_Z_CHALLENGE),
-                    sub(p, mulmod(SUBGROUP_GENERATOR, mload(GEMINI_R_CHALLENGE), p)),
-                    p
-                )
+                let subgroup_denom_val :=
+                    addmod(
+                        mload(SHPLONK_Z_CHALLENGE),
+                        sub(p, mulmod(SUBGROUP_GENERATOR, mload(GEMINI_R_CHALLENGE), p)),
+                        p
+                    )
                 mstore(0x00, 0x20) // base length
                 mstore(0x20, 0x20) // exp length
                 mstore(0x40, 0x20) // mod length
@@ -4013,25 +4025,41 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 // i=0: denom[0], libraPolyEvals[0]
                 let scaling_factor := mulmod(libra_denom_0, batching_challenge, p)
                 let libra_scalar_0 := sub(p, scaling_factor)
-                constant_term_acc := addmod(constant_term_acc, mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_0_LOC), p), p)
+                constant_term_acc := addmod(
+                    constant_term_acc,
+                    mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_0_LOC), p),
+                    p
+                )
                 batching_challenge := mulmod(batching_challenge, shplonk_nu, p)
 
                 // i=1: denom[1], libraPolyEvals[1]
                 scaling_factor := mulmod(libra_denom_1, batching_challenge, p)
                 let libra_scalar_1 := sub(p, scaling_factor)
-                constant_term_acc := addmod(constant_term_acc, mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_1_LOC), p), p)
+                constant_term_acc := addmod(
+                    constant_term_acc,
+                    mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_1_LOC), p),
+                    p
+                )
                 batching_challenge := mulmod(batching_challenge, shplonk_nu, p)
 
                 // i=2: denom[0], libraPolyEvals[2]
                 scaling_factor := mulmod(libra_denom_0, batching_challenge, p)
                 let libra_scalar_2 := sub(p, scaling_factor)
-                constant_term_acc := addmod(constant_term_acc, mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_2_LOC), p), p)
+                constant_term_acc := addmod(
+                    constant_term_acc,
+                    mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_2_LOC), p),
+                    p
+                )
                 batching_challenge := mulmod(batching_challenge, shplonk_nu, p)
 
                 // i=3: denom[0], libraPolyEvals[3]
                 scaling_factor := mulmod(libra_denom_0, batching_challenge, p)
                 let libra_scalar_3 := sub(p, scaling_factor)
-                constant_term_acc := addmod(constant_term_acc, mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_3_LOC), p), p)
+                constant_term_acc := addmod(
+                    constant_term_acc,
+                    mulmod(scaling_factor, mload(LIBRA_POLY_EVAL_3_LOC), p),
+                    p
+                )
 
                 // Store commitment scalars:
                 // scalars[52] = batchingScalars[0] (for libraCommitments[0] = libraConcat)
@@ -4046,11 +4074,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
             let q := Q // EC group order
             {
                 // The initial accumulator = 1 * shplonk_q
-                // WORKTODO(md): we can ignore this accumulation as we are multiplying by 1,
-                // Just set the accumulator instead.
-                mstore(SCALAR_LOCATION, 0x1)
-                mcopy(G1_LOCATION, SHPLONK_Q_X_LOC, 0x40)
-                precomp_success_flag := staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR, 0x40)
+                mcopy(ACCUMULATOR, SHPLONK_Q_X_LOC, 0x40)
             }
 
             // Accumulate geminiMaskingPoly (ZK commitment[1])
@@ -4812,10 +4836,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                             let prev_val := 1
                             for { let j := 1 } lt(j, LIBRA_UNIVARIATES_LENGTH) { j := add(j, 1) } {
                                 prev_val := mulmod(prev_val, u_round, p)
-                                mstore(
-                                    add(CHALLENGE_POLY_LAGRANGE_BASE, mul(add(curr_idx, j), 0x20)),
-                                    prev_val
-                                )
+                                mstore(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(add(curr_idx, j), 0x20)), prev_val)
                             }
 
                             u_loc := add(u_loc, 0x20)
@@ -4864,11 +4885,8 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                         // Backward pass: compute individual inverses
                         for { let idx := 255 } gt(idx, 0) { idx := sub(idx, 1) } {
-                            let this_inv := mulmod(
-                                running_inv,
-                                mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))),
-                                p
-                            )
+                            let this_inv :=
+                                mulmod(running_inv, mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))), p)
                             running_inv := mulmod(
                                 running_inv,
                                 mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
@@ -4899,11 +4917,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                     challenge_poly_eval := mulmod(challenge_poly_eval, numerator, p)
 
                     let lagrange_first := mulmod(mload(CONSISTENCY_DENOMINATORS_BASE), numerator, p)
-                    let lagrange_last := mulmod(
-                        mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(255, 0x20))),
-                        numerator,
-                        p
-                    )
+                    let lagrange_last := mulmod(mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(255, 0x20))), numerator, p)
 
                     // Step 6: Compute diff and verify == 0
                     // diff = lagrangeFirst * libraPolyEvals[2]
@@ -4912,18 +4926,19 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                     // diff += (geminiR - SUBGROUP_GENERATOR_INVERSE) *
                     //         (libraPolyEvals[1] - libraPolyEvals[2] - libraPolyEvals[0] * challengePolyEval)
                     {
-                        let inner := addmod(
-                            mload(LIBRA_POLY_EVAL_1_LOC),
-                            sub(
-                                p,
-                                addmod(
-                                    mload(LIBRA_POLY_EVAL_2_LOC),
-                                    mulmod(mload(LIBRA_POLY_EVAL_0_LOC), challenge_poly_eval, p),
-                                    p
-                                )
-                            ),
-                            p
-                        )
+                        let inner :=
+                            addmod(
+                                mload(LIBRA_POLY_EVAL_1_LOC),
+                                sub(
+                                    p,
+                                    addmod(
+                                        mload(LIBRA_POLY_EVAL_2_LOC),
+                                        mulmod(mload(LIBRA_POLY_EVAL_0_LOC), challenge_poly_eval, p),
+                                        p
+                                    )
+                                ),
+                                p
+                            )
                         let factor := addmod(gemini_r, sub(p, SUBGROUP_GENERATOR_INVERSE), p)
                         diff := addmod(diff, mulmod(factor, inner, p), p)
                     }
@@ -4940,11 +4955,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                     )
 
                     // diff -= vanishingPolyEval * libraPolyEvals[3]
-                    diff := addmod(
-                        diff,
-                        sub(p, mulmod(vanishing_poly_eval, mload(LIBRA_POLY_EVAL_3_LOC), p)),
-                        p
-                    )
+                    diff := addmod(diff, sub(p, mulmod(vanishing_poly_eval, mload(LIBRA_POLY_EVAL_3_LOC), p)), p)
 
                     if diff {
                         mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
@@ -4982,10 +4993,9 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                     p1_other_y := or(shl(136, mload(PAIRING_POINT_1_Y_1_LOC)), p1_other_y)
 
                     // Reconstructed coordinates must be < Q to prevent malleability
-                    if iszero(and(
-                        and(lt(p0_other_x, q), lt(p0_other_y, q)),
-                        and(lt(p1_other_x, q), lt(p1_other_y, q))
-                    )) {
+                    if iszero(
+                        and(and(lt(p0_other_x, q), lt(p0_other_y, q)), and(lt(p1_other_x, q), lt(p1_other_y, q)))
+                    ) {
                         mstore(0x00, VALUE_GE_GROUP_ORDER_SELECTOR)
                         revert(0x00, 0x04)
                     }
