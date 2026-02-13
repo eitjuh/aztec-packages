@@ -15,9 +15,12 @@ import {
   type L2Tips,
   type ValidateCheckpointResult,
 } from '@aztec/stdlib/block';
-import { Checkpoint, L1PublishedData, PublishedCheckpoint } from '@aztec/stdlib/checkpoint';
+import { Checkpoint, type CheckpointData, L1PublishedData, PublishedCheckpoint } from '@aztec/stdlib/checkpoint';
 import type { ContractClassPublic, ContractDataSource, ContractInstanceWithAddress } from '@aztec/stdlib/contract';
 import { EmptyL1RollupConstants, type L1RollupConstants, getSlotRangeForEpoch } from '@aztec/stdlib/epoch-helpers';
+import { computeCheckpointOutHash } from '@aztec/stdlib/messaging';
+import { CheckpointHeader } from '@aztec/stdlib/rollup';
+import { AppendOnlyTreeSnapshot } from '@aztec/stdlib/trees';
 import { type BlockHeader, TxExecutionResult, TxHash, TxReceipt, TxStatus } from '@aztec/stdlib/tx';
 import type { UInt64 } from '@aztec/stdlib/types';
 
@@ -274,6 +277,30 @@ export class MockL2BlockSource implements L2BlockSource, ContractDataSource {
         checkpoint.blocks = [block];
         return checkpoint;
       }),
+    );
+  }
+
+  getCheckpointsDataForEpoch(epochNumber: EpochNumber): Promise<CheckpointData[]> {
+    // TODO(mbps): Implement this properly. This only works when we have one block per checkpoint.
+    const epochDuration = DefaultL1ContractsConfig.aztecEpochDuration;
+    const [start, end] = getSlotRangeForEpoch(epochNumber, { epochDuration });
+    const blocks = this.l2Blocks.filter(b => {
+      const slot = b.header.globalVariables.slotNumber;
+      return slot >= start && slot <= end;
+    });
+    return Promise.resolve(
+      blocks.map(
+        (block): CheckpointData => ({
+          checkpointNumber: CheckpointNumber.fromBlockNumber(block.number),
+          header: CheckpointHeader.random({ slotNumber: block.header.globalVariables.slotNumber }),
+          archive: AppendOnlyTreeSnapshot.random(),
+          checkpointOutHash: computeCheckpointOutHash([block].map(b => b.body.txEffects.map(tx => tx.l2ToL1Msgs))),
+          startBlock: block.number,
+          blockCount: 1,
+          attestations: [],
+          l1: new L1PublishedData(BigInt(block.number), BigInt(block.number), Buffer32.random().toString()),
+        }),
+      ),
     );
   }
 
