@@ -75,7 +75,7 @@ pub(crate) unconstrained fn get_private_logs(contract_address: AztecAddress) -> 
 /// This determines which PXE account can see the note - other accounts will not be able to access it (e.g. other
 /// accounts will not be able to see one another's token balance notes, even in the same PXE) unless authorized. In
 /// most cases `recipient` equals `owner`, but they can differ in scenarios like delegated discovery.
-pub(crate) unconstrained fn enqueue_note_for_validation(
+pub unconstrained fn enqueue_note_for_validation(
     contract_address: AztecAddress,
     owner: AztecAddress,
     storage_slot: Field,
