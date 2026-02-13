@@ -479,8 +479,10 @@ def print_temp_space(pointer: int):
 
 def print_scratch_space_aliases():
     print("")
-    print("// Aliases for scratch space")
-    print("// TODO: work out the stack scheduling for these")
+    print("// Scratch space aliases at 0x00-0x40 are used in two temporal phases:")
+    print("// Phase 1 (sumcheck rounds): CHALL_POW_LOC, SUMCHECK_U_LOC, GEMINI_A_LOC")
+    print("// Phase 2 (shplemini batch scalars): SS_POS_INV_DENOM_LOC, SS_NEG_INV_DENOM_LOC, SS_GEMINI_EVALS_LOC")
+    print("// These phases do not overlap in execution time.")
     print_fr(0x00, "CHALL_POW_LOC")
     print_fr(0x20, "SUMCHECK_U_LOC")
     print_fr(0x40, "GEMINI_A_LOC")
