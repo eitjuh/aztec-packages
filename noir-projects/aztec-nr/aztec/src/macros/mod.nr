@@ -11,5 +11,4 @@ pub mod storage;
 pub mod events;
 pub mod authorization;
 
-pub use aztec::aztec;
-pub use aztec::AztecConfig;
+pub use aztec::{aztec, AztecConfig};

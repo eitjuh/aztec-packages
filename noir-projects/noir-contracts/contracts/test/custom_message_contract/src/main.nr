@@ -6,7 +6,7 @@ use aztec::macros::aztec;
 /// multiple private messages (each carrying a part), and the custom message handler reassembles the parts into the full
 /// event before enqueueing it for validation. This exercises custom message type IDs, the `AztecConfig` builder, and
 /// capsule-based accumulation of out-of-order message parts.
-#[aztec(aztec::macros::AztecConfig::new().custom_message_handler(handle_multi_log_message))]
+#[aztec(AztecConfig::new().custom_message_handler(handle_multi_log_message))]
 contract CustomMessage {
     use crate::multi_log::{MULTI_LOG_PARTS_SEPARATOR, MultiLog};
     use aztec::{
@@ -14,7 +14,7 @@ contract CustomMessage {
             compute_private_event_commitment, compute_private_serialized_event_commitment,
             EventInterface,
         },
-        macros::{events::event, functions::external},
+        macros::{AztecConfig, events::event, functions::external},
         messages::{
             encoding::{encode_message, MAX_MESSAGE_CONTENT_LEN},
             logs::event::MAX_EVENT_SERIALIZED_LEN,
