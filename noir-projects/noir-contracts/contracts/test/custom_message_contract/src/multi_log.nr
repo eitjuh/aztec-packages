@@ -40,4 +40,9 @@ impl<let N: u32> MultiLog<N> {
     pub unconstrained fn unpack_part_number(packed: u64) -> u32 {
         (packed / 0x100000000) as u32
     }
+
+    /// Unpacks total_parts from msg_metadata.
+    pub unconstrained fn unpack_total_parts(packed: u64) -> u32 {
+        (packed % 0x100000000) as u32
+    }
 }

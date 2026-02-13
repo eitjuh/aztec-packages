@@ -128,6 +128,11 @@ contract CustomMessage {
     ) {
         if msg_type_id == MULTI_LOG_MSG_TYPE_ID {
             let part_number = MultiLog::<NUM_MULTI_LOG_PARTS>::unpack_part_number(msg_metadata);
+            let total_parts = MultiLog::<NUM_MULTI_LOG_PARTS>::unpack_total_parts(msg_metadata);
+            assert(
+                total_parts == NUM_MULTI_LOG_PARTS,
+                f"Expected {NUM_MULTI_LOG_PARTS} total parts but message metadata says {total_parts}",
+            );
 
             // First field of every part's content is the message_id (= randomness).
             let message_id = msg_content.get(0);
