@@ -1,0 +1,75 @@
+name: Publish barretenberg-rs to crates.io
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (must match an existing GitHub release, e.g. 0.84.0)"
+        required: true
+      ref:
+        description: "Git ref to checkout (tag, branch, or commit)"
+        required: true
+
+jobs:
+  publish:
+    name: Publish barretenberg-rs
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Download bb binary for code generation
+        run: |
+          curl -L -f -o bb.tar.gz \
+            "https://github.com/AztecProtocol/aztec-packages/releases/download/v${{ inputs.version }}/barretenberg-amd64-linux.tar.gz"
+          tar -xzf bb.tar.gz
+          chmod +x bb
+
+      - name: Generate Rust bindings from msgpack schema
+        working-directory: barretenberg/ts
+        run: |
+          yarn install --frozen-lockfile
+          BB_BINARY_PATH="$GITHUB_WORKSPACE/bb" yarn generate
+
+      - name: Set crate version
+        working-directory: barretenberg/rust
+        run: |
+          sed -i 's/^version = ".*"/version = "${{ inputs.version }}"/' Cargo.toml
+
+      - name: Verify package contents
+        working-directory: barretenberg/rust
+        run: |
+          cargo package --list --allow-dirty -p barretenberg-rs
+          # Ensure generated files are included
+          cargo package --list --allow-dirty -p barretenberg-rs | grep -q "src/api.rs"
+          cargo package --list --allow-dirty -p barretenberg-rs | grep -q "src/generated_types.rs"
+
+      - name: Publish to crates.io
+        working-directory: barretenberg/rust
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.BARRETENBERG_CRATES_IO_TOKEN }}
+        run: cargo publish --allow-dirty -p barretenberg-rs
+
+      - name: Alert on failed publish
+        uses: JasonEtco/create-an-issue@v2
+        if: ${{ failure() }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CRATE_VERSION: ${{ inputs.version }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          update_existing: true
+          filename: .github/BARRETENBERG_RS_PUBLISH_FAILED.md
