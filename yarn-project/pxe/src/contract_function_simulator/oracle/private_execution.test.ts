@@ -331,7 +331,7 @@ describe('Private Execution test suite', () => {
           contractAddress,
           contractStore,
           functionToInvokeAfterSync,
-          call => utilityExecutor(call, undefined),
+          utilityExecutor,
           noteStore,
           aztecNode,
           anchorBlockHeader,

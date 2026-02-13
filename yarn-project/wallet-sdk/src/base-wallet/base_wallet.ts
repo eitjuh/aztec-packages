@@ -308,7 +308,6 @@ export abstract class BaseWallet implements Wallet {
     scopes: AccessScopes,
     skipTxValidation?: boolean,
     skipFeeEnforcement?: boolean,
-    scopes?: AztecAddress[],
   ) {
     const txRequest = await this.createTxExecutionRequestFromPayloadAndFee(executionPayload, from, feeOptions);
     return this.pxe.simulateTx(txRequest, { simulatePublic: true, skipTxValidation, skipFeeEnforcement, scopes });
@@ -359,7 +358,6 @@ export abstract class BaseWallet implements Wallet {
             this.scopesFor(opts.from),
             opts.skipTxValidation,
             opts.skipFeeEnforcement ?? true,
-            this.scopesFor(opts.from),
           )
         : Promise.resolve(null),
     ]);
