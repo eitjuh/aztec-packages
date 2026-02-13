@@ -15,11 +15,16 @@ pub struct MultiLog<let N: u32> {
 }
 
 impl<let N: u32> MultiLog<N> {
-    /// Returns true if all parts have been received (i.e. all parts have non-zero length).
+    /// Returns true if the given part has already been received.
+    pub unconstrained fn has_received_part(self, part_number: u32) -> bool {
+        self.parts[part_number].len() != 0
+    }
+
+    /// Returns true if all parts have been received.
     pub unconstrained fn is_complete(self) -> bool {
         let mut complete = true;
         for i in 0..N {
-            if self.parts[i].len() == 0 {
+            if !self.has_received_part(i) {
                 complete = false;
             }
         }

@@ -115,6 +115,9 @@ contract CustomMessage {
     /// Parts of an event are accumulated in a single capsule keyed by `message_id`. Each part is placed directly at
     /// its index in a fixed-size array; a part with `len() == 0` hasn't arrived yet. When all parts are present, the
     /// full event is reconstructed and enqueued for validation.
+    ///
+    /// This handler is idempotent: duplicate parts are silently discarded, and parts arriving after the event has
+    /// already been reassembled (capsule deleted) are ignored.
     #[contract_library_method]
     unconstrained fn handle_multi_log_message(
         contract_address: AztecAddress,
@@ -130,59 +133,66 @@ contract CustomMessage {
             let message_id = msg_content.get(0);
             let slot = poseidon2_hash([MULTI_LOG_PARTS_SEPARATOR, message_id]);
 
-            // Load (or initialize) the pending event and place this part at its index.
+            // Load the pending event. If the capsule doesn't exist, this is either the first part or a late duplicate
+            // arriving after the event was already reassembled and the capsule deleted. We can't distinguish the two,
+            // so we initialize a new accumulator in both cases. A late duplicate will simply create an incomplete
+            // accumulator that never completes.
             let mut multi_log: MultiLog<NUM_MULTI_LOG_PARTS> = capsules::load(
                 contract_address,
                 slot,
             )
                 .unwrap_or(MultiLog { parts: [BoundedVec::new(); NUM_MULTI_LOG_PARTS] });
-            multi_log.parts[part_number] = msg_content;
 
-            if multi_log.is_complete() {
-                // All parts present, reassemble the event in part order.
-                // Part 0 content: [randomness, event_type_id, ...event_fields]
-                // Part N content: [randomness, ...event_fields]
-                let randomness = message_id;
-                let mut event_type_id_field: Field = 0;
-                let mut serialized_event: BoundedVec<Field, MAX_EVENT_SERIALIZED_LEN> =
-                    BoundedVec::new();
+            // Skip duplicate parts.
+            if !multi_log.has_received_part(part_number) {
+                multi_log.parts[part_number] = msg_content;
 
-                for part_index in 0..NUM_MULTI_LOG_PARTS {
-                    let content = multi_log.parts[part_index];
-                    let content_start = if part_index == 0 {
-                        // Part 0: content[1] is event_type_id, content[2..] are event fields
-                        event_type_id_field = content.get(1);
-                        2
-                    } else {
-                        // Other parts: content[1..] are event fields
-                        1
-                    };
+                if multi_log.is_complete() {
+                    // All parts present, reassemble the event in part order.
+                    // Part 0 content: [randomness, event_type_id, ...event_fields]
+                    // Part N content: [randomness, ...event_fields]
+                    let randomness = message_id;
+                    let mut event_type_id_field: Field = 0;
+                    let mut serialized_event: BoundedVec<Field, MAX_EVENT_SERIALIZED_LEN> =
+                        BoundedVec::new();
 
-                    for content_index in content_start..content.len() {
-                        serialized_event.push(content.get(content_index));
+                    for part_index in 0..NUM_MULTI_LOG_PARTS {
+                        let content = multi_log.parts[part_index];
+                        let content_start = if part_index == 0 {
+                            // Part 0: content[1] is event_type_id, content[2..] are event fields
+                            event_type_id_field = content.get(1);
+                            2
+                        } else {
+                            // Other parts: content[1..] are event fields
+                            1
+                        };
+
+                        for content_index in content_start..content.len() {
+                            serialized_event.push(content.get(content_index));
+                        }
                     }
+
+                    capsules::delete(contract_address, slot);
+
+                    let event_type_id = EventSelector::from_field(event_type_id_field);
+                    let event_commitment = compute_private_serialized_event_commitment(
+                        serialized_event,
+                        randomness,
+                        event_type_id_field,
+                    );
+
+                    enqueue_event_for_validation(
+                        contract_address,
+                        event_type_id,
+                        randomness,
+                        serialized_event,
+                        event_commitment,
+                        message_context.tx_hash,
+                        message_context.recipient,
+                    );
+                } else {
+                    capsules::store(contract_address, slot, multi_log);
                 }
-
-                capsules::delete(contract_address, slot);
-
-                let event_type_id = EventSelector::from_field(event_type_id_field);
-                let event_commitment = compute_private_serialized_event_commitment(
-                    serialized_event,
-                    randomness,
-                    event_type_id_field,
-                );
-
-                enqueue_event_for_validation(
-                    contract_address,
-                    event_type_id,
-                    randomness,
-                    serialized_event,
-                    event_commitment,
-                    message_context.tx_hash,
-                    message_context.recipient,
-                );
-            } else {
-                capsules::store(contract_address, slot, multi_log);
             }
         } else {
             panic(f"Unknown message type id: {msg_type_id}");
