@@ -75,6 +75,10 @@ export class MockL2BlockSource implements L2BlockSource, ContractDataSource {
       const lastBlockNum = c.blocks[0].number + c.blocks.length - 1;
       return lastBlockNum <= maxBlockNum;
     });
+    // Keep tip numbers consistent with remaining blocks.
+    this.checkpointedBlockNumber = Math.min(this.checkpointedBlockNumber, maxBlockNum);
+    this.provenBlockNumber = Math.min(this.provenBlockNumber, maxBlockNum);
+    this.finalizedBlockNumber = Math.min(this.finalizedBlockNumber, maxBlockNum);
     this.log.verbose(`Removed ${numBlocks} blocks from the mock L2 block source`);
   }
 
