@@ -1,5 +1,6 @@
 import type { Archiver } from '@aztec/archiver';
 import type { BlobClientInterface } from '@aztec/blob-client/client';
+import { Blob } from '@aztec/blob-lib';
 import type { EpochCacheInterface } from '@aztec/epoch-cache';
 import { createEthereumChain } from '@aztec/ethereum/chain';
 import { RollupContract } from '@aztec/ethereum/contracts';

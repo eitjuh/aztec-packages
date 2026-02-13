@@ -518,7 +518,6 @@ export async function setup(
         { dateProvider, p2pClientDeps, telemetry: telemetryClient },
         { prefilledPublicData },
       ));
-
     }
 
     const sequencerDelayer = sequencerClient?.getDelayer();
