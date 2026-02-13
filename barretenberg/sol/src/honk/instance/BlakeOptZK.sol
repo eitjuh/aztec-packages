@@ -908,9 +908,6 @@ contract BlakeOptZKHonkVerifier is IVerifier {
     uint256 internal constant TEMP_42_LOC = 0x5500;
     uint256 internal constant TEMP_43_LOC = 0x5520;
     uint256 internal constant TEMP_44_LOC = 0x5540;
-    // Save MSM accumulator here before checkEvalsConsistency clobbers 0x00-0xBF
-    uint256 internal constant SAVED_ACCUMULATOR_X_LOC = 0x5560;
-    uint256 internal constant SAVED_ACCUMULATOR_Y_LOC = 0x5580;
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                 Temporary space - COMPLETE                 */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -4045,6 +4042,195 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 mstore(BATCH_SCALAR_54_LOC, libra_scalar_3)
             }
 
+            /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+            /*            ZK: checkEvalsConsistency                     */
+            /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+            // Validates Libra polynomial evaluations using small subgroup IPA
+            {
+                let gemini_r := mload(GEMINI_R_CHALLENGE)
+
+                // Step 1: Compute vanishingPolyEval = geminiR^SUBGROUP_SIZE - 1
+                // claude: this should be a mulchain rather than being a call to the precompile
+                // claude: there is only 256 multiplications here - which is 8 mulmod calls
+                // claude: this is 3000 gas vs 64
+                mstore(0x00, 0x20) // base length
+                mstore(0x20, 0x20) // exp length
+                mstore(0x40, 0x20) // mod length
+                mstore(0x60, gemini_r) // base
+                mstore(0x80, SUBGROUP_SIZE) // exp = 256
+                mstore(0xa0, p) // mod
+                if iszero(staticcall(gas(), 5, 0x00, 0xc0, 0x00, 0x20)) {
+                    mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
+                    revert(0x00, 0x04)
+                }
+                let vanishing_poly_eval := addmod(mload(0x00), sub(p, 1), p)
+
+                // Require vanishingPolyEval != 0 (geminiR not in subgroup)
+                if iszero(vanishing_poly_eval) {
+                    mstore(0x00, GEMINI_CHALLENGE_IN_SUBGROUP_SELECTOR)
+                    revert(0x00, 0x04)
+                }
+
+                // Step 2: Build challengePolyLagrange[0..255]
+                // Memory layout: CHALLENGE_POLY_LAGRANGE_BASE + idx * 0x20
+                // Zero-initialize all 256 entries (only 1 + 9*LOG_N = 136 will be non-zero)
+                calldatacopy(CHALLENGE_POLY_LAGRANGE_BASE, calldatasize(), 0x2000)
+
+                mstore(CHALLENGE_POLY_LAGRANGE_BASE, 1) // [0] = 1
+
+                {
+                    let u_loc := SUM_U_CHALLENGE_0
+                    for { let round := 0 } lt(round, LOG_N) { round := add(round, 1) } {
+                        let curr_idx := add(1, mul(LIBRA_UNIVARIATES_LENGTH, round))
+                        let u_round := mload(u_loc)
+
+                        // [currIdx] = 1
+                        mstore(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(curr_idx, 0x20)), 1)
+
+                        // [currIdx+1..currIdx+8] = u^1, u^2, ..., u^8
+                        let prev_val := 1
+                        for { let j := 1 } lt(j, LIBRA_UNIVARIATES_LENGTH) { j := add(j, 1) } {
+                            prev_val := mulmod(prev_val, u_round, p)
+                            mstore(
+                                add(CHALLENGE_POLY_LAGRANGE_BASE, mul(add(curr_idx, j), 0x20)),
+                                prev_val
+                            )
+                        }
+
+                        u_loc := add(u_loc, 0x20)
+                    }
+                }
+
+                // Step 3: Compute denominators: denom[i] = rootPower_i * geminiR - 1
+                // where rootPower_i = SUBGROUP_GENERATOR_INVERSE^i
+                {
+                    let root_power := 1
+                    for { let idx := 0 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
+                        let denom := addmod(mulmod(root_power, gemini_r, p), sub(p, 1), p)
+                        mstore(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20)), denom)
+                        root_power := mulmod(root_power, SUBGROUP_GENERATOR_INVERSE, p)
+                    }
+                }
+
+                // Step 4: Batch invert all 256 denominators (Montgomery's trick)
+                {
+                    // Forward pass: accumulate products
+                    mstore(CONSISTENCY_PRODUCTS_BASE, mload(CONSISTENCY_DENOMINATORS_BASE))
+                    for { let idx := 1 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
+                        mstore(
+                            add(CONSISTENCY_PRODUCTS_BASE, mul(idx, 0x20)),
+                            mulmod(
+                                mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))),
+                                mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
+                                p
+                            )
+                        )
+                    }
+
+                    // Invert the final product
+                    let final_prod := mload(add(CONSISTENCY_PRODUCTS_BASE, mul(255, 0x20)))
+                    mstore(0x00, 0x20)
+                    mstore(0x20, 0x20)
+                    mstore(0x40, 0x20)
+                    mstore(0x60, final_prod)
+                    mstore(0x80, sub(p, 2))
+                    mstore(0xa0, p)
+                    if iszero(staticcall(gas(), 5, 0x00, 0xc0, 0x00, 0x20)) {
+                        mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
+                        revert(0x00, 0x04)
+                    }
+                    let running_inv := mload(0x00)
+
+                    // Backward pass: compute individual inverses
+                    for { let idx := 255 } gt(idx, 0) { idx := sub(idx, 1) } {
+                        let this_inv := mulmod(
+                            running_inv,
+                            mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))),
+                            p
+                        )
+                        running_inv := mulmod(
+                            running_inv,
+                            mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
+                            p
+                        )
+                        mstore(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20)), this_inv)
+                    }
+                    // idx=0: running_inv is the inverse of denom[0]
+                    mstore(CONSISTENCY_DENOMINATORS_BASE, running_inv)
+                }
+
+                // Step 5: Compute challengePolyEval = sum(lagrange[i] * invDenom[i]) * numerator
+                let challenge_poly_eval := 0
+                for { let idx := 0 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
+                    challenge_poly_eval := addmod(
+                        challenge_poly_eval,
+                        mulmod(
+                            mload(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(idx, 0x20))),
+                            mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
+                            p
+                        ),
+                        p
+                    )
+                }
+
+                // numerator = vanishingPolyEval / SUBGROUP_SIZE
+                let numerator := mulmod(vanishing_poly_eval, INV_SUBGROUP_SIZE, p)
+                challenge_poly_eval := mulmod(challenge_poly_eval, numerator, p)
+
+                let lagrange_first := mulmod(mload(CONSISTENCY_DENOMINATORS_BASE), numerator, p)
+                let lagrange_last := mulmod(
+                    mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(255, 0x20))),
+                    numerator,
+                    p
+                )
+
+                // Step 6: Compute diff and verify == 0
+                // diff = lagrangeFirst * libraPolyEvals[2]
+                let diff := mulmod(lagrange_first, mload(LIBRA_POLY_EVAL_2_LOC), p)
+
+                // diff += (geminiR - SUBGROUP_GENERATOR_INVERSE) *
+                //         (libraPolyEvals[1] - libraPolyEvals[2] - libraPolyEvals[0] * challengePolyEval)
+                {
+                    let inner := addmod(
+                        mload(LIBRA_POLY_EVAL_1_LOC),
+                        sub(
+                            p,
+                            addmod(
+                                mload(LIBRA_POLY_EVAL_2_LOC),
+                                mulmod(mload(LIBRA_POLY_EVAL_0_LOC), challenge_poly_eval, p),
+                                p
+                            )
+                        ),
+                        p
+                    )
+                    let factor := addmod(gemini_r, sub(p, SUBGROUP_GENERATOR_INVERSE), p)
+                    diff := addmod(diff, mulmod(factor, inner, p), p)
+                }
+
+                // diff += lagrangeLast * (libraPolyEvals[2] - libraEval)
+                diff := addmod(
+                    diff,
+                    mulmod(
+                        lagrange_last,
+                        addmod(mload(LIBRA_POLY_EVAL_2_LOC), sub(p, mload(LIBRA_EVALUATION_LOC)), p),
+                        p
+                    ),
+                    p
+                )
+
+                // diff -= vanishingPolyEval * libraPolyEvals[3]
+                diff := addmod(
+                    diff,
+                    sub(p, mulmod(vanishing_poly_eval, mload(LIBRA_POLY_EVAL_3_LOC), p)),
+                    p
+                )
+
+                if diff {
+                    mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
+                    revert(0x00, 0x04)
+                }
+            }
+
             let precomp_success_flag := 1
             let q := Q // EC group order
             {
@@ -4382,8 +4568,11 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 )
 
                 // Accumulator = accumulator + scalar[27] * vk[26]
+                // optimization - Lagrange first is always G - (1,2)
+                //                later on we are expected to multiply constant_term_accumulator by G - (1,2)
+                //                here we can add scalars together and skip a ecMul + ecAdd for each
                 mcopy(G1_LOCATION, LAGRANGE_FIRST_X_LOC, 0x40)
-                mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_28_LOC))
+                mstore(SCALAR_LOCATION, addmod(constant_term_acc, mload(BATCH_SCALAR_28_LOC), p))
                 precomp_success_flag := and(
                     precomp_success_flag,
                     staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -4722,20 +4911,6 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 }
 
                 {
-                    // Accumulate the constant term accumulator
-                    // Accumulator = accumulator + 1 * constant term accumulator
-                    mstore(G1_LOCATION, 0x01)
-                    mstore(G1_Y_LOCATION, 0x02)
-                    mstore(SCALAR_LOCATION, constant_term_acc)
-                    precomp_success_flag := and(
-                        precomp_success_flag,
-                        staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
-                    )
-                    precomp_success_flag := and(
-                        precomp_success_flag,
-                        staticcall(gas(), 6, ACCUMULATOR, 0x80, ACCUMULATOR, 0x40)
-                    )
-
                     // Accumlate final quotient commitment into shplonk check
                     // Accumulator = accumulator + shplonkZ * quotient commitment
                     mcopy(G1_LOCATION, KZG_QUOTIENT_X_LOC, 0x40)
@@ -4758,201 +4933,9 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                     revert(0x00, 0x04)
                 }
 
-                // Save MSM accumulator before checkEvalsConsistency clobbers 0x00-0xBF via modexp
-                mcopy(SAVED_ACCUMULATOR_X_LOC, ACCUMULATOR, 0x40)
-
                 /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
                 /*                  SHPLEMINI - complete                      */
                 /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-                /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-                /*            ZK: checkEvalsConsistency                     */
-                /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-                // Validates Libra polynomial evaluations using small subgroup IPA
-                {
-                    let gemini_r := mload(GEMINI_R_CHALLENGE)
-
-                    // Step 1: Compute vanishingPolyEval = geminiR^SUBGROUP_SIZE - 1
-                    // claude: this should be a mulchain rather than being a call to the precompile
-                    // claude: there is only 256 multiplications here - which is 8 mulmod calls
-                    // claude: this is 3000 gas vs 64
-                    mstore(0x00, 0x20) // base length
-                    mstore(0x20, 0x20) // exp length
-                    mstore(0x40, 0x20) // mod length
-                    mstore(0x60, gemini_r) // base
-                    mstore(0x80, SUBGROUP_SIZE) // exp = 256
-                    mstore(0xa0, p) // mod
-                    if iszero(staticcall(gas(), 5, 0x00, 0xc0, 0x00, 0x20)) {
-                        mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
-                        revert(0x00, 0x04)
-                    }
-                    let vanishing_poly_eval := addmod(mload(0x00), sub(p, 1), p)
-
-                    // Require vanishingPolyEval != 0 (geminiR not in subgroup)
-                    if iszero(vanishing_poly_eval) {
-                        mstore(0x00, GEMINI_CHALLENGE_IN_SUBGROUP_SELECTOR)
-                        revert(0x00, 0x04)
-                    }
-
-                    // Step 2: Build challengePolyLagrange[0..255]
-                    // Memory layout: CHALLENGE_POLY_LAGRANGE_BASE + idx * 0x20
-                    // Zero-initialize all 256 entries (only 1 + 9*LOG_N = 136 will be non-zero)
-                    calldatacopy(CHALLENGE_POLY_LAGRANGE_BASE, calldatasize(), 0x2000)
-
-                    mstore(CHALLENGE_POLY_LAGRANGE_BASE, 1) // [0] = 1
-
-                    {
-                        let u_loc := SUM_U_CHALLENGE_0
-                        for { let round := 0 } lt(round, LOG_N) { round := add(round, 1) } {
-                            let curr_idx := add(1, mul(LIBRA_UNIVARIATES_LENGTH, round))
-                            let u_round := mload(u_loc)
-
-                            // [currIdx] = 1
-                            mstore(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(curr_idx, 0x20)), 1)
-
-                            // [currIdx+1..currIdx+8] = u^1, u^2, ..., u^8
-                            let prev_val := 1
-                            for { let j := 1 } lt(j, LIBRA_UNIVARIATES_LENGTH) { j := add(j, 1) } {
-                                prev_val := mulmod(prev_val, u_round, p)
-                                mstore(
-                                    add(CHALLENGE_POLY_LAGRANGE_BASE, mul(add(curr_idx, j), 0x20)),
-                                    prev_val
-                                )
-                            }
-
-                            u_loc := add(u_loc, 0x20)
-                        }
-                    }
-
-                    // Step 3: Compute denominators: denom[i] = rootPower_i * geminiR - 1
-                    // where rootPower_i = SUBGROUP_GENERATOR_INVERSE^i
-                    {
-                        let root_power := 1
-                        for { let idx := 0 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
-                            let denom := addmod(mulmod(root_power, gemini_r, p), sub(p, 1), p)
-                            mstore(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20)), denom)
-                            root_power := mulmod(root_power, SUBGROUP_GENERATOR_INVERSE, p)
-                        }
-                    }
-
-                    // Step 4: Batch invert all 256 denominators (Montgomery's trick)
-                    {
-                        // Forward pass: accumulate products
-                        mstore(CONSISTENCY_PRODUCTS_BASE, mload(CONSISTENCY_DENOMINATORS_BASE))
-                        for { let idx := 1 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
-                            mstore(
-                                add(CONSISTENCY_PRODUCTS_BASE, mul(idx, 0x20)),
-                                mulmod(
-                                    mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))),
-                                    mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
-                                    p
-                                )
-                            )
-                        }
-
-                        // Invert the final product
-                        let final_prod := mload(add(CONSISTENCY_PRODUCTS_BASE, mul(255, 0x20)))
-                        mstore(0x00, 0x20)
-                        mstore(0x20, 0x20)
-                        mstore(0x40, 0x20)
-                        mstore(0x60, final_prod)
-                        mstore(0x80, sub(p, 2))
-                        mstore(0xa0, p)
-                        if iszero(staticcall(gas(), 5, 0x00, 0xc0, 0x00, 0x20)) {
-                            mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
-                            revert(0x00, 0x04)
-                        }
-                        let running_inv := mload(0x00)
-
-                        // Backward pass: compute individual inverses
-                        for { let idx := 255 } gt(idx, 0) { idx := sub(idx, 1) } {
-                            let this_inv := mulmod(
-                                running_inv,
-                                mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))),
-                                p
-                            )
-                            running_inv := mulmod(
-                                running_inv,
-                                mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
-                                p
-                            )
-                            mstore(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20)), this_inv)
-                        }
-                        // idx=0: running_inv is the inverse of denom[0]
-                        mstore(CONSISTENCY_DENOMINATORS_BASE, running_inv)
-                    }
-
-                    // Step 5: Compute challengePolyEval = sum(lagrange[i] * invDenom[i]) * numerator
-                    let challenge_poly_eval := 0
-                    for { let idx := 0 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
-                        challenge_poly_eval := addmod(
-                            challenge_poly_eval,
-                            mulmod(
-                                mload(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(idx, 0x20))),
-                                mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
-                                p
-                            ),
-                            p
-                        )
-                    }
-
-                    // numerator = vanishingPolyEval / SUBGROUP_SIZE
-                    let numerator := mulmod(vanishing_poly_eval, INV_SUBGROUP_SIZE, p)
-                    challenge_poly_eval := mulmod(challenge_poly_eval, numerator, p)
-
-                    let lagrange_first := mulmod(mload(CONSISTENCY_DENOMINATORS_BASE), numerator, p)
-                    let lagrange_last := mulmod(
-                        mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(255, 0x20))),
-                        numerator,
-                        p
-                    )
-
-                    // Step 6: Compute diff and verify == 0
-                    // diff = lagrangeFirst * libraPolyEvals[2]
-                    let diff := mulmod(lagrange_first, mload(LIBRA_POLY_EVAL_2_LOC), p)
-
-                    // diff += (geminiR - SUBGROUP_GENERATOR_INVERSE) *
-                    //         (libraPolyEvals[1] - libraPolyEvals[2] - libraPolyEvals[0] * challengePolyEval)
-                    {
-                        let inner := addmod(
-                            mload(LIBRA_POLY_EVAL_1_LOC),
-                            sub(
-                                p,
-                                addmod(
-                                    mload(LIBRA_POLY_EVAL_2_LOC),
-                                    mulmod(mload(LIBRA_POLY_EVAL_0_LOC), challenge_poly_eval, p),
-                                    p
-                                )
-                            ),
-                            p
-                        )
-                        let factor := addmod(gemini_r, sub(p, SUBGROUP_GENERATOR_INVERSE), p)
-                        diff := addmod(diff, mulmod(factor, inner, p), p)
-                    }
-
-                    // diff += lagrangeLast * (libraPolyEvals[2] - libraEval)
-                    diff := addmod(
-                        diff,
-                        mulmod(
-                            lagrange_last,
-                            addmod(mload(LIBRA_POLY_EVAL_2_LOC), sub(p, mload(LIBRA_EVALUATION_LOC)), p),
-                            p
-                        ),
-                        p
-                    )
-
-                    // diff -= vanishingPolyEval * libraPolyEvals[3]
-                    diff := addmod(
-                        diff,
-                        sub(p, mulmod(vanishing_poly_eval, mload(LIBRA_POLY_EVAL_3_LOC), p)),
-                        p
-                    )
-
-                    if diff {
-                        mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
-                        revert(0x00, 0x04)
-                    }
-                }
 
                 /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
                 /*                       PAIRING CHECK                        */
@@ -4962,10 +4945,10 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                     mstore(0xc0, mload(KZG_QUOTIENT_X_LOC))
                     mstore(0xe0, sub(q, mload(KZG_QUOTIENT_Y_LOC)))
 
-                    // p_0_agg (read from saved location — checkEvalsConsistency clobbered ACCUMULATOR)
+                    // p_0_agg
                     // 0x80 - p_0_agg x
                     // 0xa0 - p_0_agg y
-                    mcopy(0x80, SAVED_ACCUMULATOR_X_LOC, 0x40)
+                    mcopy(0x80, ACCUMULATOR, 0x40)
 
                     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
                     /*                   PAIRING AGGREGATION                      */
