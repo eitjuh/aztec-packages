@@ -853,6 +853,8 @@ contract BlakeOptZKHonkVerifier is IVerifier {
     uint256 internal constant FOLD_POS_EVALUATIONS_12_LOC = 0xc80;
     uint256 internal constant FOLD_POS_EVALUATIONS_13_LOC = 0xca0;
     uint256 internal constant FOLD_POS_EVALUATIONS_14_LOC = 0xcc0;
+    // ZK: Libra subgroup denominator - batch inverted with shplemini denoms
+    uint256 internal constant LIBRA_SUBGROUP_DENOM_LOC = 0xce0;
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*      SHPLEMINI RUNTIME MEMORY - INVERSIONS - COMPLETE      */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -3279,6 +3281,17 @@ contract BlakeOptZKHonkVerifier is IVerifier {
             // i = 14
             mstore(TEMP_44_LOC, accumulator)
             accumulator := mulmod(accumulator, mload(NEG_INVERTED_DENOM_14_LOC), p)
+            // Libra subgroup denominator (ZK addition)
+            // Compute inline and store partial product in LIBRA_SUBGROUP_DENOM_LOC
+            {
+                let libra_denom := addmod(
+                    mload(SHPLONK_Z_CHALLENGE),
+                    sub(p, mulmod(SUBGROUP_GENERATOR, mload(GEMINI_R_CHALLENGE), p)),
+                    p
+                )
+                mstore(LIBRA_SUBGROUP_DENOM_LOC, accumulator)
+                accumulator := mulmod(accumulator, libra_denom, p)
+            }
             /// {{UNROLL_SECTION_END ACCUMULATE_INVERSES }}
 
             {
@@ -3295,6 +3308,18 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 accumulator := mload(0x00)
             }
 
+            // Libra subgroup denominator inverse (ZK)
+            {
+                let tmp := mulmod(accumulator, mload(LIBRA_SUBGROUP_DENOM_LOC), p)
+                // Recompute original denominator: shplonkZ - SUBGROUP_GENERATOR * geminiR
+                let libra_denom := addmod(
+                    mload(SHPLONK_Z_CHALLENGE),
+                    sub(p, mulmod(SUBGROUP_GENERATOR, mload(GEMINI_R_CHALLENGE), p)),
+                    p
+                )
+                accumulator := mulmod(accumulator, libra_denom, p)
+                mstore(LIBRA_SUBGROUP_DENOM_LOC, tmp)
+            }
             /// {{ UNROLL_SECTION_START COLLECT_INVERSES }}
             // i = 15
             {
@@ -3994,23 +4019,9 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                 let libra_denom_0 := mload(POS_INVERTED_DENOM_0_LOC)
 
-                // Compute 1/(shplonkZ - SUBGROUP_GENERATOR * geminiR) via modexp precompile
-                let subgroup_denom_val := addmod(
-                    mload(SHPLONK_Z_CHALLENGE),
-                    sub(p, mulmod(SUBGROUP_GENERATOR, mload(GEMINI_R_CHALLENGE), p)),
-                    p
-                )
-                mstore(0x00, 0x20) // base length
-                mstore(0x20, 0x20) // exp length
-                mstore(0x40, 0x20) // mod length
-                mstore(0x60, subgroup_denom_val) // base
-                mstore(0x80, sub(p, 2)) // exp = p-2
-                mstore(0xa0, p) // mod
-                if iszero(staticcall(gas(), 5, 0x00, 0xc0, 0x00, 0x20)) {
-                    mstore(0x00, SHPLEMINI_FAILED_SELECTOR)
-                    revert(0x00, 0x04)
-                }
-                let libra_denom_1 := mload(0x00)
+                // 1/(shplonkZ - SUBGROUP_GENERATOR * geminiR)
+                // Already batch-inverted in the shplemini batch inversion above
+                let libra_denom_1 := mload(LIBRA_SUBGROUP_DENOM_LOC)
 
                 // Interleaving artifact: skip 2 powers of shplonkNu
                 batching_challenge := mulmod(batching_challenge, shplonk_nu_sqr, p)
