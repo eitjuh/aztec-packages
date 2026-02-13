@@ -132,10 +132,10 @@ entities = [
 
 # TODO: check what the names of these are in + where are they
 libra_entitiy_evals = [
-    "0",
-    "1",
-    "2",
-    "3"
+    "LIBRA_CONCATENATION",
+    "LIBRA_SHIFTED_GRAND_SUM",
+    "LIBRA_GRAND_SUM_EVAL",
+    "LIBRA_QUOTIENT_EVAL"
 ]
 
 challenges = [
@@ -167,7 +167,7 @@ def print_header_centered(text: str):
     # The width of the bar is the length of the top/bottom string
     width = len(top) - 4  # exclude /* and */
     # Center the text, with "/*" and "*/" at the ends
-    centered = "/*" + text.center(width) + "*/"
+    centered = "\n/*" + text.center(width) + "*/"
     print("")
     print(top)
     print(centered)
