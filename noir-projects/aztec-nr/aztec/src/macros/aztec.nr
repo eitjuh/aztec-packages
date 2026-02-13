@@ -1,29 +1,30 @@
-use std::meta::ctstring::AsCtString;
-
-use crate::macros::{
-    calls_generation::{
-        external_functions::{generate_external_function_calls, generate_external_function_self_calls_structs},
-        internal_functions::generate_call_internal_struct,
+use crate::{
+    macros::{
+        calls_generation::{
+            external_functions::{generate_external_function_calls, generate_external_function_self_calls_structs},
+            internal_functions::generate_call_internal_struct,
+        },
+        dispatch::generate_public_dispatch,
+        internals_functions_generation::{create_fn_abi_exports, process_functions},
+        notes::NOTES,
+        storage::STORAGE_LAYOUT_NAME,
+        utils::{
+            get_trait_impl_method, is_fn_contract_library_method, is_fn_external, is_fn_internal, is_fn_test,
+            module_has_storage,
+        },
     },
-    dispatch::generate_public_dispatch,
-    internals_functions_generation::{create_fn_abi_exports, process_functions},
-    notes::NOTES,
-    storage::STORAGE_LAYOUT_NAME,
-    utils::{
-        get_trait_impl_method, is_fn_contract_library_method, is_fn_external, is_fn_internal, is_fn_test,
-        module_has_storage,
-    },
+    messages::discovery::CustomMessageHandler,
 };
 
 /// Builder for configuring Aztec contract settings.
 ///
 /// Usage:
 /// ```noir
-/// #[aztec(aztec::macros::AztecConfig::new().custom_message_handler("my_handler"))]
+/// #[aztec(aztec::macros::AztecConfig::new().custom_message_handler(my_handler))]
 /// contract MyContract { ... }
 /// ```
 pub struct AztecConfig {
-    custom_message_handler: Option<CtString>,
+    custom_message_handler: Option<CustomMessageHandler<()>>,
 }
 
 impl AztecConfig {
@@ -40,10 +41,10 @@ impl AztecConfig {
     /// This enables contracts to process non-standard messages (i.e. any with a message type that is not in
     /// [`messages::msg_type`]).
     ///
-    /// `handler_name` must be the name of a `#[contract_library_method]` function that conforms to the
+    /// `handler` must be a `#[contract_library_method]` function that conforms to the
     /// [`messages::discovery::CustomMessageHandler`](crate::messages::discovery::CustomMessageHandler) type signature.
-    pub comptime fn custom_message_handler(_self: Self, handler_name: CtString) -> Self {
-        Self { custom_message_handler: Option::some(handler_name) }
+    pub comptime fn custom_message_handler(_self: Self, handler: CustomMessageHandler<()>) -> Self {
+        Self { custom_message_handler: Option::some(handler) }
     }
 }
 
@@ -64,7 +65,7 @@ impl AztecConfig {
 /// Advanced contracts can use [`AztecConfig`](AztecConfig) to customize parts of its behavior, such as message
 /// processing.
 /// ```noir
-/// #[aztec(aztec::macros::AztecConfig::new().custom_message_handler("my_handler"))]
+/// #[aztec(aztec::macros::AztecConfig::new().custom_message_handler(my_handler))]
 /// contract MyAdvancedContract { ... }
 /// ```
 #[varargs]
@@ -103,13 +104,8 @@ pub comptime fn aztec(m: Module, args: [AztecConfig]) -> Quoted {
         quote {}
     };
     let process_custom_message_option = if config.custom_message_handler.is_some() {
-        // User specified handler - validate and use it.
-        let handler_name_str = config.custom_message_handler.unwrap();
-        let handler_fn = validate_custom_message_handler(m, handler_name_str);
-        // Suppress "unused function" warning since the handler is used via function pointer
-        handler_fn.add_attribute("allow(dead_code)");
-        let handler_name = handler_fn.name();
-        quote { Option::some($handler_name) }
+        let handler = config.custom_message_handler.unwrap();
+        quote { Option::some($handler) }
     } else {
         quote { Option::<aztec::messages::discovery::CustomMessageHandler<()>>::none() }
     };
@@ -390,86 +386,6 @@ comptime fn generate_process_message(process_custom_message_option: Quoted) -> Q
             aztec::messages::processing::validate_and_store_enqueued_notes_and_events(address);
         }
     }
-}
-
-/// Validates a custom message handler.
-///
-/// Custom message handlers are specified by name via `AztecConfig::custom_message_handler`. A custom message
-/// handler must be a function that conforms to the
-/// [`CustomMessageHandler`](crate::messages::discovery::CustomMessageHandler) type signature. The function must be
-/// unconstrained and marked as `#[contract_library_method]`.
-///
-/// Returns a `FunctionDefinition` so we can get its properly quoted name.
-comptime fn validate_custom_message_handler(m: Module, handler_name: CtString) -> FunctionDefinition {
-    let expected_type: Type = quote { crate::messages::discovery::CustomMessageHandler<()> }.as_type();
-    let expected_type_name = f"{expected_type}";
-
-    let matching_fns = m.functions().filter(|f: FunctionDefinition| {
-        let fn_name_quoted = f.name();
-        let fn_name = f"{fn_name_quoted}".as_ctstring();
-        fn_name.eq(handler_name)
-    });
-
-    if matching_fns.len() == 0 {
-        panic(
-            f"Custom message handler '{handler_name}' not found in the contract. The handler must be a #[contract_library_method] conforming to {expected_type_name}.",
-        );
-    }
-
-    let handler = matching_fns[0];
-
-    if !is_fn_contract_library_method(handler) {
-        panic(
-            f"Custom message handler '{handler_name}' must be marked #[contract_library_method]. See {expected_type_name} for the expected signature.",
-        );
-    }
-
-    if !handler.is_unconstrained() {
-        panic(
-            f"Custom message handler '{handler_name}' must be unconstrained. See {expected_type_name} for the expected signature.",
-        );
-    }
-
-    let expected_param_types: [Type; 5] = [
-        quote { crate::protocol::address::AztecAddress }.as_type(),
-        quote { u64 }.as_type(),
-        quote { u64 }.as_type(),
-        quote { BoundedVec<Field, crate::messages::encoding::MAX_MESSAGE_CONTENT_LEN> }.as_type(),
-        quote { crate::messages::processing::MessageContext }.as_type(),
-    ];
-
-    let params = handler.parameters();
-    let num_params = params.len();
-    let expected_num_params = expected_param_types.len();
-    if num_params != expected_num_params {
-        panic(
-            f"Custom message handler '{handler_name}' has {num_params} parameters but expected {expected_num_params}. See {expected_type_name} for the expected signature.",
-        );
-    }
-
-    for i in 0..expected_param_types.len() {
-        let (_param_name, param_type) = params[i];
-        let expected_param_type = expected_param_types[i];
-        if param_type != expected_param_type {
-            let actual = f"{param_type}";
-            let expected = f"{expected_param_type}";
-            panic(
-                f"Custom message handler '{handler_name}' parameter {i} has type {actual} but expected {expected}. See {expected_type_name} for the expected signature.",
-            );
-        }
-    }
-
-    let return_type = handler.return_type();
-    let expected_return_type: Type = quote { () }.as_type();
-    if return_type != expected_return_type {
-        let actual = f"{return_type}";
-        let expected = f"{expected_return_type}";
-        panic(
-            f"Custom message handler '{handler_name}' returns {actual} but expected {expected}. See {expected_type_name} for the expected signature.",
-        );
-    }
-
-    handler
 }
 
 /// Checks that all functions in the module have a context macro applied.
