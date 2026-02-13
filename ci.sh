@@ -72,7 +72,7 @@ case "$cmd" in
   dash)
     watch_ci -s next,prs --user --watch
     ;;
-  fast|full|full-no-test-cache|full-no-test-cache-makefile|docs|barretenberg|barretenberg-full)
+  fast|full|full-no-test-cache|docs|barretenberg|barretenberg-full)
     export CI_DASHBOARD="prs"
     export JOB_ID="x-$cmd"
     bootstrap_ec2 "./bootstrap.sh ci-$cmd"
@@ -91,7 +91,7 @@ case "$cmd" in
       JOB_ID=$1 INSTANCE_POSTFIX=$1 ARCH=$2 exec denoise "bootstrap_ec2 './bootstrap.sh $3'"
     }
     export -f run
-    seq 1 ${1:-5} | parallel --termseq 'TERM,10000' --tagstring '{= $_=~s/run (\w+).*/$1/; =}' --line-buffered \
+    seq 1 ${1:-5} | parallel --jobs 100 --termseq 'TERM,10000' --tagstring '{= $_=~s/run (\w+).*/$1/; =}' --line-buffered \
       'run $USER-x{}-full amd64 ci-full-no-test-cache'
     ;;
   merge-queue)
@@ -108,11 +108,12 @@ case "$cmd" in
     }
     export -f run
 
-    parallel --jobs 10 --termseq 'TERM,10000' --tagstring '{= $_=~s/run (\w+).*/$1/; =}' --line-buffered --halt now,fail=1 ::: \
+    # Specify jobs as maybe we only have a couple of cpus.
+    parallel --jobs 100 --termseq 'TERM,10000' --tagstring '{= $_=~s/run (\w+).*/$1/; =}' --line-buffered --halt now,fail=1 ::: \
       'run x1-full amd64 ci-full-no-test-cache' \
       'run x2-full amd64 ci-full-no-test-cache' \
-      'run x3-full amd64 ci-full-no-test-cache-makefile' \
-      'run x4-full amd64 ci-full-no-test-cache-makefile' \
+      'run x3-full amd64 ci-full-no-test-cache' \
+      'run x4-full amd64 ci-full-no-test-cache' \
       'run a1-fast arm64 ci-fast' | DUP=1 cache_log "Merge queue CI run" $RUN_ID
     ;;
   merge-queue-heavy)
@@ -129,7 +130,8 @@ case "$cmd" in
     }
     export -f run
 
-    parallel --jobs 10 --termseq 'TERM,10000' --tagstring '{= $_=~s/run (\w+).*/$1/; =}' --line-buffered --halt now,fail=1 ::: \
+    # Specify jobs as maybe we only have a couple of cpus.
+    parallel --jobs 100 --termseq 'TERM,10000' --tagstring '{= $_=~s/run (\w+).*/$1/; =}' --line-buffered --halt now,fail=1 ::: \
       'run x1-full amd64 ci-full-no-test-cache' \
       'run x2-full amd64 ci-full-no-test-cache' \
       'run x3-full amd64 ci-full-no-test-cache' \

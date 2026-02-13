@@ -22,16 +22,25 @@ if [ "$version" == "$published_version" ]; then
   exit 0
 fi
 
-cp package.json package.json.deploy_bkup
-# Restore package.json as we write over it.
+# Create temp directory for publishing
+tmpdir=$(mktemp -d)
 function cleanup {
-  mv package.json.deploy_bkup package.json &>/dev/null || true
+  rm -rf "$tmpdir"
 }
 trap cleanup SIGINT SIGTERM EXIT
 
+# Pack the package (excludes node_modules, respects .npmignore)
+yarn pack --filename "$tmpdir/package.tgz"
+
+# Extract and prepare
+cd "$tmpdir"
+tar -xzf package.tgz
+cd package
+
+# Modify package.json in the temp dir
 release_prep_package_json $version
 
-# Publish.
+# Publish from temp dir
 if [ "$dry_run" -eq 1 ]; then
   denoise "npm publish --ignore-scripts --dry-run --tag $dist_tag --access public"
 else
