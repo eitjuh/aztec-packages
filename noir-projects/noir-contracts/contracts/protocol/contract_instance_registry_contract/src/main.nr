@@ -173,7 +173,7 @@ pub contract ContractInstanceRegistry {
         };
         let payload = event.serialize_non_standard();
         debug_log_format("ContractInstancePublished: {}", payload);
-        let padded_log = payload.concat([0; 3]);
+        let padded_log = payload.concat([0]);
         let length = payload.len();
         context.emit_private_log(padded_log, length);
 
