@@ -222,6 +222,7 @@ describe('Private Execution test suite', () => {
       anchorBlockHeader,
       senderForTags,
       jobId: TEST_JOB_ID,
+      scopes: 'ALL_SCOPES',
     });
   };
 
@@ -335,6 +336,7 @@ describe('Private Execution test suite', () => {
           aztecNode,
           anchorBlockHeader,
           jobId,
+          'ALL_SCOPES',
         );
       },
     );

@@ -18,7 +18,6 @@ import { type Hex, formatUnits } from 'viem';
 
 import type { SequencerState } from './utils.js';
 
-// TODO(palla/mbps): Review all metrics and add any missing ones per checkpoint
 export class SequencerMetrics {
   public readonly tracer: Tracer;
   private meter: Meter;
@@ -40,17 +39,25 @@ export class SequencerMetrics {
   private filledSlots: UpDownCounter;
 
   private blockProposalFailed: UpDownCounter;
-  private blockProposalSuccess: UpDownCounter;
-  private blockProposalPrecheckFailed: UpDownCounter;
+  private checkpointProposalSuccess: UpDownCounter;
+  private checkpointPrecheckFailed: UpDownCounter;
+  private checkpointProposalFailed: UpDownCounter;
   private checkpointSuccess: UpDownCounter;
   private slashingAttempts: UpDownCounter;
   private checkpointAttestationDelay: Histogram;
+  private checkpointBuildDuration: Histogram;
+  private checkpointBlockCount: Gauge;
+  private checkpointTxCount: Gauge;
+  private checkpointTotalMana: Gauge;
 
   // Fisherman fee analysis metrics
   private fishermanWouldBeIncluded: UpDownCounter;
   private fishermanTimeBeforeBlock: Histogram;
   private fishermanPendingBlobTxCount: Histogram;
   private fishermanIncludedBlobTxCount: Histogram;
+  private fishermanPendingBlobCount: Histogram;
+  private fishermanIncludedBlobCount: Histogram;
+  private fishermanBlockBlobsFull: UpDownCounter;
   private fishermanCalculatedPriorityFee: Histogram;
   private fishermanPriorityFeeDelta: Histogram;
   private fishermanEstimatedCost: Histogram;
@@ -80,7 +87,7 @@ export class SequencerMetrics {
 
     this.checkpointAttestationDelay = this.meter.createHistogram(Metrics.SEQUENCER_CHECKPOINT_ATTESTATION_DELAY);
 
-    this.rewards = this.meter.createGauge(Metrics.SEQUENCER_CURRENT_BLOCK_REWARDS);
+    this.rewards = this.meter.createGauge(Metrics.SEQUENCER_CURRENT_SLOT_REWARDS);
 
     this.slots = createUpDownCounterWithDefault(this.meter, Metrics.SEQUENCER_SLOT_COUNT);
 
@@ -103,16 +110,16 @@ export class SequencerMetrics {
       Metrics.SEQUENCER_BLOCK_PROPOSAL_FAILED_COUNT,
     );
 
-    this.blockProposalSuccess = createUpDownCounterWithDefault(
+    this.checkpointProposalSuccess = createUpDownCounterWithDefault(
       this.meter,
-      Metrics.SEQUENCER_BLOCK_PROPOSAL_SUCCESS_COUNT,
+      Metrics.SEQUENCER_CHECKPOINT_PROPOSAL_SUCCESS_COUNT,
     );
 
     this.checkpointSuccess = createUpDownCounterWithDefault(this.meter, Metrics.SEQUENCER_CHECKPOINT_SUCCESS_COUNT);
 
-    this.blockProposalPrecheckFailed = createUpDownCounterWithDefault(
+    this.checkpointPrecheckFailed = createUpDownCounterWithDefault(
       this.meter,
-      Metrics.SEQUENCER_BLOCK_PROPOSAL_PRECHECK_FAILED_COUNT,
+      Metrics.SEQUENCER_CHECKPOINT_PRECHECK_FAILED_COUNT,
       {
         [Attributes.ERROR_TYPE]: [
           'slot_already_taken',
@@ -122,6 +129,16 @@ export class SequencerMetrics {
         ],
       },
     );
+
+    this.checkpointProposalFailed = createUpDownCounterWithDefault(
+      this.meter,
+      Metrics.SEQUENCER_CHECKPOINT_PROPOSAL_FAILED_COUNT,
+    );
+
+    this.checkpointBuildDuration = this.meter.createHistogram(Metrics.SEQUENCER_CHECKPOINT_BUILD_DURATION);
+    this.checkpointBlockCount = this.meter.createGauge(Metrics.SEQUENCER_CHECKPOINT_BLOCK_COUNT);
+    this.checkpointTxCount = this.meter.createGauge(Metrics.SEQUENCER_CHECKPOINT_TX_COUNT);
+    this.checkpointTotalMana = this.meter.createGauge(Metrics.SEQUENCER_CHECKPOINT_TOTAL_MANA);
 
     this.slashingAttempts = createUpDownCounterWithDefault(this.meter, Metrics.SEQUENCER_SLASHING_ATTEMPTS_COUNT);
 
@@ -160,6 +177,18 @@ export class SequencerMetrics {
 
     this.fishermanMinedBlobTxTotalCost = this.meter.createHistogram(
       Metrics.FISHERMAN_FEE_ANALYSIS_MINED_BLOB_TX_TOTAL_COST,
+    );
+
+    this.fishermanPendingBlobCount = this.meter.createHistogram(Metrics.FISHERMAN_FEE_ANALYSIS_PENDING_BLOB_COUNT);
+
+    this.fishermanIncludedBlobCount = this.meter.createHistogram(Metrics.FISHERMAN_FEE_ANALYSIS_INCLUDED_BLOB_COUNT);
+
+    this.fishermanBlockBlobsFull = createUpDownCounterWithDefault(
+      this.meter,
+      Metrics.FISHERMAN_FEE_ANALYSIS_BLOCK_BLOBS_FULL,
+      {
+        [Attributes.OK]: [true, false],
+      },
     );
   }
 
@@ -243,16 +272,28 @@ export class SequencerMetrics {
     });
   }
 
-  recordBlockProposalSuccess() {
-    this.blockProposalSuccess.add(1);
+  recordCheckpointProposalSuccess() {
+    this.checkpointProposalSuccess.add(1);
   }
 
-  recordBlockProposalPrecheckFailed(
+  recordCheckpointPrecheckFailed(
     checkType: 'slot_already_taken' | 'rollup_contract_check_failed' | 'slot_mismatch' | 'block_number_mismatch',
   ) {
-    this.blockProposalPrecheckFailed.add(1, {
-      [Attributes.ERROR_TYPE]: checkType,
+    this.checkpointPrecheckFailed.add(1, { [Attributes.ERROR_TYPE]: checkType });
+  }
+
+  recordCheckpointProposalFailed(reason?: string) {
+    this.checkpointProposalFailed.add(1, {
+      ...(reason && { [Attributes.ERROR_TYPE]: reason }),
     });
+  }
+
+  /** Records aggregate metrics for a completed checkpoint build. */
+  recordCheckpointBuild(durationMs: number, blockCount: number, txCount: number, totalMana: number) {
+    this.checkpointBuildDuration.record(Math.ceil(durationMs));
+    this.checkpointBlockCount.record(blockCount);
+    this.checkpointTxCount.record(txCount);
+    this.checkpointTotalMana.record(totalMana);
   }
 
   recordSlashingAttempt(actionCount: number) {
@@ -281,10 +322,12 @@ export class SequencerMetrics {
 
       // Record pending block snapshot data (once per strategy for comparison)
       this.fishermanPendingBlobTxCount.record(analysis.pendingSnapshot.pendingBlobTxCount, strategyAttributes);
+      this.fishermanPendingBlobCount.record(analysis.pendingSnapshot.pendingBlobCount, strategyAttributes);
 
       // Record mined block data if available
       if (analysis.minedBlock) {
         this.fishermanIncludedBlobTxCount.record(analysis.minedBlock.includedBlobTxCount, strategyAttributes);
+        this.fishermanIncludedBlobCount.record(analysis.minedBlock.includedBlobCount, strategyAttributes);
 
         // Record actual fees from blob transactions in the mined block
         for (const blobTx of analysis.minedBlock.includedBlobTxs) {
@@ -317,6 +360,13 @@ export class SequencerMetrics {
       // Record analysis results if available
       if (analysis.analysis) {
         this.fishermanTimeBeforeBlock.record(Math.ceil(analysis.analysis.timeBeforeBlockMs), strategyAttributes);
+
+        // Record whether the block reached 100% blob capacity
+        if (analysis.analysis.blockBlobsFull) {
+          this.fishermanBlockBlobsFull.add(1, { ...strategyAttributes, [Attributes.OK]: true });
+        } else {
+          this.fishermanBlockBlobsFull.add(1, { ...strategyAttributes, [Attributes.OK]: false });
+        }
 
         // Record strategy-specific inclusion result
         if (strategyResult.wouldBeIncluded !== undefined) {

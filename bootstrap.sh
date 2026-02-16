@@ -232,11 +232,14 @@ function start_txes {
   export TOKIO_WORKER_THREADS=1
 
   # Starting txe servers with incrementing port numbers.
+  # Base port is below the Linux ephemeral range (32768-60999) to avoid conflicts.
+  local txe_base_port=14730
   for i in $(seq 0 $((NUM_TXES-1))); do
-    port=$((45730 + i))
+    port=$((txe_base_port + i))
     existing_pid=$(lsof -ti :$port || true)
     if [ -n "$existing_pid" ]; then
       echo "Killing existing process $existing_pid on port: $port"
+      check_port $port
       kill -9 $existing_pid &>/dev/null || true
       while kill -0 $existing_pid &>/dev/null; do sleep 0.1; done
     fi
@@ -247,8 +250,12 @@ function start_txes {
   echo "Waiting for TXE's to start..."
   for i in $(seq 0 $((NUM_TXES-1))); do
       local j=0
-      while ! nc -z 127.0.0.1 $((45730 + i)) &>/dev/null; do
-        [ $j == 60 ] && echo_stderr "TXE $i took too long to start. Exiting." && exit 1
+      while ! nc -z 127.0.0.1 $((txe_base_port + i)) &>/dev/null; do
+        if [ $j == 60 ]; then
+          echo_stderr "TXE $i failed to start on port $((txe_base_port + i)) after 60s."
+          check_port $((txe_base_port + i))
+          exit 1
+        fi
         sleep 1
         j=$((j+1))
       done
@@ -256,18 +263,6 @@ function start_txes {
 }
 
 export test_cmds_file="/tmp/test_cmds"
-
-function test_engine_start {
-  # This trickery is to overcome an oddity in parallel.
-  # Turns out when we hold an open pipe to parallel, like we do using tail below,
-  # parallel will only process the result of job N when it receives a new job *after* job N has completed.
-  # This can prevent a "fail fast" situation, or prevent the results from the first batch of commands from showing up.
-  # Empty commands fed to run_test_cmd are no-ops, so we keep parallel processing results in timely fashion with this.
-  while ! grep -Eq '^STOP$' $test_cmds_file; do sleep 5; echo | atomic_append $test_cmds_file; done &
-  # Continuously stream the test cmds into parallelize.
-  DENOISE=0 parallelize < <(tail -n+0 -f $test_cmds_file)
-}
-export -f test_engine_start
 
 function prep {
   pull_submodules
@@ -289,7 +284,7 @@ function build_and_test {
   rm -f $test_cmds_file
   touch $test_cmds_file
   # put it in it's own process group, we can terminate on cleanup.
-  setsid color_prefix "test-engine" "denoise test_engine_start" &
+  setsid color_prefix "test-engine" "denoise \"test_engine $test_cmds_file\"" &
   test_engine_pid=$!
   test_engine_pgid=$(ps -o pgid= -p $test_engine_pid)
   echo "Started test engine with $test_engine_pid in PGID $test_engine_pgid."
