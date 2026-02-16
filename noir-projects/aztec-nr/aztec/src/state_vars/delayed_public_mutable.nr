@@ -45,8 +45,8 @@ mod test;
 /// The value stored in `DelayedPublicMutable` is fully public, as are all scheduled value and delay changes.
 ///
 /// Reads from a private contract function are almost fully private: the only observable effect is that they set the
-/// transaction's `include_by_timestamp` property, possibly reducing the privacy set. See
-/// [`PrivateContext::set_include_by_timestamp`](crate::context::PrivateContext::set_include_by_timestamp).
+/// transaction's `expiration_timestamp` property, possibly reducing the privacy set. See
+/// [`PrivateContext::set_expiration_timestamp`](crate::context::PrivateContext::set_expiration_timestamp).
 ///
 /// ## Use Cases
 ///
@@ -68,17 +68,17 @@ mod test;
 /// A short delay reduces the most obvious downside of `DelayedPublicMutable`, and so it is natural to wish to make it
 /// be as low as possible. It is therefore important to understand the tradeoffs involved in delay selection.
 ///
-/// A shorter delay will result in a lower `include_by_timestamp` property of transactions that privately read the
+/// A shorter delay will result in a lower `expiration_timestamp` property of transactions that privately read the
 /// state variable, reducing its privacy set. If the delay is smaller than that of any other contract, then this
 /// privacy leak might be large enough to uniquely identify those transactions that interact with the contract - fully
 /// defeating the purpose of `DelayedPublicMutable`.
 ///
-/// Additionally, a lower `include_by_timestamp` obviously causes transactions to expire earlier, resulting in
+/// Additionally, a lower `expiration_timestamp` obviously causes transactions to expire earlier, resulting in
 /// multiple issues. Among others, this can make large transactions that take long to prove be unfeasible, restrict
 /// users with slow proving devices, and force large transaction fees to guarantee fast inclusion.
 ///
 /// In practice, a delay of at least a couple hours is recommended. From a privacy point of view the optimal delay is
-/// [`crate::protocol::constants::MAX_INCLUDE_BY_TIMESTAMP_DURATION`], which puts contracts in the same privacy set as
+/// [`crate::protocol::constants::MAX_TX_LIFETIME`], which puts contracts in the same privacy set as
 /// those that do not use `DelayedPublicMutable` at all.
 ///
 /// ## Examples
@@ -416,14 +416,14 @@ where
     /// Private reads are based on a historical public storage read at the anchor block (i.e.
     /// [`crate::history::storage::public_storage_historical_read`]). `DelayedPublicMutable` is able to provide
     /// guarantees about values read in the past remaining the state variable's current value into the future due to
-    /// the existence of delays when scheduling writes. It then sets the `include_by_timestamp` property of the current
+    /// the existence of delays when scheduling writes. It then sets the `expiration_timestamp` property of the current
     /// transaction (see
-    /// [`PrivateContext::set_include_by_timestamp`](crate::context::PrivateContext::set_include_by_timestamp)) to
+    /// [`PrivateContext::set_expiration_timestamp`](crate::context::PrivateContext::set_expiration_timestamp)) to
     /// ensure that the transaction can only be included in a block **prior** to the state variable's value changing.
     /// In other words, it knows some facts about the near future up until some time horizon, and then makes sure that
     /// it doesn't act on this knowledge past said moment.
     ///
-    /// Because the `include_by_timestamp` property is part of the transaction's public information, any mutation to
+    /// Because the `expiration_timestamp` property is part of the transaction's public information, any mutation to
     /// this value could result in transaction fingerprinting. Note that multiple contracts may set this value during a
     /// transaction: it is the smallest (most restrictive) timestamp that will be used.
     ///
@@ -438,8 +438,8 @@ where
     /// `DelayedPublicMutable` that will change soon.
     ///
     /// Transactions that do not read from a `DelayedPublicMutable` are part of a privacy set in which the
-    /// `include_by_timestamp` is set to their anchor block plus
-    /// [`crate::protocol::constants::MAX_INCLUDE_BY_TIMESTAMP_DURATION`], making this the most privacy-preserving
+    /// `expiration_timestamp` is set to their anchor block plus
+    /// [`crate::protocol::constants::MAX_TX_LIFETIME`], making this the most privacy-preserving
     /// delay. The less frequent said value changes are, the more private the contract is. Wallets can also then choose
     /// to further lower this timestamp to make it less obvious that their transactions are interacting with this
     /// soon-to-change variable.
