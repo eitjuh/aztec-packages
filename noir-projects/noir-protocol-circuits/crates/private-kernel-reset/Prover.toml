@@ -3,9 +3,9 @@ leaf_index = "0x0000000000000000000000000000000000000000000000000000000000000000
 sibling_path = [
   "0x2def0f0f11588ba2936cd0928e5e46c42e8078b9e8e3ea92e78f092a60c0f04f",
   "0x14f239ae4869f7fb7c5b2a277873b80c1736d1590b05db7d5ac40f4f0c945edb",
-  "0x22ade1bda5bb66588cb6adcfcd830c72393f1be1b7eccc0d6b19656eb0ca4093",
-  "0x1de0c6d93bb75f6734bc6754c1e32302fd1dd0a71916c430a192da3ac87b5c22",
-  "0x15fb5e9034259ca1b690ef4d130d1f67445e079a6e3aedbd426489592ea74411",
+  "0x1f128d71dde600a9c2bcb38bcdc805b3110b4cf2eb860428cf2be0d79faab95f",
+  "0x1252a8292c9bf22f557709858169d37dfc7a985eaabbd6efd81f4c8f8e6f7988",
+  "0x1cf708e3e73a58b687f5b5e9e4254d057feb3ce930f38eb6ff35f0361f0169a5",
   "0x1bcf8a2db489e63e99db50019af5d3dc3f9a1defc38840bdb030d16ea8f39ec4",
   "0x267b110097edb652a44602e21a39794bb362983ee57ee78cbfbb9e980ef44985"
 ]
@@ -144,21 +144,21 @@ sibling_path = [
 
 [previous_kernel_public_inputs]
 min_revertible_side_effect_counter = "0x0000000000000000000000000000000000000000000000000000000000000005"
-include_by_timestamp = "0x0000000000000000000000000000000000000000000000000000000069904e3d"
+include_by_timestamp = "0x0000000000000000000000000000000000000000000000000000000069923558"
 is_private_only = false
-claimed_first_nullifier = "0x1863cc67e6bb1910e59aa3c2daef77f8310f7def1b1cca6ba717d4d1cb88d3bc"
+claimed_first_nullifier = "0x190f621db0a2c9f4b63f1db8b1ea8f2cfad3390e361d5478de4ddf468b8ff199"
 claimed_revertible_counter = "0x0000000000000000000000000000000000000000000000000000000000000005"
 
   [previous_kernel_public_inputs.constants]
-  vk_tree_root = "0x29e314ba0e28fedb7a164aa29b135723465cce28ca3a46534b13ebcefbf7851a"
+  vk_tree_root = "0x0cb11b01acc8f6e0aa2e26356fd6f3edcb248364d234eb1b3c4b15eabfacb35f"
 
     [previous_kernel_public_inputs.constants.anchor_block_header]
-    sponge_blob_hash = "0x277ae55f7d67697d870e4413cea233e8e025cc6d52338a41f2d69827f4780306"
-    total_fees = "0x000000000000000000000000000000000000000000000000001ac8992acff3e0"
+    sponge_blob_hash = "0x0e40e2584c5969f4dcb22e5129a3248b1ee5b469d11fd375ac0efc1cfc3c8728"
+    total_fees = "0x000000000000000000000000000000000000000000000000002346f7fd620980"
     total_mana_used = "0x0000000000000000000000000000000000000000000000000000000000021835"
 
       [previous_kernel_public_inputs.constants.anchor_block_header.last_archive]
-      root = "0x28fa61287c688f55ef6911cb919635aecc0857ff4fbbf27051300263e2be97fc"
+      root = "0x17e2499b0913a806a3b033a8bc1127534e358cd61a9a7c68d33ef92d651a1cfa"
       next_available_leaf_index = "0x0000000000000000000000000000000000000000000000000000000000000008"
 
 [previous_kernel_public_inputs.constants.anchor_block_header.state.l1_to_l2_message_tree]
@@ -166,37 +166,37 @@ root = "0x0d582c10ff8115413aa5b70564fdd2f3cefe1f33a1e43a47bc495081e91e73e5"
 next_available_leaf_index = "0x0000000000000000000000000000000000000000000000000000000000002000"
 
 [previous_kernel_public_inputs.constants.anchor_block_header.state.partial.note_hash_tree]
-root = "0x2312d38ad51354e788da2bf9a5e828531887dad5771a366c753bacf2e658540b"
+root = "0x14b46b2ca6b3a458ab68f856620197a371afb1a412c773c256e45ee41ab1885d"
 next_available_leaf_index = "0x0000000000000000000000000000000000000000000000000000000000000200"
 
 [previous_kernel_public_inputs.constants.anchor_block_header.state.partial.nullifier_tree]
-root = "0x16214f49d6dd97ca4191bb803fd3b4c5d19428a238ddc33175f8a38501b97fee"
+root = "0x055cabbe492f764f9fd9105baac4d1a3c0f365e20fd0a3b6f877be319fe8c6ca"
 next_available_leaf_index = "0x0000000000000000000000000000000000000000000000000000000000000280"
 
 [previous_kernel_public_inputs.constants.anchor_block_header.state.partial.public_data_tree]
-root = "0x25fbfd14666ec463c89b98eae2862a7db9fdf7f50560c4c48e823e94949e0ba1"
+root = "0x07fe785c823fde28359655afaa909c59989128d6d2556d3d17f592eca049489a"
 next_available_leaf_index = "0x000000000000000000000000000000000000000000000000000000000000008b"
 
       [previous_kernel_public_inputs.constants.anchor_block_header.global_variables]
       chain_id = "0x0000000000000000000000000000000000000000000000000000000000007a69"
-      version = "0x00000000000000000000000000000000000000000000000000000000d597f915"
+      version = "0x0000000000000000000000000000000000000000000000000000000002add7f4"
       block_number = "0x0000000000000000000000000000000000000000000000000000000000000008"
       slot_number = "0x0000000000000000000000000000000000000000000000000000000000000022"
-      timestamp = "0x00000000000000000000000000000000000000000000000000000000698efcbd"
+      timestamp = "0x000000000000000000000000000000000000000000000000000000006990e3d8"
 
         [previous_kernel_public_inputs.constants.anchor_block_header.global_variables.coinbase]
-        inner = "0x00000000000000000000000021cb676f48a1b57f8805371569ad102ef7cb2cba"
+        inner = "0x0000000000000000000000006380f8c0cf607b5b309934945c70b249ce514eae"
 
         [previous_kernel_public_inputs.constants.anchor_block_header.global_variables.fee_recipient]
         inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
         [previous_kernel_public_inputs.constants.anchor_block_header.global_variables.gas_fees]
         fee_per_da_gas = "0x0000000000000000000000000000000000000000000000000000000000000000"
-        fee_per_l2_gas = "0x0000000000000000000000000000000000000000000000000000000cc9876060"
+        fee_per_l2_gas = "0x00000000000000000000000000000000000000000000000000000010d7a21380"
 
     [previous_kernel_public_inputs.constants.tx_context]
     chain_id = "0x0000000000000000000000000000000000000000000000000000000000007a69"
-    version = "0x00000000000000000000000000000000000000000000000000000000d597f915"
+    version = "0x0000000000000000000000000000000000000000000000000000000002add7f4"
 
 [previous_kernel_public_inputs.constants.tx_context.gas_settings.gas_limits]
 da_gas = "0x0000000000000000000000000000000000000000000000000000000000c00000"
@@ -208,7 +208,7 @@ l2_gas = "0x00000000000000000000000000000000000000000000000000000000000f4240"
 
 [previous_kernel_public_inputs.constants.tx_context.gas_settings.max_fees_per_gas]
 fee_per_da_gas = "0x0000000000000000000000000000000000000000000000000000000000000000"
-fee_per_l2_gas = "0x000000000000000000000000000000000000000000000000000000016eed1b00"
+fee_per_l2_gas = "0x00000000000000000000000000000000000000000000000000000001a66bcd10"
 
 [previous_kernel_public_inputs.constants.tx_context.gas_settings.max_priority_fees_per_gas]
 fee_per_da_gas = "0x0000000000000000000000000000000000000000000000000000000000000000"
@@ -252,7 +252,7 @@ length = "0x0000000000000000000000000000000000000000000000000000000000000001"
 
   [[previous_kernel_public_inputs.validation_requests.note_hash_read_requests.array]]
 [previous_kernel_public_inputs.validation_requests.note_hash_read_requests.array.inner]
-inner = "0x277b0f46a0a4e76c5a97b25a495bf8e6c7a9b8ad8c6fdeb1243e2598f361b936"
+inner = "0x17a715a496ad23965aaf8881fefdd363d035a8043e7e40f7d3ae03053c410263"
 counter = "0x0000000000000000000000000000000000000000000000000000000000000003"
 
 [previous_kernel_public_inputs.validation_requests.note_hash_read_requests.array.contract_address]
@@ -1277,967 +1277,967 @@ counter = "0x0000000000000000000000000000000000000000000000000000000000000000"
 [previous_kernel_public_inputs.validation_requests.nullifier_read_requests.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators]
 length = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array]]
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner]
-sk_app_generator = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  [[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array]]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner]
+key_type_domain_separator = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request]
+  [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request]
   sk_app = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.inner.request.pk_m]
+    [previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.inner.request.pk_m]
     x = "0x0000000000000000000000000000000000000000000000000000000000000000"
     y = "0x0000000000000000000000000000000000000000000000000000000000000000"
     is_infinite = false
 
-[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_generators.array.contract_address]
+[previous_kernel_public_inputs.validation_requests.scoped_key_validation_requests_and_separators.array.contract_address]
 inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 [previous_kernel_public_inputs.end.note_hashes]
@@ -2763,7 +2763,7 @@ length = "0x0000000000000000000000000000000000000000000000000000000000000001"
 counter = "0x0000000000000000000000000000000000000000000000000000000000000001"
 
   [previous_kernel_public_inputs.end.nullifiers.array.inner.inner]
-  value = "0x18d79e3e7e4668fefe4397715d2e4c2237a5f95ab2ac55d4879656cfe1bcf91d"
+  value = "0x03ed0769b52099fa63e9daf05ac1a79447dfde0d577882a3398cee9823d0f64f"
   note_hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 [previous_kernel_public_inputs.end.nullifiers.array.contract_address]
@@ -5706,13 +5706,13 @@ length = "0x0000000000000000000000000000000000000000000000000000000000000001"
 
     [previous_kernel_public_inputs.end.public_call_requests.array.inner]
     is_static_call = false
-    calldata_hash = "0x2f8173f15424df1072c0f082ac0b807ac7bccaa4737a513efce5c0da01e1a4fb"
+    calldata_hash = "0x073ad6c80776b803f5717a0e7ff15baf3a2120f46b2d9d72fb48b4207aa9fbd4"
 
       [previous_kernel_public_inputs.end.public_call_requests.array.inner.msg_sender]
-      inner = "0x11fabdb558091af557d31e51bcc1851f57a5f97682b5d9a02e07e08fcd400262"
+      inner = "0x13d722ffb02a0513232f878cd60c21462fd2068f7929b5483ce79e098d12eaa4"
 
       [previous_kernel_public_inputs.end.public_call_requests.array.inner.contract_address]
-      inner = "0x0b03d660dd6476e196462e5df5768bfec510b3f14b8421e06efbd042ac56283e"
+      inner = "0x110402604888d41cce3bec9599ba7b0fe7579233f2f4c89a6811aa20cd39e9e0"
 
   [[previous_kernel_public_inputs.end.public_call_requests.array]]
   counter = "0x0000000000000000000000000000000000000000000000000000000000000000"
@@ -6419,7 +6419,7 @@ length = "0x0000000000000000000000000000000000000000000000000000000000000000"
     inner = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
   [previous_kernel_public_inputs.fee_payer]
-  inner = "0x11fabdb558091af557d31e51bcc1851f57a5f97682b5d9a02e07e08fcd400262"
+  inner = "0x13d722ffb02a0513232f878cd60c21462fd2068f7929b5483ce79e098d12eaa4"
 
 [padded_side_effects]
 note_hashes = [
@@ -8551,9 +8551,9 @@ read_request_index = "0x00000000000000000000000000000000000000000000000000000000
   "0x21f9172d72fdcdafc312eee05cf5092980dda821da5b760a9fb8dbdf607c8a20",
   "0x2373ea368857ec7af97e7b470d705848e2bf93ed7bef142a490f2119bcf82d8e",
   "0x120157cfaaa49ce3da30f8b47879114977c24b266d58b0ac18b325d878aafddf",
-  "0x03abcafac55776e31b8f4718e72b77bf2e3a3bd493aa6e7950fc5a2f820e1120",
+  "0x0a3dbeb4a4359dff9a8a697f4ef1e2c74f66273e8fbdfe8ddc0ab8213b279abc",
   "0x2d78ed82f93b61ba718b17c2dfe5b52375b4d37cbbed6f1fc98b47614b0cf21b",
-  "0x0f90510ea7fb617683b1b58cd66594717e5cb8cef3c1c66a5cf471f04f872283",
+  "0x140ac6069c3f76467ed453cecf88fadbc3e63f46339eeb338d62be087852c9b7",
   "0x1849b85f3c693693e732dfc4577217acc18295193bede09ce8b97ad910310972",
   "0x2a775ea761d20435b31fa2c33ff07663e24542ffb9e7b293dfce3042eb104686",
   "0x0f320b0703439a8114f81593de99cd0b8f3b9bf854601abb5b2ea0e8a3dda4a7",
@@ -8590,7 +8590,7 @@ read_request_index = "0x00000000000000000000000000000000000000000000000000000000
 ]
 
   [hints.note_hash_read_request_hints.settled_read_hints.leaf_preimage]
-  value = "0x277b0f46a0a4e76c5a97b25a495bf8e6c7a9b8ad8c6fdeb1243e2598f361b936"
+  value = "0x17a715a496ad23965aaf8881fefdd363d035a8043e7e40f7d3ae03053c410263"
 
 [[hints.note_hash_read_request_hints.settled_read_hints]]
 read_request_index = "0x0000000000000000000000000000000000000000000000000000000000000040"
