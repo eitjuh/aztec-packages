@@ -1,6 +1,10 @@
 name: Publish barretenberg-rs to crates.io
 
 on:
+  # Automatically publish on non-prerelease GitHub releases
+  release:
+    types: [published]
+  # Manual fallback
   workflow_dispatch:
     inputs:
       version:
@@ -13,14 +17,24 @@ on:
 jobs:
   publish:
     name: Publish barretenberg-rs
+    # Skip nightly/RC/spartan pre-releases; only publish full releases
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.release.prerelease }}
     runs-on: ubuntu-22.04
     permissions:
       contents: read
+    env:
+      # For release events, extract version from tag (strip leading 'v')
+      # For workflow_dispatch, use the input
+      PUBLISH_VERSION: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.version }}
     steps:
+      - name: Derive version
+        id: version
+        run: echo "version=${PUBLISH_VERSION#v}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout sources
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.ref || github.event.release.tag_name }}
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -33,7 +47,7 @@ jobs:
       - name: Download bb binary for code generation
         run: |
           curl -L -f -o bb.tar.gz \
-            "https://github.com/AztecProtocol/aztec-packages/releases/download/v${{ inputs.version }}/barretenberg-amd64-linux.tar.gz"
+            "https://github.com/AztecProtocol/aztec-packages/releases/download/v${{ steps.version.outputs.version }}/barretenberg-amd64-linux.tar.gz"
           tar -xzf bb.tar.gz
           chmod +x bb
 
@@ -46,7 +60,7 @@ jobs:
       - name: Set crate version
         working-directory: barretenberg/rust
         run: |
-          sed -i 's/^version = ".*"/version = "${{ inputs.version }}"/' Cargo.toml
+          sed -i 's/^version = ".*"/version = "${{ steps.version.outputs.version }}"/' Cargo.toml
 
       - name: Verify package contents
         working-directory: barretenberg/rust
@@ -67,7 +81,7 @@ jobs:
         if: ${{ failure() }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CRATE_VERSION: ${{ inputs.version }}
+          CRATE_VERSION: ${{ steps.version.outputs.version }}
           WORKFLOW_NAME: ${{ github.workflow }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
