@@ -1,8 +1,9 @@
 /**
  * Factory functions for creating validator HA signers
  */
+import { DateProvider } from '@aztec/foundation/timer';
 import type { ValidatorHASignerConfig } from '@aztec/stdlib/ha-signing';
-import { type TelemetryClient, getTelemetryClient } from '@aztec/telemetry-client';
+import { getTelemetryClient } from '@aztec/telemetry-client';
 
 import { Pool } from 'pg';
 
@@ -59,7 +60,8 @@ export async function createHASigner(
     throw new Error('databaseUrl is required for createHASigner');
   }
 
-  const telemetryClient = (deps?.telemetryClient ?? getTelemetryClient()) as TelemetryClient;
+  const telemetryClient = deps?.telemetryClient ?? getTelemetryClient();
+  const dateProvider = deps?.dateProvider ?? new DateProvider();
 
   // Create connection pool (or use provided pool)
   let pool: Pool;
@@ -85,7 +87,7 @@ export async function createHASigner(
   const metrics = new HASignerMetrics(telemetryClient, signerConfig.nodeId);
 
   // Create signer
-  const signer = new ValidatorHASigner(db, { ...signerConfig, databaseUrl }, metrics);
+  const signer = new ValidatorHASigner(db, { ...signerConfig, databaseUrl }, { metrics, dateProvider });
 
   return { signer, db };
 }

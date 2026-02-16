@@ -9,6 +9,7 @@ import type { Buffer32 } from '@aztec/foundation/buffer';
 import { EthAddress } from '@aztec/foundation/eth-address';
 import type { Signature } from '@aztec/foundation/eth-signature';
 import { type Logger, createLogger } from '@aztec/foundation/log';
+import type { DateProvider } from '@aztec/foundation/timer';
 import {
   DutyType,
   type HAProtectedSigningContext,
@@ -20,6 +21,11 @@ import type { DutyIdentifier } from './db/types.js';
 import type { HASignerMetrics } from './metrics.js';
 import { SlashingProtectionService } from './slashing_protection_service.js';
 import type { SlashingProtectionDatabase } from './types.js';
+
+export interface ValidatorHASignerDeps {
+  metrics: HASignerMetrics;
+  dateProvider: DateProvider;
+}
 
 /**
  * Validator High Availability Signer
@@ -45,12 +51,18 @@ export class ValidatorHASigner {
   private readonly slashingProtection: SlashingProtectionService;
   private readonly rollupAddress: EthAddress;
 
+  private readonly dateProvider: DateProvider;
+  private readonly metrics: HASignerMetrics;
+
   constructor(
     db: SlashingProtectionDatabase,
     private readonly config: ValidatorHASignerConfig,
-    private readonly metrics: HASignerMetrics,
+    deps: ValidatorHASignerDeps,
   ) {
     this.log = createLogger('validator-ha-signer');
+
+    this.metrics = deps.metrics;
+    this.dateProvider = deps.dateProvider;
 
     if (!config.haSigningEnabled) {
       // this shouldn't happen, the validator should use different signer for non-HA setups
@@ -61,7 +73,10 @@ export class ValidatorHASigner {
       throw new Error('NODE_ID is required for high-availability setups');
     }
     this.rollupAddress = config.l1Contracts.rollupAddress;
-    this.slashingProtection = new SlashingProtectionService(db, config, metrics);
+    this.slashingProtection = new SlashingProtectionService(db, config, {
+      metrics: deps.metrics,
+      dateProvider: deps.dateProvider,
+    });
     this.log.info('Validator HA Signer initialized with slashing protection', {
       nodeId: config.nodeId,
       rollupAddress: this.rollupAddress.toString(),
@@ -91,7 +106,7 @@ export class ValidatorHASigner {
     context: HAProtectedSigningContext,
     signFn: (messageHash: Buffer32) => Promise<Signature>,
   ): Promise<Signature> {
-    const startTime = Date.now();
+    const startTime = this.dateProvider.now();
     const dutyType = context.dutyType;
 
     let dutyIdentifier: DutyIdentifier;
@@ -141,7 +156,7 @@ export class ValidatorHASigner {
       lockToken,
     });
 
-    const duration = Date.now() - startTime;
+    const duration = this.dateProvider.now() - startTime;
     this.metrics.recordSigningSuccess(dutyType, duration);
 
     return signature;

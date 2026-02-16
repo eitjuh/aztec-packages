@@ -1,5 +1,6 @@
 import { SlotNumber } from '@aztec/foundation/branded-types';
 import type { EthAddress } from '@aztec/foundation/eth-address';
+import { DateProvider } from '@aztec/foundation/timer';
 import {
   DutyType,
   type HAProtectedSigningContext,
@@ -8,6 +9,7 @@ import {
   getBlockNumberFromSigningContext as getBlockNumberFromSigningContextFromStdlib,
   isHAProtectedContext,
 } from '@aztec/stdlib/ha-signing';
+import type { TelemetryClient } from '@aztec/telemetry-client';
 
 import type { Pool } from 'pg';
 
@@ -61,7 +63,11 @@ export interface CreateHASignerDeps {
   /**
    * Optional telemetry client for metrics
    */
-  telemetryClient?: any;
+  telemetryClient?: TelemetryClient;
+  /**
+   * Optional date provider for timestamps
+   */
+  dateProvider?: DateProvider;
 }
 
 /**

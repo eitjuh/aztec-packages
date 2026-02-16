@@ -3,6 +3,7 @@ import { Buffer32 } from '@aztec/foundation/buffer';
 import { EthAddress } from '@aztec/foundation/eth-address';
 import type { Signature } from '@aztec/foundation/eth-signature';
 import { sleep } from '@aztec/foundation/sleep';
+import { TestDateProvider } from '@aztec/foundation/timer';
 import { type ValidatorHASignerConfig, defaultValidatorHASignerConfig } from '@aztec/stdlib/ha-signing';
 import { getTelemetryClient } from '@aztec/telemetry-client';
 
@@ -34,6 +35,7 @@ describe('ValidatorHASigner', () => {
   let pool: Pool;
   let db: PostgresSlashingProtectionDatabase;
   let config: ValidatorHASignerConfig;
+  let dateProvider: TestDateProvider;
   const telemetryClient = getTelemetryClient();
 
   beforeEach(async () => {
@@ -43,6 +45,8 @@ describe('ValidatorHASigner', () => {
     await setupTestSchema(pglite);
     db = new PostgresSlashingProtectionDatabase(pool);
     await db.initialize();
+
+    dateProvider = new TestDateProvider();
 
     config = {
       haSigningEnabled: true,
@@ -80,7 +84,7 @@ describe('ValidatorHASigner', () => {
               databaseUrl: 'postgresql://user:pass@localhost:5432/testdb',
               haSigningEnabled: true,
             },
-            metrics,
+            { metrics, dateProvider },
           ),
       ).toThrow('NODE_ID is required for high-availability setups');
     });
@@ -88,7 +92,7 @@ describe('ValidatorHASigner', () => {
     it('should not initialize when enabled is false', () => {
       const disabledConfig = { ...config, haSigningEnabled: false };
       const metrics = new HASignerMetrics(telemetryClient, 'test-node');
-      expect(() => new ValidatorHASigner(db, disabledConfig, metrics)).toThrow(
+      expect(() => new ValidatorHASigner(db, disabledConfig, { metrics, dateProvider })).toThrow(
         'Validator HA Signer is not enabled in config',
       );
     });
@@ -97,7 +101,7 @@ describe('ValidatorHASigner', () => {
   describe('lifecycle', () => {
     it('should start and stop without error when enabled', async () => {
       const metrics = new HASignerMetrics(telemetryClient, config.nodeId);
-      const signer = new ValidatorHASigner(db, config, metrics);
+      const signer = new ValidatorHASigner(db, config, { metrics, dateProvider });
       await signer.start();
       await signer.stop();
     });
@@ -109,7 +113,7 @@ describe('ValidatorHASigner', () => {
 
     beforeEach(async () => {
       const metrics = new HASignerMetrics(telemetryClient, config.nodeId);
-      signer = new ValidatorHASigner(db, config, metrics);
+      signer = new ValidatorHASigner(db, config, { metrics, dateProvider });
       await signer.start();
       signFn = jest.fn<(messageHash: Buffer32) => Promise<Signature>>();
       signFn.mockResolvedValue(mockSignature);
@@ -788,7 +792,15 @@ describe('ValidatorHASigner', () => {
 
       // Create separate signers with different node IDs for the same validator
       const signers = nodeIds.map(
-        nodeId => new ValidatorHASigner(db, { ...config, nodeId }, new HASignerMetrics(telemetryClient, nodeId)),
+        nodeId =>
+          new ValidatorHASigner(
+            db,
+            { ...config, nodeId },
+            {
+              metrics: new HASignerMetrics(telemetryClient, nodeId),
+              dateProvider,
+            },
+          ),
       );
 
       // Start all signers
@@ -992,7 +1004,7 @@ describe('ValidatorHASigner', () => {
           ...config,
           l1Contracts: { rollupAddress: oldRollupAddress },
         },
-        new HASignerMetrics(telemetryClient, config.nodeId),
+        { metrics: new HASignerMetrics(telemetryClient, config.nodeId), dateProvider },
       );
       await oldSigner.start();
 
@@ -1022,7 +1034,7 @@ describe('ValidatorHASigner', () => {
             ...config,
             l1Contracts: { rollupAddress: newRollupAddress },
           },
-          new HASignerMetrics(telemetryClient, config.nodeId),
+          { metrics: new HASignerMetrics(telemetryClient, config.nodeId), dateProvider },
         );
         // Starting the new signer will clean up duties with outdated rollup addresses
         await newSigner.start();
